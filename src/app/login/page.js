@@ -77,8 +77,54 @@ export default function LoginPage() {
         endpoint = `${API_URL}/auth/user/login`;
         loginData.counter_no = formData.counter_no; // User needs counter
       } else if (activeTab === 'admin') {
-        endpoint = `${API_URL}/auth/super-admin/login`; // Changed to super-admin endpoint
-        // Admin doesn't need counter_no
+        // First try super admin login
+        endpoint = `${API_URL}/auth/super-admin/login`;
+        
+        let response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(loginData),
+        });
+
+        // If super admin login fails, try regular admin login
+        if (!response.ok) {
+          endpoint = `${API_URL}/auth/admin/login`;
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(loginData),
+          });
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const errorMsg = data.message || 'Invalid credentials';
+          dispatch(setError(errorMsg));
+          showToast(errorMsg, 'error');
+          throw new Error(errorMsg);
+        }
+
+        // Store credentials in Redux and localStorage
+        dispatch(setCredentials({
+          user: data.user,
+          token: data.token,
+        }));
+
+        // Show success message
+        showToast('Login successful!', 'success');
+
+        // Redirect to admin dashboard
+        setTimeout(() => {
+          router.push('/superadmin');
+        }, 500);
+        
+        dispatch(setLoading(false));
+        return;
       }
 
       const response = await fetch(endpoint, {
