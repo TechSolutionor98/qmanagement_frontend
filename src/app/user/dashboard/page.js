@@ -45,25 +45,25 @@ export default function UserDashboard() {
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Top Section */}
-        <div className="grid grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           {/* Load More Tickets Card - Left */}
-          <div className="rounded-lg p-0">
+          <div className="rounded-lg">
             <button
               onClick={loadMoreTickets}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg text-base font-medium transition-colors mb-4"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg text-lg font-medium transition-colors mb-3"
             >
               Load More Tickets
             </button>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <p className="text-sm text-gray-600 mb-3">Total Pending Tickets</p>
+            <div className="bg-white rounded-lg shadow-md py-4 px-6 text-center">
+              <p className="text-sm text-gray-600 mb-2">Total Pending Tickets</p>
               <p className="text-6xl font-bold text-gray-800">{totalPending}</p>
             </div>
           </div>
 
           {/* Current Ticket ID Card - Center */}
-          <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-md py-8 px-6 flex items-center justify-center">
             <div className="text-center">
-              <h1 className="text-2xl font-semibold text-gray-700 mb-0">
+              <h1 className="text-3xl font-semibold text-gray-700">
                 Current Ticket ID: <span className="text-gray-900">G-106</span>
               </h1>
             </div>
@@ -71,46 +71,46 @@ export default function UserDashboard() {
 
           {/* Show Called Tickets Button - Right */}
           <div className="flex items-start justify-end">
-            <button className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg text-base font-medium transition-colors">
+            <button className="bg-green-500 hover:bg-green-600 text-white px-8 py-2.5 rounded-lg text-lg font-medium transition-colors">
               Show Called Tickets
             </button>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex justify-center gap-3 mb-6">
           <button
             onClick={handleCall}
-            className="bg-green-500 hover:bg-green-600 text-white px-12 py-3 rounded-lg text-lg font-medium transition-colors"
+            className="bg-green-500 hover:bg-green-600 text-white px-10 py-3 rounded-lg text-xl font-medium transition-colors"
           >
             Call
           </button>
           <button
             onClick={handleNext}
-            className="bg-red-500 hover:bg-red-600 text-white px-12 py-3 rounded-lg text-lg font-medium transition-colors"
+            className="bg-red-500 hover:bg-red-600 text-white px-10 py-3 rounded-lg text-xl font-medium transition-colors"
           >
             Next
           </button>
           <button
             onClick={handleAccept}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-3 rounded-lg text-lg font-medium transition-colors"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-lg text-xl font-medium transition-colors"
           >
             Accept
           </button>
         </div>
 
         {/* Manual Ticket Entry */}
-        <div className="flex justify-center gap-3 mb-8">
+        <div className="flex justify-center gap-3 mb-6">
           <input
             type="text"
             value={manualTicketId}
             onChange={(e) => setManualTicketId(e.target.value)}
             placeholder="Enter Manual Ticket ID"
-            className="px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-80 bg-white text-base"
+            className="px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-72 bg-white text-lg"
           />
           <button
             onClick={handleSelectManual}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-lg text-base font-medium transition-colors"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
           >
             Select
           </button>
