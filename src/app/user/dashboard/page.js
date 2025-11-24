@@ -45,33 +45,34 @@ export default function UserDashboard() {
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Top Section */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="flex ml-2 gap-3 mb-6">
           {/* Load More Tickets Card - Left */}
-          <div className="rounded-lg">
+          <div className="w-45 rounded-lg">
             <button
               onClick={loadMoreTickets}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg text-lg font-medium transition-colors mb-3"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg text-base font-medium transition-colors mb-3"
             >
               Load More Tickets
             </button>
-            <div className="bg-white rounded-lg shadow-md py-4 px-6 text-center">
-              <p className="text-sm text-gray-600 mb-2">Total Pending Tickets</p>
-              <p className="text-6xl font-bold text-gray-800">{totalPending}</p>
+            <div className="bg-white rounded-lg shadow-md px-2 py-2 text-center">
+              <p className="text-[15px] leading-[22.95px] text-gray-600 text-center">Total Pending Tickets</p>
+              <p className="text-2xl font-bold mt-2 text-gray-800">{totalPending}</p>
             </div>
           </div>
 
           {/* Current Ticket ID Card - Center */}
-          <div className="bg-white rounded-lg shadow-md py-8 px-6 flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-3xl font-semibold text-gray-700">
-                Current Ticket ID: <span className="text-gray-900">G-106</span>
+          <div className="flex-1 bg-white rounded-lg shadow-md py-8 px-6 flex items-center justify-center">
+            <div className="flex items-center gap-4">
+              <h1 className="text-[38px] font-semibold text-gray-700">
+                Current Ticket ID:
               </h1>
+              <p className="text-[38px] font-bold text-gray-900">{currentTicket}</p>
             </div>
           </div>
 
           {/* Show Called Tickets Button - Right */}
-          <div className="flex items-start justify-end">
-            <button className="bg-green-500 hover:bg-green-600 text-white px-8 py-2.5 rounded-lg text-lg font-medium transition-colors">
+          <div className="flex text-[15px] leading-[22.95px] items-start justify-end width-[180px]">
+            <button className="bg-green-500 hover:bg-green-600 text-white px-8 py-2.5 rounded-lg text-base font-medium transition-colors">
               Show Called Tickets
             </button>
           </div>
@@ -81,19 +82,19 @@ export default function UserDashboard() {
         <div className="flex justify-center gap-3 mb-6">
           <button
             onClick={handleCall}
-            className="bg-green-500 hover:bg-green-600 text-white px-10 py-3 rounded-lg text-xl font-medium transition-colors"
+            className="bg-green-500 hover:bg-green-600 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
           >
             Call
           </button>
           <button
             onClick={handleNext}
-            className="bg-red-500 hover:bg-red-600 text-white px-10 py-3 rounded-lg text-xl font-medium transition-colors"
+            className="bg-red-500 hover:bg-red-600 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
           >
             Next
           </button>
           <button
             onClick={handleAccept}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-lg text-xl font-medium transition-colors"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
           >
             Accept
           </button>
@@ -106,11 +107,11 @@ export default function UserDashboard() {
             value={manualTicketId}
             onChange={(e) => setManualTicketId(e.target.value)}
             placeholder="Enter Manual Ticket ID"
-            className="px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-72 bg-white text-lg"
+            className="px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-72 bg-white text-base"
           />
           <button
             onClick={handleSelectManual}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-lg text-base font-medium transition-colors"
           >
             Select
           </button>
