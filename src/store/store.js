@@ -6,6 +6,7 @@ import serviceReducer from './slices/serviceSlice'
 import adminReducer from './slices/adminSlice'
 import configReducer from './slices/configSlice'
 import dashboardReducer from './slices/dashboardSlice'
+import licenseReducer from './slices/licenseSlice'
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     admin: adminReducer,
     config: configReducer,
     dashboard: dashboardReducer,
+    license: licenseReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

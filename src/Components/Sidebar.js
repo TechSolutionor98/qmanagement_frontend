@@ -7,7 +7,7 @@ import { selectCurrentUser } from '@/store/slices/authSlice';
 import { FaUser, FaBell, FaTv, FaSignOutAlt } from 'react-icons/fa';
 import { MdSettings, MdDashboard } from 'react-icons/md';
 import { HiDocumentReport } from 'react-icons/hi';
-import { FaUsers } from 'react-icons/fa6';
+import { FaUsers, FaFileContract } from 'react-icons/fa6';
 import { IoChevronForward } from 'react-icons/io5';
 
 export default function Sidebar() {
@@ -16,6 +16,7 @@ export default function Sidebar() {
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isReportsOpen, setIsReportsOpen] = useState(false);
   const [isUsersOpen, setIsUsersOpen] = useState(false);
+  const [isLicenseOpen, setIsLicenseOpen] = useState(false);
 
   // Extract role from pathname instead of using state
   const role = pathname.split('/')[1] || 'admin';
@@ -33,16 +34,72 @@ export default function Sidebar() {
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">MISC</p>
         </div>
 
-        {/* Profile - Dynamic Route Support */}
-        {/* <Link
-          href={`/${role}/profile`}
-          className={`flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-            pathname.includes('/profile') ? 'bg-gray-50 text-gray-900 border-r-2 border-green-500' : ''
-          }`}
-        >
-          <FaUser className="text-lg" />
-          <span className="text-sm font-medium">Profile</span>
-        </Link> */}
+        {/* License Management - Only for Super Admin */}
+        {isSuperAdmin && (
+          <div>
+            <button
+              onClick={() => setIsLicenseOpen(!isLicenseOpen)}
+              className={`flex items-center justify-between w-full px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
+                pathname.includes('/license') ? 'bg-gray-50 text-gray-900' : ''
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <FaFileContract className="text-lg" />
+                <span className="text-sm font-medium">License Management</span>
+              </div>
+              <IoChevronForward className={`text-sm transition-transform ${isLicenseOpen ? 'rotate-90' : ''}`} />
+            </button>
+            {isLicenseOpen && (
+              <div className="bg-gray-50">
+                <Link
+                  href={`/${role}/license/create-license`}
+                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
+                    pathname.includes('/license/create-license') ? 'text-green-600 font-medium' : ''
+                  }`}
+                >
+                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
+                    pathname.includes('/license/create-license') ? 'border-green-600' : 'border-gray-400'
+                  }`}>
+                    {pathname.includes('/license/create-license') && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+                    )}
+                  </span>
+                  <span className="text-sm">Create License</span>
+                </Link>
+                <Link
+                  href={`/${role}/license/license-report`}
+                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
+                    pathname.includes('/license/license-report') ? 'text-green-600 font-medium' : ''
+                  }`}
+                >
+                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
+                    pathname.includes('/license/license-report') ? 'border-green-600' : 'border-gray-400'
+                  }`}>
+                    {pathname.includes('/license/license-report') && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+                    )}
+                  </span>
+                  <span className="text-sm">License Report</span>
+                </Link>
+                <Link
+                  href={`/${role}/license/list-of-license`}
+                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
+                    pathname.includes('/license/list-of-license') ? 'text-green-600 font-medium' : ''
+                  }`}
+                >
+                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
+                    pathname.includes('/license/list-of-license') ? 'border-green-600' : 'border-gray-400'
+                  }`}>
+                    {pathname.includes('/license/list-of-license') && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+                    )}
+                  </span>
+                  <span className="text-sm">List of License</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Services */}
         <div>
