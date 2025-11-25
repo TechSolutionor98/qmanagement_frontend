@@ -1,14 +1,24 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FaFilter, FaCalendarAlt, FaSearch, FaChevronDown, FaFileWord } from 'react-icons/fa';
 import { HiMenu } from 'react-icons/hi';
 
 export default function SuperAdminPage() {
+  const router = useRouter();
   const [filterBy, setFilterBy] = useState('');
   const [filterValue, setFilterValue] = useState('');
   const [status, setStatus] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Redirect user role to dashboard
+  useEffect(() => {
+    const userRole = localStorage.getItem('userRole');
+    if (userRole === 'user') {
+      router.push('/user/dashboard');
+    }
+  }, [router]);
 
   const services = [
     {

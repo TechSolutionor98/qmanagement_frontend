@@ -34,7 +34,7 @@ export default function UserSidebar({ username = 'user19', counter = '2' }) {
         <Link
           href="/user/dashboard"
           className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${
-            isActive('/user/dashboard') 
+            isActive('/user/dashboard') || pathname?.includes('/dashboard')
               ? 'bg-green-50 text-green-600 border-r-4 border-green-600' 
               : 'text-gray-600 hover:bg-gray-50'
           }`}
@@ -47,7 +47,7 @@ export default function UserSidebar({ username = 'user19', counter = '2' }) {
         <Link
           href="/user/completed-tasks"
           className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${
-            isActive('/user/completed-tasks') 
+            isActive('/user/completed-tasks') || pathname?.includes('/completed-tasks')
               ? 'bg-green-50 text-green-600 border-r-4 border-green-600' 
               : 'text-gray-600 hover:bg-gray-50'
           }`}
@@ -60,7 +60,7 @@ export default function UserSidebar({ username = 'user19', counter = '2' }) {
         <Link
           href="/user/profile"
           className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${
-            isActive('/user/profile') || pathname === '/user/profile'
+            isActive('/user/profile') || pathname?.includes('/profile')
               ? 'bg-green-50 text-green-600 border-r-4 border-green-600' 
               : 'text-gray-600 hover:bg-gray-50'
           }`}
@@ -73,7 +73,7 @@ export default function UserSidebar({ username = 'user19', counter = '2' }) {
         <Link
           href="/user/logout"
           className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${
-            isActive('/user/logout') 
+            isActive('/user/logout') || pathname?.includes('/logout')
               ? 'bg-green-50 text-green-600 border-r-4 border-green-600' 
               : 'text-gray-600 hover:bg-gray-50'
           }`}
