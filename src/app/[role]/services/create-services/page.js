@@ -1,5 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { getToken } from '@/utils/sessionStorage';
 
 export default function CreateServicesPage() {
   const [serviceNameEnglish, setServiceNameEnglish] = useState('');
@@ -10,32 +12,116 @@ export default function CreateServicesPage() {
   const [mainService, setMainService] = useState('');
   const [showSubServicePopup, setShowSubServicePopup] = useState('No');
 
-  const [services, setServices] = useState([
-    { name: 'General Services (الخدمات العامة)', initial: 'G', popup: 'No' },
-    { name: 'child (Child)', initial: 'C', popup: 'N/A' },
-    { name: 'Payment Services (الدفع الخدمات)', initial: 'P', popup: 'No' },
-    { name: 'Establishment Services (التأسيس الخدمات)', initial: 'E', popup: 'No' },
-    { name: 'Special Needs (ذوي الاحتياجات الخاصة)', initial: 'S', popup: 'No' },
-    { name: 'Labor Services (خدمات العمال)', initial: 'L', popup: 'No' },
-    { name: 'Emirates ID New (هوية جديدة)', initial: 'N', popup: 'No' },
-    { name: 'Emirates ID Renewal (هوية تجديد)', initial: 'R', popup: 'No' },
-    { name: 'Emirates ID Replacement (هوية استبدال)', initial: 'P', popup: 'No' },
-  ]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
 
-  const handleAddService = () => {
-    console.log('Service added');
+  // Fetch all services on component mount
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const token = getToken();
+      const response = await axios.get('http://localhost:5000/api/services/all', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        setServices(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      alert('Failed to fetch services');
+    }
   };
 
-  const handleEdit = (index) => {
-    console.log('Edit service:', index);
+  const handleAddService = async () => {
+    if (!serviceNameEnglish || !serviceNameArabic || !initialTicket) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = getToken();
+      const formData = new FormData();
+      formData.append('service_name', serviceNameEnglish);
+      formData.append('service_name_arabic', serviceNameArabic);
+      formData.append('initial_ticket', initialTicket);
+      formData.append('color', serviceColor);
+      
+      if (uploadLogo) {
+        formData.append('logo', uploadLogo);
+      }
+
+      const url = editingId 
+        ? `http://localhost:5000/api/services/update/${editingId}`
+        : 'http://localhost:5000/api/services/create';
+      
+      const method = editingId ? 'put' : 'post';
+
+      const response = await axios[method](url, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.success) {
+        alert(editingId ? 'Service updated successfully!' : 'Service created successfully!');
+        resetForm();
+        fetchServices();
+      }
+    } catch (error) {
+      console.error('Error saving service:', error);
+      alert('Failed to save service');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (index) => {
-    const updatedServices = services.filter((_, i) => i !== index);
-    setServices(updatedServices);
+  const resetForm = () => {
+    setServiceNameEnglish('');
+    setServiceNameArabic('');
+    setInitialTicket('');
+    setServiceColor('#000000');
+    setUploadLogo(null);
+    setEditingId(null);
+  };
+
+  const handleEdit = (service) => {
+    setServiceNameEnglish(service.service_name);
+    setServiceNameArabic(service.service_name_arabic);
+    setInitialTicket(service.initial_ticket);
+    setServiceColor(service.color);
+    setEditingId(service.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this service?')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const response = await axios.delete(`http://localhost:5000/api/services/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('Service deleted successfully!');
+        fetchServices();
+      }
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      alert('Failed to delete service');
+    }
   };
 
   const handleAddTimeRestriction = () => {
@@ -156,10 +242,19 @@ export default function CreateServicesPage() {
           <div className="mt-6">
             <button
               onClick={handleAddService}
-              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors"
+              disabled={loading}
+              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Add Service
+              {loading ? 'Saving...' : (editingId ? 'Update Service' : 'Add Service')}
             </button>
+            {editingId && (
+              <button
+                onClick={resetForm}
+                className="ml-3 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -174,36 +269,69 @@ export default function CreateServicesPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Logo</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Service Name</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Initial Ticket</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Show Sub-Service Popup</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Color</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {services.map((service, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-700">{service.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{service.initial}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{service.popup}</td>
-                  <td className="px-4 py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(index)}
-                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(index)}
-                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
+              {services.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                    No services found. Create your first service above.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                services.map((service) => (
+                  <tr key={service.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {service.logo_url ? (
+                        <img 
+                          src={`http://localhost:5000${service.logo_url}`} 
+                          alt={service.service_name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                          No Logo
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      <div>{service.service_name}</div>
+                      <div className="text-gray-500 text-xs">{service.service_name_arabic}</div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{service.initial_ticket}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-6 h-6 rounded border border-gray-300"
+                          style={{ backgroundColor: service.color }}
+                        ></div>
+                        <span>{service.color}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEdit(service)}
+                          className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(service.id)}
+                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

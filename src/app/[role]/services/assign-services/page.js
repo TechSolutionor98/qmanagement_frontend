@@ -1,56 +1,136 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { getToken } from '@/utils/sessionStorage';
 
 export default function AssignServicesPage() {
   const [selectedUser, setSelectedUser] = useState('');
   const [selectedServices, setSelectedServices] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [services, setServices] = useState([]);
+  const [assignedServices, setAssignedServices] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const [assignedServices, setAssignedServices] = useState([
-    {
-      username: 'user18',
-      services: 'Payment Services, Establishment Services, Labor Services, Emirates ID New'
-    },
-    {
-      username: 'user19',
-      services: 'Payment Services'
+  useEffect(() => {
+    fetchUsers();
+    fetchServices();
+    fetchAssignedServices();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const token = getToken();
+      const response = await axios.get('http://localhost:5000/api/users/all', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setUsers(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
-  ]);
+  };
 
-  const availableServices = [
-    'General Services',
-    'Payment Services',
-    'Establishment Services',
-    'Special Needs',
-    'Labor Services',
-    'Emirates ID New',
-    'Emirates ID Renewal',
-    'Emirates ID Replacement',
-    'child'
-  ];
+  const fetchServices = async () => {
+    try {
+      const token = getToken();
+      const response = await axios.get('http://localhost:5000/api/services/all', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setServices(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
 
-  const handleServiceToggle = (service) => {
-    if (selectedServices.includes(service)) {
-      setSelectedServices(selectedServices.filter(s => s !== service));
+  const fetchAssignedServices = async () => {
+    try {
+      const token = getToken();
+      const response = await axios.get('http://localhost:5000/api/services/assigned', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setAssignedServices(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching assigned services:', error);
+    }
+  };
+
+  const handleServiceToggle = (serviceId) => {
+    if (selectedServices.includes(serviceId)) {
+      setSelectedServices(selectedServices.filter(s => s !== serviceId));
     } else {
-      setSelectedServices([...selectedServices, service]);
+      setSelectedServices([...selectedServices, serviceId]);
     }
   };
 
   const handleSelectAll = () => {
-    if (selectedServices.length === availableServices.length) {
+    if (selectedServices.length === services.length) {
       setSelectedServices([]);
     } else {
-      setSelectedServices([...availableServices]);
+      setSelectedServices(services.map(s => s.id));
     }
   };
 
-  const handleAssignServices = () => {
-    console.log('Assign services to user:', selectedUser, selectedServices);
+  const handleAssignServices = async () => {
+    if (!selectedUser) {
+      alert('Please select a user');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = getToken();
+      const response = await axios.post(
+        'http://localhost:5000/api/services/assign',
+        {
+          user_id: selectedUser,
+          service_ids: selectedServices
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        alert('Services assigned successfully!');
+        setSelectedUser('');
+        setSelectedServices([]);
+        fetchAssignedServices();
+      }
+    } catch (error) {
+      console.error('Error assigning services:', error);
+      alert('Failed to assign services');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteAll = (username) => {
-    const updatedServices = assignedServices.filter(item => item.username !== username);
-    setAssignedServices(updatedServices);
+  const handleDeleteAll = async (userId) => {
+    if (!confirm('Are you sure you want to remove all services from this user?')) {
+      return;
+    }
+
+    try {
+      const token = getToken();
+      const response = await axios.delete(
+        `http://localhost:5000/api/services/assigned/${userId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        alert('All services removed successfully!');
+        fetchAssignedServices();
+      }
+    } catch (error) {
+      console.error('Error deleting services:', error);
+      alert('Failed to remove services');
+    }
   };
 
   return (
@@ -73,20 +153,28 @@ export default function AssignServicesPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {assignedServices.map((item, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-700">{item.username}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{item.services}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <button
-                      onClick={() => handleDeleteAll(item.username)}
-                      className="px-4 py-1.5 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                    >
-                      Delete All
-                    </button>
+              {assignedServices.length === 0 ? (
+                <tr>
+                  <td colSpan="3" className="px-6 py-8 text-center text-gray-500">
+                    No services assigned yet
                   </td>
                 </tr>
-              ))}
+              ) : (
+                assignedServices.map((item) => (
+                  <tr key={item.user_id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-700">{item.username}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{item.services || 'No services assigned'}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <button
+                        onClick={() => handleDeleteAll(item.user_id)}
+                        className="px-4 py-1.5 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                      >
+                        Delete All
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -110,9 +198,11 @@ export default function AssignServicesPage() {
               className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-700"
             >
               <option value="">Select User</option>
-              <option value="user18">user18</option>
-              <option value="user19">user19</option>
-              <option value="user20">user20</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.username}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -128,30 +218,34 @@ export default function AssignServicesPage() {
                 <input
                   type="checkbox"
                   id="select-all"
-                  checked={selectedServices.length === availableServices.length}
+                  checked={selectedServices.length === services.length && services.length > 0}
                   onChange={handleSelectAll}
                   className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
                 />
-                <label htmlFor="select-all" className="ml-2 text-sm text-gray-700">
+                <label htmlFor="select-all" className="ml-2 text-sm text-gray-700 font-medium">
                   Select All
                 </label>
               </div>
 
               {/* Individual Service Checkboxes */}
-              {availableServices.map((service, index) => (
-                <div key={index} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`service-${index}`}
-                    checked={selectedServices.includes(service)}
-                    onChange={() => handleServiceToggle(service)}
-                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                  />
-                  <label htmlFor={`service-${index}`} className="ml-2 text-sm text-gray-700">
-                    {service}
-                  </label>
-                </div>
-              ))}
+              {services.length === 0 ? (
+                <p className="text-sm text-gray-500 ml-6">No services available. Create services first.</p>
+              ) : (
+                services.map((service) => (
+                  <div key={service.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`service-${service.id}`}
+                      checked={selectedServices.includes(service.id)}
+                      onChange={() => handleServiceToggle(service.id)}
+                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <label htmlFor={`service-${service.id}`} className="ml-2 text-sm text-gray-700">
+                      {service.service_name} ({service.service_name_arabic})
+                    </label>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -159,9 +253,10 @@ export default function AssignServicesPage() {
           <div>
             <button
               onClick={handleAssignServices}
-              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors"
+              disabled={loading}
+              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Assign Services
+              {loading ? 'Assigning...' : 'Assign Services'}
             </button>
           </div>
         </div>

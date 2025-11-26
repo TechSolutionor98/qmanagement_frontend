@@ -447,13 +447,13 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="mt-16 py-6 border-t border-gray-200">
-          <div className="text-center text-gray-600">
-            © {new Date().getFullYear()}, made with ❤️ by{' '}
+          <div className="py-4 px-8 text-gray-600">
+            © {new Date().getFullYear()}, Developed By{' '}
             <a 
               href="https://techsolutionor.com" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="font-bold text-blue-600 hover:text-blue-700"
+              className="font-bold text-green-600 hover:text-blue-700"
             >
               TechSolutionor
             </a>

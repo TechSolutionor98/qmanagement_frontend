@@ -3,9 +3,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/store/slices/authSlice';
-import { FaBell, FaUserCircle, FaLock, FaGlobe, FaSignOutAlt, FaInfoCircle } from 'react-icons/fa';
+import { FaBell, FaLock, FaGlobe, FaSignOutAlt, FaInfoCircle } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
-import MainLogo from '@/Components/images/logo_main.jpg';
+import MainLogo from '@/Components/images/logo_main.png';
 
 export default function Navbar() {
   const currentUser = useSelector(selectCurrentUser);
@@ -93,7 +93,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-white border-b border-gray-200 px-8 py-2.5 sticky top-0 z-50 shadow-md">
+      <nav className="bg-[#71dd37] border-b border-gray-200 px-8 py-2.5 sticky top-0 z-50 shadow-md">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link href={`/${role}`} className="flex items-center hover:opacity-90 transition-opacity">
@@ -111,7 +111,7 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             {/* Notifications */}
             <div className="relative">
-              <button
+              {/* <button
                 onClick={() => {
                   setShowNotifications(!showNotifications);
                   setShowProfile(false);
@@ -120,9 +120,8 @@ export default function Navbar() {
                 aria-label="Notifications"
               >
                 <FaBell className="text-lg" />
-                {/* Notification Badge */}
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white animate-pulse"></span>
-              </button>
+              </button> */}
 
               {/* Notifications Dropdown */}
               {showNotifications && (

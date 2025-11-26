@@ -27,11 +27,11 @@ export default function Sidebar() {
   const isActive = (path) => pathname === path;
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 h-screen sticky top-0 flex flex-col overflow-y-auto">
+    <aside className="w-64 h-screen sticky top-0 flex flex-col overflow-y-auto" style={{ backgroundColor: '#2d3540', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
       {/* Navigation */}
-      <nav className="flex-1 py-4 ml-4">
-        <div className="px-4 mb-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">MISC</p>
+      <nav className="flex-1 py-6">
+        <div className="px-6 mb-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">MENU</p>
         </div>
 
         {/* License Management - Only for Super Admin */}
@@ -39,61 +39,49 @@ export default function Sidebar() {
           <div>
             <button
               onClick={() => setIsLicenseOpen(!isLicenseOpen)}
-              className={`flex items-center justify-between w-full px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-                pathname.includes('/license') ? 'bg-gray-50 text-gray-900' : ''
+              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+                pathname.includes('/license') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
                 <FaFileContract className="text-lg" />
                 <span className="text-sm font-medium">License Management</span>
               </div>
-              <IoChevronForward className={`text-sm transition-transform ${isLicenseOpen ? 'rotate-90' : ''}`} />
+              <IoChevronForward className={`text-sm transition-transform duration-200 ${isLicenseOpen ? 'rotate-90' : ''}`} />
             </button>
             {isLicenseOpen && (
-              <div className="bg-gray-50">
+              <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/license/create-license`}
-                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
-                    pathname.includes('/license/create-license') ? 'text-green-600 font-medium' : ''
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/license/create-license') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
-                    pathname.includes('/license/create-license') ? 'border-green-600' : 'border-gray-400'
-                  }`}>
-                    {pathname.includes('/license/create-license') && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    )}
-                  </span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/license/create-license') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
                   <span className="text-sm">Create License</span>
                 </Link>
                 <Link
                   href={`/${role}/license/license-report`}
-                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
-                    pathname.includes('/license/license-report') ? 'text-green-600 font-medium' : ''
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/license/license-report') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
-                    pathname.includes('/license/license-report') ? 'border-green-600' : 'border-gray-400'
-                  }`}>
-                    {pathname.includes('/license/license-report') && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    )}
-                  </span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/license/license-report') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
                   <span className="text-sm">License Report</span>
                 </Link>
                 <Link
                   href={`/${role}/license/list-of-license`}
-                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
-                    pathname.includes('/license/list-of-license') ? 'text-green-600 font-medium' : ''
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/license/list-of-license') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
-                    pathname.includes('/license/list-of-license') ? 'border-green-600' : 'border-gray-400'
-                  }`}>
-                    {pathname.includes('/license/list-of-license') && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    )}
-                  </span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/license/list-of-license') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
                   <span className="text-sm">List of License</span>
                 </Link>
               </div>
@@ -106,46 +94,38 @@ export default function Sidebar() {
           <div>
             <button
               onClick={() => setIsServicesOpen(!isServicesOpen)}
-              className={`flex items-center justify-between w-full px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-                pathname.includes('/services') ? 'bg-gray-50 text-gray-900' : ''
+              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+                pathname.includes('/services') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
                 <MdSettings className="text-lg" />
                 <span className="text-sm font-medium">Services</span>
               </div>
-              <IoChevronForward className={`text-sm transition-transform ${isServicesOpen ? 'rotate-90' : ''}`} />
+              <IoChevronForward className={`text-sm transition-transform duration-200 ${isServicesOpen ? 'rotate-90' : ''}`} />
             </button>
             {isServicesOpen && (
-              <div className="bg-gray-50">
+              <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/services/create-services`}
-                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
-                    pathname.includes('/services/create-services') ? 'text-green-600 font-medium' : ''
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/services/create-services') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
-                    pathname.includes('/services/create-services') ? 'border-green-600' : 'border-gray-400'
-                  }`}>
-                    {pathname.includes('/services/create-services') && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    )}
-                  </span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/services/create-services') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
                   <span className="text-sm">Create Services</span>
                 </Link>
                 <Link
                   href={`/${role}/services/assign-services`}
-                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
-                    pathname.includes('/services/assign-services') ? 'text-green-600 font-medium' : ''
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/services/assign-services') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
-                    pathname.includes('/services/assign-services') ? 'border-green-600' : 'border-gray-400'
-                  }`}>
-                    {pathname.includes('/services/assign-services') && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    )}
-                  </span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/services/assign-services') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
                   <span className="text-sm">Assign Services</span>
                 </Link>
               </div>
@@ -158,46 +138,38 @@ export default function Sidebar() {
           <div>
             <button
               onClick={() => setIsReportsOpen(!isReportsOpen)}
-              className={`flex items-center justify-between w-full px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-                pathname.includes('/reports') ? 'bg-gray-50 text-gray-900' : ''
+              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+                pathname.includes('/reports') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
                 <HiDocumentReport className="text-lg" />
                 <span className="text-sm font-medium">Reports</span>
               </div>
-              <IoChevronForward className={`text-sm transition-transform ${isReportsOpen ? 'rotate-90' : ''}`} />
+              <IoChevronForward className={`text-sm transition-transform duration-200 ${isReportsOpen ? 'rotate-90' : ''}`} />
             </button>
             {isReportsOpen && (
-              <div className="bg-gray-50">
+              <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/reports/short-reports`}
-                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
-                    pathname.includes('/reports/short-reports') ? 'text-green-600 font-medium' : ''
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/reports/short-reports') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
-                    pathname.includes('/reports/short-reports') ? 'border-green-600' : 'border-gray-400'
-                  }`}>
-                    {pathname.includes('/reports/short-reports') && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    )}
-                  </span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/reports/short-reports') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
                   <span className="text-sm">Short Reports</span>
                 </Link>
                 <Link
                   href={`/${role}/reports/details-reports`}
-                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
-                    pathname.includes('/reports/details-reports') ? 'text-green-600 font-medium' : ''
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/reports/details-reports') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
-                    pathname.includes('/reports/details-reports') ? 'border-green-600' : 'border-gray-400'
-                  }`}>
-                    {pathname.includes('/reports/details-reports') && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-                    )}
-                  </span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/reports/details-reports') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
                   <span className="text-sm">Details Reports</span>
                 </Link>
               </div>
@@ -209,8 +181,8 @@ export default function Sidebar() {
         {!isSuperAdmin && (
           <Link
             href={`/${role}/configuration`}
-            className={`flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-              pathname.includes('/configuration') ? 'bg-gray-50 text-gray-900 border-r-2 border-green-500' : ''
+            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
+              pathname.includes('/configuration') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}
           >
             <FaBell className="text-lg" />
@@ -222,8 +194,8 @@ export default function Sidebar() {
         {!isSuperAdmin && (
           <Link
             href={`/${role}/counter-display`}
-            className={`flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-              pathname.includes('/counter-display') ? 'bg-gray-50 text-gray-900 border-r-2 border-green-500' : ''
+            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
+              pathname.includes('/counter-display') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}
           >
             <FaTv className="text-lg" />
@@ -236,25 +208,27 @@ export default function Sidebar() {
           <div>
             <button
               onClick={() => setIsUsersOpen(!isUsersOpen)}
-              className={`flex items-center justify-between w-full px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-                pathname.includes('/users') ? 'bg-gray-50 text-gray-900' : ''
+              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+                pathname.includes('/users') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
                 <FaUsers className="text-lg" />
                 <span className="text-sm font-medium">Users & Permissions</span>
               </div>
-              <IoChevronForward className={`text-sm transition-transform ${isUsersOpen ? 'rotate-90' : ''}`} />
+              <IoChevronForward className={`text-sm transition-transform duration-200 ${isUsersOpen ? 'rotate-90' : ''}`} />
             </button>
             {isUsersOpen && (
-              <div className="bg-gray-50">
+              <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/users/user&sessions`}
-                  className={`flex items-center gap-3 px-14 py-2 text-gray-600 hover:bg-gray-100 transition-colors ${
-                    pathname.includes('/users/user&sessions') ? 'text-gray-900 font-medium' : ''
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/users/user&sessions') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <span className="text-xs">•</span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/users/user&sessions') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
                   <span className="text-sm">User & Sessions</span>
                 </Link>
               </div>
@@ -266,8 +240,8 @@ export default function Sidebar() {
         {!isSuperAdmin && (
           <Link
             href={`/${role}/display-screens-sessions`}
-            className={`flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-              pathname.includes('/display-screens-sessions') ? 'bg-gray-50 text-gray-900 border-r-2 border-green-500' : ''
+            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
+              pathname.includes('/display-screens-sessions') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}
           >
             <MdDashboard className="text-lg" />
@@ -279,8 +253,8 @@ export default function Sidebar() {
         {!isSuperAdmin && (
           <Link
             href={`/${role}/user-dashboard-btns`}
-            className={`flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50 transition-colors ${
-              pathname.includes('/user-dashboard-btns') ? 'bg-gray-50 text-gray-900 border-r-2 border-green-500' : ''
+            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
+              pathname.includes('/user-dashboard-btns') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}
           >
             <FaTv className="text-lg" />

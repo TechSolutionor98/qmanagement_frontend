@@ -102,11 +102,17 @@ export default function DynamicRoleLayout({ children, params }) {
                 {children}
               </div>
               {/* Footer */}
-              <div className="py-4 px-8 bg-gray-50">
-                <p className="text-xs text-gray-500">
-                  © 2025 , made with ❤️ by <span className="font-semibold text-gray-700">TechSolutionor</span>
-                </p>
-              </div>
+              <div className="py-4 px-8 text-gray-600">
+            © {new Date().getFullYear()}, Developed By{' '}
+            <a 
+              href="https://techsolutionor.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-bold text-green-600 hover:text-blue-700"
+            >
+              TechSolutionor
+            </a>
+          </div>
             </main>
           </div>
         </div>
