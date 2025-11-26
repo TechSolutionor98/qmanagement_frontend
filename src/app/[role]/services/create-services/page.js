@@ -121,7 +121,7 @@ export default function CreateServicesPage() {
             </div>
 
             {/* Main Service */}
-            <div>
+            {/* <div>
               <label className="block text-xs font-medium text-gray-600 uppercase mb-2">
                 Main Service (If Sub Service)
               </label>
@@ -134,10 +134,10 @@ export default function CreateServicesPage() {
                 <option value="general">General Services</option>
                 <option value="payment">Payment Services</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Show Sub-Service Popup */}
-            <div>
+            {/* <div>
               <label className="block text-xs font-medium text-gray-600 uppercase mb-2">
                 Show Sub-Service Popup?
               </label>
@@ -149,7 +149,7 @@ export default function CreateServicesPage() {
                 <option value="No">No</option>
                 <option value="Yes">Yes</option>
               </select>
-            </div>
+            </div> */}
           </div>
 
           {/* Add Service Button */}
@@ -210,7 +210,7 @@ export default function CreateServicesPage() {
       </div>
 
       {/* Global Time Restrictions */}
-      <div className="bg-white rounded-lg shadow mb-6">
+      {/* <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-700">Global Time Restrictions</h2>
         </div>
@@ -219,7 +219,6 @@ export default function CreateServicesPage() {
           <p className="text-sm text-gray-600 mb-4">No time restriction set yet</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Start Time */}
             <div>
               <label className="block text-xs font-medium text-gray-600 uppercase mb-2">
                 Start Time
@@ -232,7 +231,6 @@ export default function CreateServicesPage() {
               />
             </div>
 
-            {/* End Time */}
             <div>
               <label className="block text-xs font-medium text-gray-600 uppercase mb-2">
                 End Time
@@ -246,7 +244,6 @@ export default function CreateServicesPage() {
             </div>
           </div>
 
-          {/* Add Time Restriction Button */}
           <div className="mt-6">
             <button
               onClick={handleAddTimeRestriction}
@@ -256,7 +253,7 @@ export default function CreateServicesPage() {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { FaEye, FaSignOutAlt, FaPlus, FaUser, FaEnvelope, FaLock, FaUserTag, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
+import { getToken } from '@/utils/sessionStorage';
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState([]);
@@ -12,6 +13,7 @@ export default function UserManagementPage() {
   const [admins, setAdmins] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [userCount, setUserCount] = useState(0);
+  const [selectedAdminId, setSelectedAdminId] = useState('');
 
   const [formData, setFormData] = useState({
     username: '',
@@ -52,14 +54,15 @@ export default function UserManagementPage() {
   });
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-  const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
 
   const fetchUsers = async (adminId) => {
     const token = getToken();
     if (!token) return;
     try {
-      const endpoint = adminId ? `${apiUrl}/admin/users?adminId=${adminId}` : `${apiUrl}/admin/users`;
-      console.debug('[Users][GET] ->', endpoint);
+      // If adminId is provided, fetch users for that admin, otherwise use current user's admin_id
+      const targetAdminId = adminId || (currentUser?.role === 'admin' ? currentUser.id : selectedAdminId);
+      const endpoint = targetAdminId ? `${apiUrl}/admin/users?adminId=${targetAdminId}` : `${apiUrl}/admin/users`;
+      console.debug('[Users][GET] ->', endpoint, 'adminId:', targetAdminId);
       const res = await axios.get(endpoint, { headers: { Authorization: `Bearer ${token}` } });
       const list = res.data.users || res.data;
       if (Array.isArray(list)) {
@@ -79,9 +82,12 @@ export default function UserManagementPage() {
       if (res.data.success) {
         const adminList = (res.data.admins || []).filter(a => a.role === 'admin');
         setAdmins(adminList);
-        if (!formData.adminId && adminList.length > 0) {
-          setFormData(prev => ({ ...prev, adminId: String(adminList[0].id) }));
-          fetchUsers(String(adminList[0].id));
+        // Auto-select first admin for superadmin
+        if (adminList.length > 0) {
+          const firstAdminId = String(adminList[0].id);
+          setSelectedAdminId(firstAdminId);
+          setFormData(prev => ({ ...prev, adminId: firstAdminId }));
+          fetchUsers(firstAdminId);
         }
       }
     } catch (e) {
@@ -96,10 +102,13 @@ export default function UserManagementPage() {
       const meRes = await axios.get(`${apiUrl}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
       const me = meRes.data.user || meRes.data;
       setCurrentUser(me);
+      
       if (me.role === 'admin') {
-        // Logged-in admin sees own users
-        fetchUsers();
+        // Admin sees only their own users
+        console.log('Admin logged in, fetching users for admin ID:', me.id);
+        fetchUsers(me.id);
       } else if (me.role === 'super_admin') {
+        // Super admin selects which admin's users to view
         fetchAdmins();
       }
     } catch (e) {
@@ -110,10 +119,10 @@ export default function UserManagementPage() {
   useEffect(() => { init(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (currentUser?.role === 'super_admin' && formData.adminId) {
-      fetchUsers(formData.adminId);
+    if (currentUser?.role === 'super_admin' && selectedAdminId) {
+      fetchUsers(selectedAdminId);
     }
-  }, [currentUser?.role, formData.adminId]);
+  }, [currentUser?.role, selectedAdminId]);
 
   useEffect(() => {
     document.body.style.overflow = (showViewModal || showCreateModal) ? 'hidden' : 'unset';
@@ -243,7 +252,11 @@ export default function UserManagementPage() {
       const res = await axios.put(`${apiUrl}/admin/users/${editForm.id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
       alert(res.data?.message || 'User updated successfully');
       // Refetch to get updated data
-      if (currentUser?.role === 'admin') fetchUsers(); else if (formData.adminId) fetchUsers(formData.adminId);
+      if (currentUser?.role === 'admin') {
+        fetchUsers(currentUser.id);
+      } else if (selectedAdminId) {
+        fetchUsers(selectedAdminId);
+      }
       setShowEditModal(false);
     } catch (e) {
       console.error('[Users][EDIT] error', e.response?.data || e.message);
@@ -282,7 +295,14 @@ export default function UserManagementPage() {
       console.debug('[Users][POST] payload', payload);
       const res = await axios.post(`${apiUrl}/admin/users`, payload, { headers: { Authorization: `Bearer ${token}` } });
       alert(res.data?.message || 'User created successfully');
-      if (currentUser?.role === 'admin') fetchUsers(); else if (formData.adminId) fetchUsers(formData.adminId);
+      
+      // Refetch users based on role
+      if (currentUser?.role === 'admin') {
+        fetchUsers(currentUser.id);
+      } else if (selectedAdminId) {
+        fetchUsers(selectedAdminId);
+      }
+      
       setFormData(prev => ({
         ...prev,
         username: '', email: '', password: '', confirmPassword: '', status: 'active',
@@ -327,8 +347,8 @@ export default function UserManagementPage() {
         <div className="flex items-center gap-3">
           {currentUser?.role === 'super_admin' && admins.length > 0 && (
             <select
-              value={formData.adminId}
-              onChange={(e) => setFormData(prev => ({ ...prev, adminId: e.target.value }))}
+              value={selectedAdminId}
+              onChange={(e) => setSelectedAdminId(e.target.value)}
               className="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {admins.map(a => <option key={a.id} value={a.id}>{a.username}</option>)}
