@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import { store } from './store'
 import { useEffect } from 'react'
 import { restoreAuth } from './slices/authSlice'
+import { getToken, getUser, isAuthenticated, getTabId } from '@/utils/sessionStorage'
 
 // Helper to set cookie
 function setCookie(name, value, days = 7) {
@@ -19,48 +20,33 @@ function deleteCookie(name) {
 
 export function ReduxProvider({ children }) {
   useEffect(() => {
-    // Restore auth from localStorage on mount
+    // Restore auth from sessionStorage on mount (tab-specific)
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token')
-      const userStr = localStorage.getItem('user')
+      const token = getToken()
+      const user = getUser()
+      const isAuth = isAuthenticated()
       
-      if (token && userStr) {
+      if (token && user && isAuth) {
         try {
-          const user = JSON.parse(userStr)
           store.dispatch(restoreAuth({ user, token }))
           
           // Set cookies for middleware
+          const tabId = getTabId()
           setCookie('isAuthenticated', 'true', 7)
           setCookie('userRole', user.role, 7)
-          setCookie('token', token, 7)
+          setCookie(`token_${tabId}`, token, 7)
         } catch (err) {
           console.error('Failed to restore auth:', err)
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
+          sessionStorage.clear()
           deleteCookie('isAuthenticated')
           deleteCookie('userRole')
-          deleteCookie('token')
         }
       } else {
-        // Clear cookies if no auth
+        // Clear cookies if no auth in this tab
         deleteCookie('isAuthenticated')
         deleteCookie('userRole')
-        deleteCookie('token')
       }
     }
-
-    // Listen for storage changes (logout in another tab)
-    const handleStorageChange = (e) => {
-      if (e.key === 'token' && !e.newValue) {
-        deleteCookie('isAuthenticated')
-        deleteCookie('userRole')
-        deleteCookie('token')
-        window.location.href = '/login'
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   return <Provider store={store}>{children}</Provider>

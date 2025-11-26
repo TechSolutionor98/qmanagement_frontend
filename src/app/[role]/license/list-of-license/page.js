@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectCurrentUser } from '@/store/slices/authSlice';
 import { setLicenses, removeLicense, selectLicenses } from '@/store/slices/licenseSlice';
+import { getToken } from '@/utils/sessionStorage';
 
 // Import actual components from their routes
 import CreateServicesPage from '@/app/[role]/services/create-services/page';
@@ -39,7 +40,7 @@ export default function ListOfLicensePage() {
   const fetchLicenses = async () => {
     try {
       setLoading(true);
-      const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+      const authToken = token || getToken();
       console.log('Fetching licenses with token:', authToken ? 'Token exists' : 'No token');
       
       const response = await fetch('http://localhost:5000/api/license/all', {
@@ -69,7 +70,7 @@ export default function ListOfLicensePage() {
     if (!confirm('Are you sure you want to delete this license?')) return;
 
     try {
-      const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+      const authToken = token || getToken();
       const response = await fetch(`http://localhost:5000/api/license/${id}`, {
         method: 'DELETE',
         headers: {
@@ -93,7 +94,7 @@ export default function ListOfLicensePage() {
   const fetchAdminDetails = async (adminId) => {
     try {
       setLoadingAdmin(true);
-      const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+      const authToken = token || getToken();
       const response = await fetch(`http://localhost:5000/api/license/admin/${adminId}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`

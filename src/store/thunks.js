@@ -1,13 +1,11 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
+import { getToken } from '@/utils/sessionStorage'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
-// Helper function to get auth token
+// Helper function to get auth token from sessionStorage (tab-specific)
 const getAuthToken = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('token')
-  }
-  return null
+  return getToken()
 }
 
 // Helper function to make API calls

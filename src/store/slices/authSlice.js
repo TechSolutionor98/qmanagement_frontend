@@ -1,5 +1,25 @@
 import { createSlice } from '@reduxjs/toolkit'
 
+// Generate unique tab ID for this session
+const getTabId = () => {
+  if (typeof window === 'undefined') return null
+  
+  // Check sessionStorage for existing tab ID
+  let tabId = sessionStorage.getItem('tabId')
+  if (!tabId) {
+    // Generate new unique tab ID
+    tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    sessionStorage.setItem('tabId', tabId)
+  }
+  return tabId
+}
+
+// Get session storage key with tab ID
+const getStorageKey = (key) => {
+  const tabId = getTabId()
+  return tabId ? `${key}_${tabId}` : key
+}
+
 // Helper functions for cookies
 const setCookie = (name, value, days = 7) => {
   if (typeof window !== 'undefined') {
@@ -21,6 +41,7 @@ const initialState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  tabId: null,
 }
 
 const authSlice = createSlice({
@@ -33,34 +54,41 @@ const authSlice = createSlice({
       state.token = token
       state.isAuthenticated = true
       state.error = null
+      state.tabId = getTabId()
       
-      // Store in localStorage
+      // Store in sessionStorage (tab-specific)
       if (typeof window !== 'undefined') {
-        localStorage.setItem('token', token)
-        localStorage.setItem('user', JSON.stringify(user))
+        sessionStorage.setItem(getStorageKey('token'), token)
+        sessionStorage.setItem(getStorageKey('user'), JSON.stringify(user))
+        sessionStorage.setItem(getStorageKey('isAuthenticated'), 'true')
         
         // Set cookies for middleware
         setCookie('isAuthenticated', 'true', 7)
         setCookie('userRole', user.role, 7)
-        setCookie('token', token, 7)
+        setCookie(`token_${state.tabId}`, token, 7)
       }
     },
     
     logout: (state) => {
+      const currentTabId = state.tabId
+      
       state.user = null
       state.token = null
       state.isAuthenticated = false
       state.error = null
       
-      // Clear localStorage
+      // Clear sessionStorage (tab-specific)
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+        sessionStorage.removeItem(getStorageKey('token'))
+        sessionStorage.removeItem(getStorageKey('user'))
+        sessionStorage.removeItem(getStorageKey('isAuthenticated'))
         
         // Clear cookies
         deleteCookie('isAuthenticated')
         deleteCookie('userRole')
-        deleteCookie('token')
+        if (currentTabId) {
+          deleteCookie(`token_${currentTabId}`)
+        }
       }
     },
     
@@ -80,9 +108,9 @@ const authSlice = createSlice({
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload }
       
-      // Update localStorage
+      // Update sessionStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(state.user))
+        sessionStorage.setItem(getStorageKey('user'), JSON.stringify(state.user))
       }
     },
     
@@ -92,11 +120,12 @@ const authSlice = createSlice({
         state.user = user
         state.token = token
         state.isAuthenticated = true
+        state.tabId = getTabId()
         
         // Ensure cookies are set
         setCookie('isAuthenticated', 'true', 7)
         setCookie('userRole', user.role, 7)
-        setCookie('token', token, 7)
+        setCookie(`token_${state.tabId}`, token, 7)
       }
     },
   },

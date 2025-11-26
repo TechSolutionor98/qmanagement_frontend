@@ -8,6 +8,52 @@ import configReducer from './slices/configSlice'
 import dashboardReducer from './slices/dashboardSlice'
 import licenseReducer from './slices/licenseSlice'
 
+// Get tab-specific storage key
+const getTabId = () => {
+  if (typeof window === 'undefined') return null
+  let tabId = sessionStorage.getItem('tabId')
+  if (!tabId) {
+    tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    sessionStorage.setItem('tabId', tabId)
+  }
+  return tabId
+}
+
+const getStorageKey = (key) => {
+  const tabId = getTabId()
+  return tabId ? `${key}_${tabId}` : key
+}
+
+// Load state from sessionStorage (tab-specific)
+const loadState = () => {
+  try {
+    if (typeof window === 'undefined') return undefined
+
+    const token = sessionStorage.getItem(getStorageKey('token'))
+    const userStr = sessionStorage.getItem(getStorageKey('user'))
+    const isAuthenticated = sessionStorage.getItem(getStorageKey('isAuthenticated'))
+
+    if (token && userStr && isAuthenticated === 'true') {
+      const user = JSON.parse(userStr)
+      return {
+        auth: {
+          user,
+          token,
+          isAuthenticated: true,
+          loading: false,
+          error: null,
+          tabId: getTabId(),
+        },
+      }
+    }
+  } catch (err) {
+    console.error('Error loading state from sessionStorage:', err)
+  }
+  return undefined
+}
+
+const preloadedState = loadState()
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -19,6 +65,7 @@ export const store = configureStore({
     dashboard: dashboardReducer,
     license: licenseReducer,
   },
+  preloadedState,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
