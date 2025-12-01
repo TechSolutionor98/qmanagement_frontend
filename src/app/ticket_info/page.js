@@ -95,6 +95,7 @@ export default function TicketInfo() {
     };
   }, []);
 
+  
   // Setup BroadcastChannel for cross-tab communication
   useEffect(() => {
     // Only run on client side
