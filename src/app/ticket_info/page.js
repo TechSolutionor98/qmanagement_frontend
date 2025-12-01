@@ -6,6 +6,9 @@ import Image from 'next/image';
 import ProtectedRoute from '@/Components/ProtectedRoute';
 import { getToken, getUser } from '@/utils/sessionStorage';
 
+// Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function TicketInfo() {
   const searchParams = useSearchParams();
   const [currentSlide, setCurrentSlide] = useState(0);
