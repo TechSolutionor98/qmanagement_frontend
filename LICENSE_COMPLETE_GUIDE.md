@@ -254,7 +254,7 @@ Authorization: Bearer <super_admin_token>
 ### Example 1: Create Trial License for New Client
 
 ```javascript
-const response = await fetch('http://localhost:5000/api/license/create', {
+const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/create`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',

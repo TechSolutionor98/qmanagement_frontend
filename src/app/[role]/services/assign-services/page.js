@@ -20,7 +20,7 @@ export default function AssignServicesPage() {
   const fetchUsers = async () => {
     try {
       const token = getToken();
-      const response = await axios.get('http://localhost:5000/api/users/all', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -34,7 +34,7 @@ export default function AssignServicesPage() {
   const fetchServices = async () => {
     try {
       const token = getToken();
-      const response = await axios.get('http://localhost:5000/api/services/all', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -48,7 +48,7 @@ export default function AssignServicesPage() {
   const fetchAssignedServices = async () => {
     try {
       const token = getToken();
-      const response = await axios.get('http://localhost:5000/api/services/assigned', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/assigned`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -85,7 +85,7 @@ export default function AssignServicesPage() {
     try {
       const token = getToken();
       const response = await axios.post(
-        'http://localhost:5000/api/services/assign',
+        `${process.env.NEXT_PUBLIC_API_URL}/services/assign`,
         {
           user_id: selectedUser,
           service_ids: selectedServices
@@ -117,7 +117,7 @@ export default function AssignServicesPage() {
     try {
       const token = getToken();
       const response = await axios.delete(
-        `http://localhost:5000/api/services/assigned/${userId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/services/assigned/${userId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

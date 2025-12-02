@@ -27,7 +27,7 @@ export default function CreateServicesPage() {
   const fetchServices = async () => {
     try {
       const token = getToken();
-      const response = await axios.get('http://localhost:5000/api/services/all', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -60,8 +60,8 @@ export default function CreateServicesPage() {
       }
 
       const url = editingId 
-        ? `http://localhost:5000/api/services/update/${editingId}`
-        : 'http://localhost:5000/api/services/create';
+        ? `${process.env.NEXT_PUBLIC_API_URL}/services/update/${editingId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/services/create`;
       
       const method = editingId ? 'put' : 'post';
 
@@ -110,7 +110,7 @@ export default function CreateServicesPage() {
 
     try {
       const token = getToken();
-      const response = await axios.delete(`http://localhost:5000/api/services/delete/${id}`, {
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/services/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

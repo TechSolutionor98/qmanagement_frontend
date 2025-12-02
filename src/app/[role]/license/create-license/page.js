@@ -110,7 +110,7 @@ export default function CreateLicensePage() {
         submitData.append('company_logo', logoFile);
       }
 
-      const response = await fetch('http://localhost:5000/api/license/create', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/create`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`

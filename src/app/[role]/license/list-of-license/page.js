@@ -43,7 +43,7 @@ export default function ListOfLicensePage() {
       const authToken = token || getToken();
       console.log('Fetching licenses with token:', authToken ? 'Token exists' : 'No token');
       
-      const response = await fetch('http://localhost:5000/api/license/all', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/all`, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -71,7 +71,7 @@ export default function ListOfLicensePage() {
 
     try {
       const authToken = token || getToken();
-      const response = await fetch(`http://localhost:5000/api/license/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken}`
@@ -95,7 +95,7 @@ export default function ListOfLicensePage() {
     try {
       setLoadingAdmin(true);
       const authToken = token || getToken();
-      const response = await fetch(`http://localhost:5000/api/license/admin/${adminId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/admin/${adminId}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }

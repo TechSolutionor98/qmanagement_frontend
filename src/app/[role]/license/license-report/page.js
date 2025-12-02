@@ -28,7 +28,7 @@ export default function LicenseReportPage() {
     try {
       setLoading(true);
       const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
-      const response = await fetch('http://localhost:5000/api/license/report', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/report`, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -52,7 +52,7 @@ export default function LicenseReportPage() {
 
     try {
       const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
-      const response = await fetch(`http://localhost:5000/api/license/${license.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/${license.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export default function LicenseReportPage() {
         formData.append('company_logo', logoFile);
       }
 
-      const response = await fetch(`http://localhost:5000/api/license/${editFormData.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/${editFormData.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authToken}`

@@ -246,7 +246,7 @@ The frontend Create Admin page (`src/app/[role]/users/create-admin/page.js`) alr
 
 ### Example Frontend API Call:
 ```javascript
-const response = await fetch('http://localhost:5000/api/admin/admins', {
+const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/admins`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',

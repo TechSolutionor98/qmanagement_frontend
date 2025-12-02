@@ -352,7 +352,7 @@ document.cookie
 ```javascript
 // In browser console
 const token = JSON.parse(localStorage.getItem('persist:root')).auth.token;
-fetch('http://localhost:5000/api/auth/verify', {
+fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
   headers: { 'Authorization': 'Bearer ' + token }
 })
 .then(r => r.json())
