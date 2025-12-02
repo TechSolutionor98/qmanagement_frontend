@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import ProtectedRoute from '@/Components/ProtectedRoute';
 import { getToken, getUser } from '@/utils/sessionStorage';
 
-export default function TicketInfo() {
-  const searchParams = useSearchParams();
+function TicketInfoContent() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [calledTicket, setCalledTicket] = useState('');
   const [calledTickets, setCalledTickets] = useState([]);
@@ -353,5 +351,18 @@ export default function TicketInfo() {
       `}</style>
     </div>
     </ProtectedRoute>
+  );
+}
+
+// Export wrapped component with Suspense
+export default function TicketInfo() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-gray-600">Loading...</div>
+      </div>
+    }>
+      <TicketInfoContent />
+    </Suspense>
   );
 }
