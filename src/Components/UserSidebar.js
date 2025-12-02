@@ -1,12 +1,37 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
 import { HiDocumentText } from 'react-icons/hi';
 
-export default function UserSidebar({ username = 'user19', counter = '2' }) {
+export default function UserSidebar() {
   const pathname = usePathname();
+  const [username, setUsername] = useState('User');
+  const [counter, setCounter] = useState('-');
+
+  useEffect(() => {
+    // Get user info from sessionStorage
+    const getStorageKey = (key) => {
+      if (typeof window !== 'undefined') {
+        const tabId = sessionStorage.getItem('tabId');
+        return tabId ? `${key}_${tabId}` : key;
+      }
+      return key;
+    };
+
+    const userStr = sessionStorage.getItem(getStorageKey('user'));
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUsername(user.username || 'User');
+        setCounter(user.counter_no || user.counterNo || '-');
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
 
   const isActive = (path) => pathname === path;
 

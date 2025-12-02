@@ -244,48 +244,30 @@ export default function Home() {
   };
 
   const handleSkip = async () => {
-    let ticketNumber = '';
+    // Use pre-created ticket from service click
+    const ticketNumber = selectedService.preCreatedTicket;
     
-    // Save ticket to database without customer details
+    // Refresh tickets list
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${API_URL}/tickets`, {
-        method: 'POST',
+      const recentResponse = await fetch(`${API_URL}/tickets?userId=${currentUser.id}&today=true`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          service_id: selectedService.id,
-          user_id: currentUser.id,
-          admin_id: currentUser.admin_id
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        ticketNumber = data.ticket_id;
-        
-        // Refresh tickets list
-        const recentResponse = await fetch(`${API_URL}/tickets?userId=${currentUser.id}&today=true`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (recentResponse.ok) {
-          const recentData = await recentResponse.json();
-          const formattedRecent = recentData.tickets.map(ticket => ({
-            id: ticket.id,
-            ticketNumber: ticket.ticket_id,
-            service: ticket.service_name,
-            time: new Date(ticket.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
-          }));
-          setRecentTickets(formattedRecent);
         }
+      });
+      if (recentResponse.ok) {
+        const recentData = await recentResponse.json();
+        const formattedRecent = recentData.tickets.map(ticket => ({
+          id: ticket.id,
+          ticketNumber: ticket.ticket_id,
+          service: ticket.service_name,
+          time: new Date(ticket.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+        }));
+        setRecentTickets(formattedRecent);
       }
     } catch (error) {
-      console.error('Error saving ticket:', error);
+      console.error('Error refreshing tickets:', error);
     }
     
     setShowDetailsModal(false);
@@ -299,31 +281,26 @@ export default function Home() {
   const handleSubmit = async (service) => {
     console.log('Customer Details:', customerDetails);
     
-    let ticketNumber = '';
+    const ticketNumber = service.preCreatedTicket;
+    const ticketDbId = service.ticketDbId;
     
-    // Save ticket to database
+    // Update existing ticket with customer details
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${API_URL}/tickets`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/tickets/${ticketDbId}`, {
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          service_id: service.id,
           name: customerDetails.name,
           email: customerDetails.email,
-          number: customerDetails.number,
-          user_id: currentUser.id,
-          admin_id: currentUser.admin_id
+          number: customerDetails.number
         })
       });
 
       if (response.ok) {
-        const data = await response.json();
-        ticketNumber = data.ticket_id;
-        
         // Refresh tickets list
         const recentResponse = await fetch(`${API_URL}/tickets?userId=${currentUser.id}&today=true`, {
           headers: {
@@ -343,7 +320,7 @@ export default function Home() {
         }
       }
     } catch (error) {
-      console.error('Error saving ticket:', error);
+      console.error('Error updating ticket:', error);
     }
     
     setShowDetailsModal(false);
@@ -501,7 +478,7 @@ export default function Home() {
         <div class="ticket">
           <div class="ticket-header">
             <div class="logo-container">
-              ${licenseData?.company_logo ? `<img src="${process.env.NEXT_PUBLIC_API_URL_WS}${licenseData.company_logo}" alt="Logo" style="max-height: 60px; max-width: 180px; display: block; margin: 0 auto;" />` : 'LOGO'}
+              ${licenseData?.company_logo ? `<img src="${process.env.NEXT_PUBLIC_API_URL_WS}${licenseData.company_logo}" alt="Logo" style="max-height: 60px; max-width: 180px; display: block; margin: 0 auto; margin-top: -16px;" />` : 'LOGO'}
             </div>
           </div>
           <div class="ticket-details">
@@ -515,7 +492,7 @@ export default function Home() {
               </div>
             ` : ''}
             <p class="ticket-title">Ticket No</p>
-            <h1 class="ticket-number">${ticketNumber}</h1>
+            <h1 class="ticket-number">${ticketNumber.toUpperCase()}</h1>
             <p class="waiting-message">Please wait. We will serve you shortly.</p>
             <div class="date-time">
               <p>Date: <strong>${date}</strong> | Time: <strong>${time}</strong></p>
@@ -691,8 +668,34 @@ export default function Home() {
               return (
                 <div 
                   key={service.id}
-                  onClick={() => {
+                  onClick={async () => {
                     setSelectedService(service);
+                    
+                    // Create ticket immediately when service is clicked
+                    try {
+                      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+                      const response = await fetch(`${API_URL}/tickets`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          service_id: service.id,
+                          user_id: currentUser.id,
+                          admin_id: currentUser.admin_id
+                        })
+                      });
+
+                      if (response.ok) {
+                        const data = await response.json();
+                        // Store the ticket info with the service
+                        setSelectedService({ ...service, preCreatedTicket: data.ticket_id, ticketDbId: data.ticket?.id });
+                      }
+                    } catch (error) {
+                      console.error('Error creating ticket:', error);
+                    }
+                    
                     setShowDetailsModal(true);
                   }}
                   className="rounded-lg shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer"
