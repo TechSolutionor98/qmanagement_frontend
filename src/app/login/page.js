@@ -275,6 +275,8 @@ export default function LoginPage() {
 
       // For receptionist and other roles, store credentials directly (no counter needed)
       console.log('Storing credentials for role:', data.user.role);
+      
+      // Store in Redux (which sets cookies)
       dispatch(setCredentials({
         user: data.user,
         token: data.token,
@@ -283,15 +285,18 @@ export default function LoginPage() {
       // Show success message
       showToast('Login successful!', 'success');
 
-      // Redirect immediately based on role
+      // Redirect based on role
       const roleMapping = {
         'receptionist': '/',
         'user': '/user/dashboard',
       };
       const redirectPath = roleMapping[data.user.role];
       console.log('Redirecting to:', redirectPath);
+      
       if (redirectPath) {
-        router.push(redirectPath);
+        // Use window.location for hard redirect to ensure cookies are read
+        console.log('Using window.location.href for redirect');
+        window.location.href = redirectPath;
       } else {
         console.warn('No redirect path found for role:', data.user.role);
       }
