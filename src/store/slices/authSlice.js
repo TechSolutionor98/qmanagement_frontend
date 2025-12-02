@@ -62,12 +62,10 @@ const authSlice = createSlice({
         sessionStorage.setItem(getStorageKey('user'), JSON.stringify(user))
         sessionStorage.setItem(getStorageKey('isAuthenticated'), 'true')
         
-        // Set cookies for middleware IMMEDIATELY
+        // Set cookies for middleware
         setCookie('isAuthenticated', 'true', 7)
         setCookie('userRole', user.role, 7)
         setCookie(`token_${state.tabId}`, token, 7)
-        
-        console.log('✅ Auth credentials set:', { role: user.role, isAuth: true });
       }
     },
     
