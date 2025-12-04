@@ -3,65 +3,338 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaFilter, FaCalendarAlt, FaSearch, FaChevronDown, FaFileWord } from 'react-icons/fa';
 import { HiMenu } from 'react-icons/hi';
+import { useAuthContext } from '@/contexts/AuthContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function SuperAdminPage() {
   const router = useRouter();
+  const { token, callAPI, user } = useAuthContext();
   const [filterBy, setFilterBy] = useState('');
   const [filterValue, setFilterValue] = useState('');
   const [status, setStatus] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-
-  // Redirect user role to dashboard
-  useEffect(() => {
-    const userRole = localStorage.getItem('userRole');
-    if (userRole === 'user') {
-      router.push('/user/dashboard');
-    }
-  }, [router]);
-
-  const services = [
-    {
-      t: 'P-201',
-      c: 'P',
-      serviceName: 'Payment Services',
-      name: '',
-      email: '',
-      representative: '',
-      transferred: 'No',
-      transferredTime: '0000-00-00 00:00:00',
-      transferBy: '',
-      lastUpdated: '2025-11-22 11:52:13',
-      createdAt: '2025-11-22 11:52:13',
-      caller: '0',
-      callingTime: '0000-00-00 00:00:00',
-      callingUserTime: '0000-00-00 00:00:00',
-      status: 'Pending',
-      statusTime: '0000-00-00 00:00:00',
-      reason: '',
-      serviceTime: '00:00:00'
-    },
-    {
-      t: 'S-401',
-      c: 'S',
-      serviceName: 'Special Needs',
-      name: '',
-      email: '',
-      representative: '',
-      transferred: 'No',
-      transferredTime: '0000-00-00 00:00:00',
-      transferBy: '',
-      lastUpdated: '2025-11-22 11:52:40',
-      createdAt: '2025-11-22 11:52:40',
-      caller: '0',
-      callingTime: '0000-00-00 00:00:00',
-      callingUserTime: '0000-00-00 00:00:00',
-      status: 'Pending',
-      statusTime: '0000-00-00 00:00:00',
-      reason: '',
-      serviceTime: '00:00:00'
-    }
+  const [startDate2, setStartDate2] = useState('');
+  const [services, setServices] = useState([]);
+  const [counters, setCounters] = useState([]);
+  const [representatives, setRepresentatives] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showColumnModal, setShowColumnModal] = useState(false);
+  
+  // Available columns with their display names
+  const allColumns = [
+    { key: 'ticket_id', label: 'T#', selected: true },
+    { key: 'counter_no', label: 'C#', selected: true },
+    { key: 'service_name', label: 'Service Name', selected: true },
+    { key: 'created_at', label: 'Created At', selected: true },
+    { key: 'representative_id', label: 'Caller', selected: true },
+    { key: 'calling_time', label: 'Calling Time', selected: true },
+    { key: 'calling_user_time', label: 'Calling User Time', selected: true },
+    { key: 'status', label: 'Status', selected: true },
+    { key: 'status_time', label: 'Status Time', selected: true },
+    { key: 'reason', label: 'Reason', selected: true },
+    { key: 'service_time', label: 'Service Time', selected: true },
+    { key: 'name', label: 'Name', selected: true },
+    { key: 'email', label: 'Email', selected: true },
+    { key: 'representative', label: 'Representative', selected: true },
+    { key: 'transfered', label: 'Transferred', selected: true },
+    { key: 'transfered_time', label: 'Transferred Time', selected: true },
+    { key: 'transfer_by', label: 'Transfer By', selected: true },
+    { key: 'last_updated', label: 'Last Updated', selected: true }
   ];
+
+  const [selectedColumns, setSelectedColumns] = useState(allColumns);
+
+  // Fetch tickets data
+  useEffect(() => {
+    if (user) {
+      fetchTickets();
+      fetchCounters();
+      fetchRepresentatives();
+    }
+  }, [user]);
+
+  // Fetch counters for current admin
+  const fetchCounters = async () => {
+    try {
+      const adminId = user?.role === 'admin' ? user.id : user?.admin_id;
+      
+      if (!adminId) {
+        console.error('No admin ID found');
+        return;
+      }
+
+      const data = await callAPI(`/admin/counters/${adminId}`, {
+        method: 'GET',
+        validateSession: false
+      });
+      
+      const counterList = [];
+      for (let i = 1; i <= (data.totalCounters || 5); i++) {
+        counterList.push({
+          id: i,
+          counter_no: i
+        });
+      }
+      
+      setCounters(counterList);
+    } catch (err) {
+      console.error('Error fetching counters:', err);
+    }
+  };
+
+  // Fetch representatives
+  const fetchRepresentatives = async () => {
+    try {
+      const data = await callAPI('/admin/users', {
+        method: 'GET',
+        validateSession: false
+      });
+      const userRoleOnly = (data.users || []).filter(user => user.role === 'user');
+      setRepresentatives(userRoleOnly);
+    } catch (err) {
+      console.error('Error fetching representatives:', err);
+    }
+  };
+
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+      
+      if (!token) {
+        setError('No authentication token found. Please login again.');
+        setLoading(false);
+        return;
+      }
+
+      const data = await callAPI('/tickets', {
+        method: 'GET',
+        validateSession: false
+      });
+      
+      setServices(data.tickets || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching tickets:', err);
+      
+      if (err.message.includes('Session expired')) {
+        setError('Your session has expired. Please login again.');
+      } else if (err.message.includes('License expired')) {
+        setError('Your license has expired. Please contact support.');
+      } else {
+        setError('Failed to load tickets data: ' + err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle column selection toggle
+  const toggleColumn = (key) => {
+    setSelectedColumns(prev => 
+      prev.map(col => 
+        col.key === key ? { ...col, selected: !col.selected } : col
+      )
+    );
+  };
+
+  // Get value for a specific column from ticket
+  const getColumnValue = (ticket, key) => {
+    switch(key) {
+      case 'ticket_id':
+        return ticket.ticket_id || '-';
+      case 'counter_no':
+        return ticket.counter_no || '-';
+      case 'service_name':
+        return ticket.service_name || '-';
+      case 'created_at':
+        return ticket.created_at ? new Date(ticket.created_at).toLocaleString() : '-';
+      case 'representative_id':
+        return ticket.representative_id || '-';
+      case 'calling_time':
+        return ticket.call_count || ticket.calling_time || '0';
+      case 'calling_user_time':
+        return ticket.calling_user_time ? new Date(ticket.calling_user_time).toLocaleString() : '-';
+      case 'status':
+        return ticket.status || 'Pending';
+      case 'status_time':
+        return ticket.status_time && ticket.status_time !== '0000-00-00 00:00:00' ? new Date(ticket.status_time).toLocaleString() : '0000-00-00 00:00:00';
+      case 'reason':
+        return ticket.reason || '-';
+      case 'service_time':
+        return ticket.service_time && ticket.service_time !== '0000-00-00 00:00:00' && ticket.service_time !== '00:00:00' ? ticket.service_time : '00:00:00';
+      case 'name':
+        return ticket.name || '-';
+      case 'email':
+        return ticket.email || '-';
+      case 'representative':
+        return ticket.representative || '-';
+      case 'transfered':
+        return ticket.transfered && ticket.transfered !== 'NULL' && ticket.transfered !== '' ? 'Yes' : 'No';
+      case 'transfered_time':
+        return ticket.transfered && ticket.transfered !== 'NULL' && ticket.transfered !== '' 
+          ? (ticket.transfered_time && ticket.transfered_time !== '0000-00-00 00:00:00' ? new Date(ticket.transfered_time).toLocaleString() : '-')
+          : '0000-00-00 00:00:00';
+      case 'transfer_by':
+        return ticket.transfer_by || '-';
+      case 'last_updated':
+        return ticket.last_updated ? new Date(ticket.last_updated).toLocaleString() : '-';
+      default:
+        return '-';
+    }
+  };
+
+  // Download as Excel (CSV format)
+  const downloadAsExcel = () => {
+    const visibleColumns = selectedColumns.filter(col => col.selected);
+    let csv = visibleColumns.map(col => col.label).join(',') + '\n';
+    
+    services.forEach(ticket => {
+      const row = visibleColumns.map(col => {
+        const value = getColumnValue(ticket, col.key);
+        return `"${String(value).replace(/"/g, '""')}"`;
+      });
+      csv += row.join(',') + '\n';
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `reports_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Download as PDF
+  const downloadAsPDF = () => {
+    const visibleColumns = selectedColumns.filter(col => col.selected);
+    const doc = new jsPDF('l', 'mm', 'a4');
+    
+    doc.setFontSize(18);
+    doc.text('Service Details Report', 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Generated on ${new Date().toLocaleString()}`, 14, 30);
+    
+    const tableData = services.map(ticket => {
+      return visibleColumns.map(col => {
+        return String(getColumnValue(ticket, col.key));
+      });
+    });
+
+    autoTable(doc, {
+      head: [visibleColumns.map(col => col.label)],
+      body: tableData,
+      startY: 40,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [22, 163, 74], textColor: [255, 255, 255] },
+      alternateRowStyles: { fillColor: [249, 249, 249] },
+      margin: { top: 40, left: 10, right: 10 },
+    });
+    
+    doc.save(`reports_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  // Download as Word
+  const downloadAsWord = () => {
+    const visibleColumns = selectedColumns.filter(col => col.selected);
+    let html = '<html><head><meta charset="utf-8"><title>Report</title></head><body>';
+    html += '<h1>Service Details Report</h1>';
+    html += '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
+    
+    html += '<thead><tr>';
+    visibleColumns.forEach(col => {
+      html += `<th style="background-color: #f3f4f6; padding: 8px;">${col.label}</th>`;
+    });
+    html += '</tr></thead>';
+    
+    html += '<tbody>';
+    services.forEach(ticket => {
+      html += '<tr>';
+      visibleColumns.forEach(col => {
+        const value = getColumnValue(ticket, col.key);
+        html += `<td style="padding: 8px;">${value}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></body></html>';
+    
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `reports_${new Date().toISOString().split('T')[0]}.doc`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Handle filter
+  const handleFilter = async () => {
+    try {
+      setLoading(true);
+      
+      const params = new URLSearchParams();
+      if (filterBy && filterValue) {
+        if (filterBy === 'counter') {
+          params.append('counter_no', filterValue);
+        } else if (filterBy === 'representative') {
+          params.append('representative_id', filterValue);
+        }
+      }
+      if (status) params.append('status', status);
+      if (startDate) params.append('from_date', startDate);
+      if (startDate2) params.append('to_date', startDate2);
+
+      const queryString = params.toString();
+      const endpoint = queryString ? `/tickets?${queryString}` : '/tickets';
+      
+      const data = await callAPI(endpoint, {
+        method: 'GET',
+        validateSession: false
+      });
+      
+      setServices(data.tickets || []);
+      setError(null);
+    } catch (err) {
+      console.error('Error filtering tickets:', err);
+      setError('Failed to filter tickets: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading reports...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600">{error}</p>
+          <button 
+            onClick={fetchTickets}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -76,33 +349,64 @@ export default function SuperAdminPage() {
           <HiMenu className="text-gray-400 text-xl" />
           <select
             value={filterBy}
-            onChange={(e) => setFilterBy(e.target.value)}
+            onChange={(e) => {
+              setFilterBy(e.target.value);
+              setFilterValue('');
+            }}
             className="px-4 py-2 border border-gray-300 rounded bg-white text-gray-500 min-w-[150px]"
           >
             <option value="">Filter By (Optional)</option>
-            <option value="service">Service Name</option>
-            <option value="status">Status</option>
-            <option value="caller">Caller</option>
+            <option value="counter">Counter</option>
+            <option value="representative">Representative</option>
           </select>
         </div>
 
-        <input
-          type="text"
-          placeholder="Enter Value"
-          value={filterValue}
-          onChange={(e) => setFilterValue(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded min-w-[200px]"
-        />
+        {filterBy === 'counter' ? (
+          <select
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded bg-white min-w-[200px]"
+          >
+            <option value="">Select Counter</option>
+            {counters.map((counter) => (
+              <option key={counter.id} value={counter.counter_no || counter.counter_number}>
+                Counter {counter.counter_no || counter.counter_number}
+              </option>
+            ))}
+          </select>
+        ) : filterBy === 'representative' ? (
+          <select
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded bg-white min-w-[200px]"
+          >
+            <option value="">Select Representative</option>
+            {representatives.map((rep) => (
+              <option key={rep.id} value={rep.id}>
+                {rep.username || rep.name || `User ${rep.id}`}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type="text"
+            placeholder="Enter Value"
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded min-w-[200px]"
+          />
+        )}
 
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded bg-white text-gray-500 min-w-[150px]"
         >
-          <option value="">Select Status</option>
-          <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Solved">Solved</option>
+          <option value="Not Solved">Not Solved</option>
+          <option value="Unattended">Unattended</option>
         </select>
 
         <div className="flex items-center gap-2">
@@ -115,31 +419,91 @@ export default function SuperAdminPage() {
             className="px-4 py-2 border border-gray-300 rounded"
           />
         </div>
+      </div>
 
+      {/* Second Row Filters */}
+      <div className="flex items-center gap-4 mb-6 flex-wrap">
         <div className="flex items-center gap-2">
           <FaCalendarAlt className="text-gray-400" />
           <input
             type="date"
             placeholder="mm/dd/yyyy"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            value={startDate2}
+            onChange={(e) => setStartDate2(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded"
           />
         </div>
 
-        <button className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2">
+        <button 
+          onClick={handleFilter}
+          className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+        >
           <FaSearch />
           Filter
         </button>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end gap-4 mb-6">
-        <button className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 flex items-center gap-2">
-          Select Columns <FaChevronDown />
-        </button>
-        <button className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 flex items-center gap-2">
+      <div className="flex justify-end gap-4 mb-6 flex-wrap relative">
+        <div className="relative">
+          <button 
+            onClick={() => setShowColumnModal(!showColumnModal)}
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center gap-2"
+          >
+            Select Columns <FaChevronDown />
+          </button>
+          
+          {/* Column Selection Modal */}
+          {showColumnModal && (
+            <div className="absolute right-0 top-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-64 max-h-96 overflow-y-auto">
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-3 pb-2 border-b">
+                  <h3 className="font-semibold text-gray-700">Select Columns</h3>
+                  <button 
+                    onClick={() => setShowColumnModal(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>                
+                <div className="space-y-2">
+                  {selectedColumns.map((column) => (
+                    <label
+                      key={column.key}
+                      className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-0 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={column.selected}
+                        onChange={() => toggleColumn(column.key)}
+                        className="w-4 h-4 text-green-600 rounded cursor-pointer"
+                      />
+                      <span className="text-sm text-gray-700">{column.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <button 
+          onClick={downloadAsWord}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+        >
           <FaFileWord /> Download as Word
+        </button>
+        <button 
+          onClick={downloadAsPDF}
+          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center gap-2"
+        >
+          Download as PDF
+        </button>
+        <button 
+          onClick={downloadAsExcel}
+          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center gap-2"
+        >
+          Download as Excel
         </button>
       </div>
 
@@ -149,64 +513,58 @@ export default function SuperAdminPage() {
           <h2 className="text-lg font-semibold text-gray-700">Service Details</h2>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="border-collapse" style={{minWidth: '100%', width: 'max-content'}}>
+        <div className="overflow-auto max-w-full max-h-[400px]">
+          <table className="w-full border-collapse table-auto">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">T#</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">C#</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Service Name</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Name</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Email</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Representative</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Transferred</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Transferred Time</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Transfer By</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Last Updated</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Created At</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Caller</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Calling Time</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Calling User Time</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Status</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Status Time</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Reason</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap">Service Time</th>
+                {selectedColumns.filter(col => col.selected).map((column) => (
+                  <th 
+                    key={column.key}
+                    className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap"
+                  >
+                    {column.label}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {services.map((service, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.t}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.c}</td>
-                  <td className="px-3 py-3 text-sm text-green-600 whitespace-nowrap">{service.serviceName}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.name}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.email}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.representative}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.transferred}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.transferredTime}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.transferBy}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.lastUpdated}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.createdAt}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.caller}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.callingTime}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.callingUserTime}</td>
-                  <td className="px-3 py-3 text-sm whitespace-nowrap">
-                    <span className="text-green-600">{service.status}</span>
+              {services.length === 0 ? (
+                <tr>
+                  <td colSpan={selectedColumns.filter(col => col.selected).length} className="px-3 py-8 text-center text-gray-500">
+                    No tickets found
                   </td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.statusTime}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.reason}</td>
-                  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{service.serviceTime}</td>
                 </tr>
-              ))}
+              ) : (
+                services.map((ticket, index) => (
+                  <tr key={ticket.id || index} className="hover:bg-gray-50">
+                    {selectedColumns.filter(col => col.selected).map((column) => (
+                      <td 
+                        key={column.key}
+                        className={`px-3 py-3 text-sm whitespace-nowrap ${
+                          column.key === 'service_name' ? 'text-green-600' : 'text-gray-900'
+                        }`}
+                      >
+                        {column.key === 'status' ? (
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            ticket.status?.toLowerCase() === 'pending' || ticket.status?.toLowerCase() === 'unattended' ? 'bg-yellow-100 text-yellow-800' :
+                            ticket.status?.toLowerCase() === 'solved' || ticket.status?.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
+                            ticket.status?.toLowerCase() === 'not solved' || ticket.status?.toLowerCase() === 'cancelled' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {ticket.status || 'Pending'}
+                          </span>
+                        ) : (
+                          getColumnValue(ticket, column.key)
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
-      {/* Footer
-      <div className="mt-8 text-center text-gray-500 text-sm">
-        © 2025 , made with ❤️ by <span className="font-semibold text-gray-700">TechSolutionor</span>
-      </div> */}
     </div>
   );
 }

@@ -279,10 +279,27 @@ export default function UserManagementPage() {
     }
   };
 
-  const handleLogout = (userId) => {
+  const handleLogout = async (userId) => {
     const user = users.find(u => u.id === userId);
-    if (user && confirm(`Logout ${user.username}?`)) {
-      console.debug('[Users][LOGOUT] userId', userId);
+    if (!user) return;
+    
+    if (confirm(`Logout ${user.username}? This will end their active session.`)) {
+      try {
+        const token = getToken();
+        await axios.post(`${apiUrl}/admin/users/${userId}/logout`, {}, { 
+          headers: { Authorization: `Bearer ${token}` } 
+        });
+        
+        // Update user's login status in UI to 0 (logged out)
+        setUsers(prev => prev.map(u => 
+          u.id === userId ? { ...u, isLoggedIn: 0 } : u
+        ));
+        
+        alert(`${user.username} has been logged out successfully`);
+      } catch (e) {
+        console.error('[Users][LOGOUT] error', e.response?.data || e.message);
+        alert(e.response?.data?.message || 'Failed to logout user');
+      }
     }
   };
 
@@ -344,7 +361,9 @@ export default function UserManagementPage() {
                       <button onClick={() => handleView(user)} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors" title="View Details"><FaEye /></button>
                       <button onClick={() => handleEdit(user)} className="px-4 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors font-medium">Edit</button>
                       <button onClick={() => handleToggleStatus(user.id)} className={`px-4 py-2 rounded font-medium transition-colors text-sm ${user.status === 'active' ? 'bg-gray-500 text-white hover:bg-gray-600' : 'bg-green-500 text-white hover:bg-green-600'}`}>{user.status === 'active' ? 'Inactive' : 'Active'}</button>
-                      <button onClick={() => handleLogout(user.id)} className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" title="Logout User"><FaSignOutAlt /></button>
+                      {user.isLoggedIn === 1 && (
+                        <button onClick={() => handleLogout(user.id)} className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" title="Logout User"><FaSignOutAlt /></button>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -249,7 +249,9 @@ export default function CompletedTasks() {
                         {task.transferInfo || 'Not Transferred'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {formatDateTime(task.transferTime)}
+                        {task.transferInfo && task.transferInfo !== 'Not Transferred' 
+                          ? formatDateTime(task.transferTime) 
+                          : 'N/A'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm">
                         <span className={`px-4 py-2 rounded font-medium ${getStatusColor(task.status)}`}>

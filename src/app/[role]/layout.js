@@ -97,7 +97,7 @@ export default function DynamicRoleLayout({ children, params }) {
           <Navbar />
           <div className="flex flex-1">
             {renderSidebar()}
-            <main className="flex-1 flex flex-col">
+            <main className="flex-1 flex flex-col ml-64">
               <div className="flex-1">
                 {children}
               </div>

@@ -85,15 +85,21 @@ export default function UserDashboard() {
           // If current ticket is in transferred list, ALWAYS keep it (never auto-switch)
           // Do NOT run any other logic - just keep the ticket as is
           console.log(`✅ Keeping transferred ticket: ${currentTicket} - LOCKED IN`);
+          // DO NOT call setCurrentTicket - it will cause re-render and polling will override it
+          // The ticket is already set, just leave it alone
         } else if (!currentTicket && tickets.length > 0) {
           // No ticket selected, pick first regular one
           console.log(`🔄 No ticket selected, setting to: ${tickets[0].ticketNumber}`);
           setCurrentTicket(tickets[0].ticketNumber);
+        } else if (!currentTicket && tickets.length === 0 && transferred.length > 0) {
+          // No regular tickets but have transferred tickets, DON'T auto-select
+          console.log(`📋 No regular tickets, but have ${transferred.length} transferred tickets available for manual selection`);
+          // Don't clear if user might have selected a transferred ticket
         } else if (!currentExistsInRegular && !currentExistsInTransferred && !isCalling && !isAccepted && tickets.length > 0) {
           // Current ticket gone from BOTH lists and user not working on it, pick first available regular ticket
           console.log(`🔄 Current ticket gone from both lists, switching to: ${tickets[0].ticketNumber}`);
           setCurrentTicket(tickets[0].ticketNumber);
-        } else if (!currentExistsInRegular && !currentExistsInTransferred && tickets.length === 0) {
+        } else if (!currentExistsInRegular && !currentExistsInTransferred && tickets.length === 0 && transferred.length === 0) {
           // No tickets left in either list
           console.log(`🔄 No tickets available, clearing current`);
           setCurrentTicket('');
@@ -243,7 +249,7 @@ export default function UserDashboard() {
     }, 1000); // Check every 1 second
 
     return () => clearInterval(pollInterval);
-  }, []); // Empty array - polling independent of state
+  }, [currentTicket, isAccepted, isCalling]); // Include dependencies so polling respects current state
 
   const handleCall = async () => {
     if (currentTicket && !isCalling) {
@@ -311,14 +317,11 @@ export default function UserDashboard() {
       
       console.log('✅ Ticket marked as Unattended');
       
-      // Move to next ticket
-      const currentIndex = unassignedTickets.findIndex(t => t.ticketNumber === currentTicket);
-      if (currentIndex < unassignedTickets.length - 1) {
-        setCurrentTicket(unassignedTickets[currentIndex + 1].ticketNumber);
-      } else {
-        // Refresh to get updated list
-        await fetchAssignedTickets(false);
-      }
+      // Clear current ticket first
+      setCurrentTicket('');
+      
+      // Refresh to get updated list which will auto-select next ticket
+      await fetchAssignedTickets(false);
       
       setShowNextConfirmModal(false);
     } catch (error) {
@@ -402,16 +405,21 @@ export default function UserDashboard() {
       
       await axios.put(
         `${apiUrl}/tickets/${currentTicket}`,
-        { status: 'Solved' },
+        { 
+          status: 'Solved',
+          serviceTimeSeconds: timer // Send timer value in seconds
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       console.log('✅ Ticket marked as Solved and unlocked');
       
+      const solvedTicket = currentTicket;
+      
       // Broadcast unlock event
       const lockChannel = new BroadcastChannel('ticket-locks');
       lockChannel.postMessage({
-        ticketNumber: currentTicket,
+        ticketNumber: solvedTicket,
         locked: false
       });
       lockChannel.close();
@@ -419,6 +427,7 @@ export default function UserDashboard() {
       // Reset state
       setIsAccepted(false);
       setTimer(0);
+      setCurrentTicket(''); // Clear current ticket immediately
       
       // Refresh tickets - will automatically show next available ticket
       await fetchAssignedTickets(false);
@@ -455,17 +464,20 @@ export default function UserDashboard() {
         `${apiUrl}/tickets/${currentTicket}`,
         { 
           status: 'Not Solved',
-          reason: notSolvedReason
+          reason: notSolvedReason,
+          serviceTimeSeconds: timer // Send timer value in seconds
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       console.log('✅ Ticket marked as Not Solved and unlocked');
       
+      const notSolvedTicket = currentTicket;
+      
       // Broadcast unlock event
       const lockChannel = new BroadcastChannel('ticket-locks');
       lockChannel.postMessage({
-        ticketNumber: currentTicket,
+        ticketNumber: notSolvedTicket,
         locked: false
       });
       lockChannel.close();
@@ -475,6 +487,7 @@ export default function UserDashboard() {
       setTimer(0);
       setShowReasonModal(false);
       setNotSolvedReason('');
+      setCurrentTicket(''); // Clear current ticket immediately
       
       // Refresh tickets - will automatically show next available ticket
       await fetchAssignedTickets(false);
@@ -621,10 +634,46 @@ export default function UserDashboard() {
   };
 
   const handleSelectManual = () => {
-    if (manualTicketId.trim()) {
-      setCurrentTicket(manualTicketId);
-      setManualTicketId('');
+    if (!manualTicketId.trim()) {
+      alert('Please enter a ticket ID');
+      return;
     }
+
+    // Check if user has already accepted a ticket
+    if (isAccepted) {
+      alert('Please resolve the current ticket first before selecting a new ticket');
+      return;
+    }
+
+    const searchTicketId = manualTicketId.trim().toUpperCase();
+    
+    // Search in unassigned tickets
+    const foundInUnassigned = unassignedTickets.find(
+      t => t.ticketNumber?.toString().toUpperCase() === searchTicketId
+    );
+    
+    // Search in transferred tickets
+    const foundInTransferred = transferredTickets.find(
+      t => t.ticketNumber?.toString().toUpperCase() === searchTicketId
+    );
+    
+    if (foundInUnassigned) {
+      console.log(`✅ Found ticket ${searchTicketId} in unassigned tickets`);
+      setCurrentTicket(foundInUnassigned.ticketNumber);
+      setManualTicketId('');
+      return;
+    }
+    
+    if (foundInTransferred) {
+      console.log(`✅ Found ticket ${searchTicketId} in transferred tickets`);
+      setCurrentTicket(foundInTransferred.ticketNumber);
+      setManualTicketId('');
+      return;
+    }
+    
+    // Ticket not found in either list
+    alert(`Ticket "${searchTicketId}" not found in your assigned tickets`);
+    setManualTicketId('');
   };
 
   // Format timer to HH:MM:SS

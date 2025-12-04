@@ -26,8 +26,62 @@ export default function Sidebar() {
 
   const isActive = (path) => pathname === path;
 
+  // Auto-open dropdown based on current pathname
+  useEffect(() => {
+    if (pathname.includes('/services')) {
+      setIsServicesOpen(true);
+      setIsReportsOpen(false);
+      setIsUsersOpen(false);
+      setIsLicenseOpen(false);
+    } else if (pathname.includes('/reports')) {
+      setIsReportsOpen(true);
+      setIsServicesOpen(false);
+      setIsUsersOpen(false);
+      setIsLicenseOpen(false);
+    } else if (pathname.includes('/users')) {
+      setIsUsersOpen(true);
+      setIsServicesOpen(false);
+      setIsReportsOpen(false);
+      setIsLicenseOpen(false);
+    } else if (pathname.includes('/license')) {
+      setIsLicenseOpen(true);
+      setIsServicesOpen(false);
+      setIsReportsOpen(false);
+      setIsUsersOpen(false);
+    }
+  }, [pathname]);
+
+  // Handle dropdown toggle - close others when one opens
+  const handleServicesToggle = () => {
+    setIsServicesOpen(!isServicesOpen);
+    setIsReportsOpen(false);
+    setIsUsersOpen(false);
+    setIsLicenseOpen(false);
+  };
+
+  const handleReportsToggle = () => {
+    setIsReportsOpen(!isReportsOpen);
+    setIsServicesOpen(false);
+    setIsUsersOpen(false);
+    setIsLicenseOpen(false);
+  };
+
+  const handleUsersToggle = () => {
+    setIsUsersOpen(!isUsersOpen);
+    setIsServicesOpen(false);
+    setIsReportsOpen(false);
+    setIsLicenseOpen(false);
+  };
+
+  const handleLicenseToggle = () => {
+    setIsLicenseOpen(!isLicenseOpen);
+    setIsServicesOpen(false);
+    setIsReportsOpen(false);
+    setIsUsersOpen(false);
+  };
+
   return (
-    <aside className="w-64 h-screen sticky top-0 flex flex-col overflow-y-auto" style={{ backgroundColor: '#2d3540', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+    <aside className="w-64 h-screen fixed top-0 left-0 flex flex-col overflow-y-auto z-40" style={{ backgroundColor: '#2d3540', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
       {/* Navigation */}
       <nav className="flex-1 py-6">
         <div className="px-6 mb-6">
@@ -38,7 +92,7 @@ export default function Sidebar() {
         {isSuperAdmin && (
           <div>
             <button
-              onClick={() => setIsLicenseOpen(!isLicenseOpen)}
+              onClick={handleLicenseToggle}
               className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/license') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
@@ -93,7 +147,7 @@ export default function Sidebar() {
         {!isSuperAdmin && (
           <div>
             <button
-              onClick={() => setIsServicesOpen(!isServicesOpen)}
+              onClick={handleServicesToggle}
               className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/services') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
@@ -137,7 +191,7 @@ export default function Sidebar() {
         {!isSuperAdmin && (
           <div>
             <button
-              onClick={() => setIsReportsOpen(!isReportsOpen)}
+              onClick={handleReportsToggle}
               className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/reports') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
@@ -207,7 +261,7 @@ export default function Sidebar() {
         {!isSuperAdmin && (
           <div>
             <button
-              onClick={() => setIsUsersOpen(!isUsersOpen)}
+              onClick={handleUsersToggle}
               className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/users') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
