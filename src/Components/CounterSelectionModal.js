@@ -21,7 +21,8 @@ export default function CounterSelectionModal({ isOpen, onClose, adminId, token,
       setError(null)
       
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
-      const response = await fetch(`${apiUrl}/admin/counters/${adminId}`, {
+      // Use user endpoint instead of admin endpoint
+      const response = await fetch(`${apiUrl}/user/available-counters`, {
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${token}`

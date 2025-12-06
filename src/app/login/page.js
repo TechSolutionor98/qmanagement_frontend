@@ -114,10 +114,12 @@ export default function LoginPage() {
         return;
       }
 
-      // Store credentials with counter
+      console.log('✅ Counter assigned, new token received:', !!data.token);
+
+      // Store credentials with counter AND NEW TOKEN from session creation
       dispatch(setCredentials({
         user: { ...pendingUserData.user, counter_no: counterNo },
-        token: pendingUserData.token,
+        token: data.token || pendingUserData.token,  // Use new token with session
       }));
 
       showToast('Counter assigned successfully!', 'success');

@@ -16,37 +16,79 @@ export default function LogoutPage() {
 
   const handleLogout = async () => {
     setLoading(true);
+    
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    
+    // Get tab ID and token from sessionStorage (same way as authSlice)
+    const tabId = sessionStorage.getItem('tabId');
+    const storageKey = tabId ? `token_${tabId}` : 'token';
+    const token = sessionStorage.getItem(storageKey);
+    
+    console.log('🔴 LOGOUT STARTED');
+    console.log('🆔 Tab ID:', tabId);
+    console.log('🔍 Token found:', token ? 'Yes (' + token.substring(0, 20) + '...)' : 'No');
+    
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      const token = localStorage.getItem('token');
-      
-      // Call backend logout
+      // Call backend logout API
       if (token) {
-        await fetch(`${API_URL}/auth/logout`, {
+        console.log('📡 Calling:', `${API_URL}/auth/logout`);
+        
+        const response = await fetch(`${API_URL}/auth/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
+        
+        const data = await response.json();
+        console.log('✅ Backend Response:', data);
+        
+        if (!response.ok) {
+          console.error('⚠️ Logout API failed:', response.status, data);
+        }
+      } else {
+        console.warn('⚠️ No token - skipping API call');
       }
     } catch (err) {
-      console.error('Logout error:', err);
-    } finally {
-      // Clear all authentication data
-      dispatch(logout());
-      
-      // Clear cookies manually as well
-      deleteCookie('isAuthenticated');
-      deleteCookie('userRole');
-      deleteCookie('token');
-      
-      // Clear localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Redirect to login
-      router.push('/login');
+      console.error('❌ Logout API Error:', err.message);
     }
+    
+    // ALWAYS clear local data regardless of API success
+    console.log('🧹 Clearing local auth data...');
+    
+    // Clear Redux store
+    dispatch(logout());
+    
+    // Clear cookies
+    deleteCookie('isAuthenticated');
+    deleteCookie('userRole');
+    deleteCookie('token');
+    if (tabId) {
+      deleteCookie(`token_${tabId}`);
+    }
+    
+    // Clear sessionStorage (tab-specific)
+    if (tabId) {
+      sessionStorage.removeItem(`token_${tabId}`);
+      sessionStorage.removeItem(`user_${tabId}`);
+      sessionStorage.removeItem(`isAuthenticated_${tabId}`);
+    }
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('isAuthenticated');
+    
+    // Clear localStorage as fallback
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    console.log('✅ LOCAL DATA CLEARED');
+    console.log('🔄 Redirecting to login...');
+    
+    // Small delay to ensure logs are visible
+    setTimeout(() => {
+      router.push('/login');
+    }, 500);
   };
 
   return (
