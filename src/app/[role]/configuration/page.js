@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getToken } from '@/utils/sessionStorage';
 
-export default function ConfigurationPage() {
+export default function ConfigurationPage({ adminId }) {
   const [selectedLanguages, setSelectedLanguages] = useState(['en']); // Max 2 languages
   const [speechRate, setSpeechRate] = useState(0.9);
   const [speechPitch, setSpeechPitch] = useState(1.0);
@@ -15,18 +16,32 @@ export default function ConfigurationPage() {
   const [uploadingVoice, setUploadingVoice] = useState(false);
   const [synthesizing, setSynthesizing] = useState(false);
 
+  // Helper function to get auth headers
+  const getAuthHeaders = () => {
+    const token = getToken();
+    return {
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
   useEffect(() => {
     // Load settings from database first, then fallback to localStorage
     loadSettings();
     
     // Check ChatterBox service status and load voices
     checkChatterboxService();
-  }, []);
+  }, [adminId]);
   
   const loadSettings = async () => {
     try {
       // Try to load from database
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/voices/settings`);
+      const url = adminId 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/voices/settings?adminId=${adminId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/voices/settings`;
+        
+      const response = await axios.get(url, {
+        headers: getAuthHeaders()
+      });
       if (response.data.success && response.data.settings) {
         const settings = response.data.settings;
         const languages = settings.languages ? JSON.parse(settings.languages) : ['en'];
@@ -185,7 +200,8 @@ export default function ConfigurationPage() {
       
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/voices/upload`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          ...getAuthHeaders()
         }
       });
       
@@ -210,12 +226,21 @@ export default function ConfigurationPage() {
     };
     
     try {
-      // Save to database
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/voices/settings`, {
+      // Save to database with admin_id if provided
+      const payload = {
         voice_type: selectedChatterboxVoice,
         languages: JSON.stringify(selectedLanguages), // Save as JSON array
         speech_rate: speechRate,
         speech_pitch: speechPitch
+      };
+      
+      // If adminId is provided, include it
+      if (adminId) {
+        payload.admin_id = adminId;
+      }
+      
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/voices/settings`, payload, {
+        headers: getAuthHeaders()
       });
       
       if (response.data.success) {

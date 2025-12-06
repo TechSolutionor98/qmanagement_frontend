@@ -4,7 +4,7 @@ import { FaEye, FaSignOutAlt, FaPlus, FaUser, FaEnvelope, FaLock, FaUserTag, FaT
 import axios from 'axios';
 import { getToken } from '@/utils/sessionStorage';
 
-export default function UserManagementPage() {
+export default function UserManagementPage({ adminId }) {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -13,7 +13,7 @@ export default function UserManagementPage() {
   const [admins, setAdmins] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [userCount, setUserCount] = useState(0);
-  const [selectedAdminId, setSelectedAdminId] = useState('');
+  const [selectedAdminId, setSelectedAdminId] = useState(adminId || '');
 
   const [formData, setFormData] = useState({
     username: '',
@@ -54,16 +54,17 @@ export default function UserManagementPage() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-  const fetchUsers = async (adminId) => {
+  const fetchUsers = async (targetAdminId) => {
     const token = getToken();
     if (!token) return;
     try {
-      // If adminId is provided, fetch users for that admin, otherwise use current user's admin_id
-      const targetAdminId = adminId || (currentUser?.role === 'admin' ? currentUser.id : selectedAdminId);
-      const endpoint = targetAdminId ? `${apiUrl}/admin/users?adminId=${targetAdminId}` : `${apiUrl}/admin/users`;
+      // Use the new API endpoint for admin-specific users
+      const endpoint = targetAdminId 
+        ? `${apiUrl}/users/admin/${targetAdminId}`
+        : `${apiUrl}/admin/users`;
       console.debug('[Users][GET] ->', endpoint, 'adminId:', targetAdminId);
       const res = await axios.get(endpoint, { headers: { Authorization: `Bearer ${token}` } });
-      const list = res.data.users || res.data;
+      const list = res.data.data || res.data.users || res.data;
       if (Array.isArray(list)) {
         setUsers(list);
         setUserCount(list.length);
@@ -102,7 +103,12 @@ export default function UserManagementPage() {
       const me = meRes.data.user || meRes.data;
       setCurrentUser(me);
       
-      if (me.role === 'admin') {
+      // If adminId prop is provided (from modal), use it directly
+      if (adminId) {
+        console.log('Modal mode: fetching users for admin ID:', adminId);
+        setFormData(prev => ({ ...prev, adminId: String(adminId) }));
+        fetchUsers(adminId);
+      } else if (me.role === 'admin') {
         // Admin sees only their own users
         console.log('Admin logged in, fetching users for admin ID:', me.id);
         fetchUsers(me.id);
@@ -115,13 +121,13 @@ export default function UserManagementPage() {
     }
   };
 
-  useEffect(() => { init(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { init(); }, [adminId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (currentUser?.role === 'super_admin' && selectedAdminId) {
+    if (!adminId && currentUser?.role === 'super_admin' && selectedAdminId) {
       fetchUsers(selectedAdminId);
     }
-  }, [currentUser?.role, selectedAdminId]);
+  }, [currentUser?.role, selectedAdminId, adminId]);
 
   useEffect(() => {
     document.body.style.overflow = (showViewModal || showCreateModal) ? 'hidden' : 'unset';
@@ -223,7 +229,8 @@ export default function UserManagementPage() {
     else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm password';
     else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-    if (currentUser?.role === 'super_admin' && !formData.adminId) newErrors.adminId = 'Select an admin';
+    // Only validate admin selection if not in modal mode and user is super_admin
+    if (!adminId && currentUser?.role === 'super_admin' && !formData.adminId) newErrors.adminId = 'Select an admin';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -234,20 +241,24 @@ export default function UserManagementPage() {
     setIsSubmitting(true);
     try {
       const token = getToken();
+      // Determine admin_id: use prop adminId if provided (modal mode), else use form selection or current admin
+      const targetAdminId = adminId || (currentUser?.role === 'admin' ? currentUser.id : Number(formData.adminId));
       const payload = {
         username: formData.username,
         email: formData.email,
         password: formData.password,
         role: formData.role || 'user',
-        admin_id: currentUser?.role === 'admin' ? currentUser.id : Number(formData.adminId),
+        admin_id: targetAdminId,
         status: formData.status,
       };
       console.debug('[Users][POST] payload', payload);
       const res = await axios.post(`${apiUrl}/admin/users`, payload, { headers: { Authorization: `Bearer ${token}` } });
       alert(res.data?.message || 'User created successfully');
       
-      // Refetch users based on role
-      if (currentUser?.role === 'admin') {
+      // Refetch users: use adminId prop if provided, else use current selection
+      if (adminId) {
+        fetchUsers(adminId);
+      } else if (currentUser?.role === 'admin') {
         fetchUsers(currentUser.id);
       } else if (selectedAdminId) {
         fetchUsers(selectedAdminId);
@@ -312,7 +323,7 @@ export default function UserManagementPage() {
           User Management
         </h1>
         <div className="flex items-center gap-3">
-          {currentUser?.role === 'super_admin' && admins.length > 0 && (
+          {!adminId && currentUser?.role === 'super_admin' && admins.length > 0 && (
             <select
               value={selectedAdminId}
               onChange={(e) => setSelectedAdminId(e.target.value)}
@@ -419,7 +430,7 @@ export default function UserManagementPage() {
                 <FormInput label="Email" name="email" type="email" value={formData.email} onChange={handleChange} icon={<FaEnvelope />} error={errors.email} required />
                 <FormInput label="Password" name="password" type="password" value={formData.password} onChange={handleChange} icon={<FaLock />} error={errors.password} required />
                 <FormInput label="Confirm Password" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} icon={<FaLock />} error={errors.confirmPassword} required />
-                {currentUser?.role === 'super_admin' && (
+                {!adminId && currentUser?.role === 'super_admin' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Admin <span className="text-red-500">*</span></label>
                     <select name="adminId" value={formData.adminId} onChange={handleChange} className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${errors.adminId ? 'border-red-500' : 'border-gray-300'}`}>
@@ -478,7 +489,7 @@ export default function UserManagementPage() {
                 <FormInput label="Email" name="email" type="email" value={editForm.email} onChange={handleEditChange} icon={<FaEnvelope />} error={editErrors.email} required />
                 <FormInput label="Password" name="password" type="password" value={editForm.password} onChange={handleEditChange} icon={<FaLock />} error={editErrors.password} />
                 <FormInput label="Confirm Password" name="confirmPassword" type="password" value={editForm.confirmPassword} onChange={handleEditChange} icon={<FaLock />} error={editErrors.confirmPassword} />
-                {currentUser?.role === 'super_admin' && (
+                {!adminId && currentUser?.role === 'super_admin' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Admin <span className="text-red-500">*</span></label>
                     <select name="adminId" value={editForm.adminId} onChange={handleEditChange} className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${editErrors.adminId ? 'border-red-500' : 'border-gray-300'}`}>

@@ -6,7 +6,7 @@ import autoTable from 'jspdf-autotable';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
 
-export default function ShortReportsPage() {
+export default function ShortReportsPage({ adminId }) {
   const [startDate, setStartDate] = useState('2025-01-01');
   const [endDate, setEndDate] = useState('2025-12-31');
   const [reportData, setReportData] = useState([]);
@@ -49,8 +49,17 @@ export default function ShortReportsPage() {
       }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      // Add adminId to query params if provided from modal
+      const queryParams = new URLSearchParams({
+        startDate,
+        endDate
+      });
+      if (adminId) {
+        queryParams.append('adminId', adminId);
+      }
+      
       const response = await fetch(
-        `${apiUrl}/tickets/reports?startDate=${startDate}&endDate=${endDate}`,
+        `${apiUrl}/tickets/reports?${queryParams.toString()}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -89,10 +98,10 @@ export default function ShortReportsPage() {
     }
   };
 
-  // Load data on component mount
+  // Load data on component mount and when adminId changes
   useEffect(() => {
     fetchReports();
-  }, []);
+  }, [adminId]);
 
   // Debug: Log state changes
   useEffect(() => {

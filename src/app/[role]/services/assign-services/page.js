@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getToken } from '@/utils/sessionStorage';
 
-export default function AssignServicesPage() {
+export default function AssignServicesPage({ adminId }) {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [users, setUsers] = useState([]);
@@ -16,12 +16,17 @@ export default function AssignServicesPage() {
     fetchUsers();
     fetchServices();
     fetchAssignedServices();
-  }, []);
+  }, [adminId]);
 
   const fetchUsers = async () => {
     try {
       const token = getToken();
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/all`, {
+      // If adminId provided, fetch users for that admin, otherwise fetch all
+      const url = adminId 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/users/admin/${adminId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/users/all`;
+        
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -35,7 +40,12 @@ export default function AssignServicesPage() {
   const fetchServices = async () => {
     try {
       const token = getToken();
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/all`, {
+      // If adminId provided, fetch services for that admin, otherwise fetch all
+      const url = adminId 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/services/admin/${adminId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/services/all`;
+        
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -49,7 +59,12 @@ export default function AssignServicesPage() {
   const fetchAssignedServices = async () => {
     try {
       const token = getToken();
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/assigned`, {
+      // If adminId provided, fetch assigned services for that admin
+      const url = adminId
+        ? `${process.env.NEXT_PUBLIC_API_URL}/services/assigned/admin/${adminId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/services/assigned`;
+        
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -148,18 +163,25 @@ export default function AssignServicesPage() {
       const token = getToken();
       
       // Assign services to multiple users
-      const promises = selectedUsers.map(userId => 
-        axios.post(
+      const promises = selectedUsers.map(userId => {
+        const payload = {
+          user_id: userId,
+          service_ids: selectedServices
+        };
+        
+        // If adminId is provided (from modal), include it
+        if (adminId) {
+          payload.admin_id = adminId;
+        }
+        
+        return axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/services/assign`,
-          {
-            user_id: userId,
-            service_ids: selectedServices
-          },
+          payload,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
-        )
-      );
+        );
+      });
 
       await Promise.all(promises);
       
@@ -228,8 +250,26 @@ export default function AssignServicesPage() {
               ) : (
                 assignedServices.map((item) => (
                   <tr key={item.user_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-700">{item.username}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{item.services || 'No services assigned'}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="font-medium text-gray-900">{item.username}</div>
+                      {/* <div className="text-gray-500 text-xs">{item.email}</div> */}
+                    </td>
+                    <td className="px-6 py-4">
+                      {item.services ? (
+                        <div className="flex flex-wrap gap-1">
+                          {item.services.split(', ').map((service, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium  text-gray-800"
+                            >
+                              {service}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500 italic">No services assigned</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm">
                       <button
                         onClick={() => handleDeleteAll(item.user_id)}

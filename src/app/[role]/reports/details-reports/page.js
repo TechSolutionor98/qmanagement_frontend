@@ -6,7 +6,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-export default function DetailsReportsPage() {
+export default function DetailsReportsPage({ adminId }) {
   const { token, callAPI, user } = useAuthContext();
   const [filterBy, setFilterBy] = useState('');
   const [filterValue, setFilterValue] = useState('');
@@ -47,25 +47,25 @@ export default function DetailsReportsPage() {
 
   // Fetch tickets data
   useEffect(() => {
-    if (user) {
+    if (user || adminId) {
       fetchTickets();
       fetchCounters();
       fetchRepresentatives();
     }
-  }, [user]);
+  }, [user, adminId]);
 
   // Fetch counters for current admin
   const fetchCounters = async () => {
     try {
-      // Get admin_id from current user
-      const adminId = user?.role === 'admin' ? user.id : user?.admin_id;
+      // Use adminId prop if provided (modal mode), else get from current user
+      const targetAdminId = adminId || (user?.role === 'admin' ? user.id : user?.admin_id);
       
-      if (!adminId) {
+      if (!targetAdminId) {
         console.error('No admin ID found');
         return;
       }
 
-      const data = await callAPI(`/admin/counters/${adminId}`, {
+      const data = await callAPI(`/admin/counters/${targetAdminId}`, {
         method: 'GET',
         validateSession: false
       });
@@ -88,12 +88,16 @@ export default function DetailsReportsPage() {
   // Fetch representatives (users under this admin)
   const fetchRepresentatives = async () => {
     try {
-      const data = await callAPI('/admin/users', {
+      // Use admin-specific endpoint if adminId prop is provided
+      const endpoint = adminId ? `/users/admin/${adminId}` : '/admin/users';
+      
+      const data = await callAPI(endpoint, {
         method: 'GET',
         validateSession: false
       });
       // Filter only users with role 'user'
-      const userRoleOnly = (data.users || []).filter(user => user.role === 'user');
+      const userList = data.data || data.users || [];
+      const userRoleOnly = userList.filter(u => u.role === 'user');
       setRepresentatives(userRoleOnly);
     } catch (err) {
       console.error('Error fetching representatives:', err);
@@ -110,7 +114,15 @@ export default function DetailsReportsPage() {
         return;
       }
 
-      const data = await callAPI('/tickets', {
+      // Add adminId to query params if provided
+      const queryParams = new URLSearchParams();
+      if (adminId) {
+        queryParams.append('adminId', adminId);
+      }
+      const queryString = queryParams.toString();
+      const endpoint = queryString ? `/tickets?${queryString}` : '/tickets';
+
+      const data = await callAPI(endpoint, {
         method: 'GET',
         validateSession: false
       });
@@ -306,6 +318,12 @@ export default function DetailsReportsPage() {
       setLoading(true);
       
       const params = new URLSearchParams();
+      
+      // Add adminId first for admin-specific filtering
+      if (adminId) {
+        params.append('adminId', adminId);
+      }
+      
       if (filterBy && filterValue) {
         if (filterBy === 'counter') {
           params.append('counter_no', filterValue);

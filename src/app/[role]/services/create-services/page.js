@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getToken } from '@/utils/sessionStorage';
 
-export default function CreateServicesPage() {
+export default function CreateServicesPage({ adminId }) {
   const [serviceNameEnglish, setServiceNameEnglish] = useState('');
   const [serviceNameArabic, setServiceNameArabic] = useState('');
   const [initialTicket, setInitialTicket] = useState('');
@@ -22,12 +22,17 @@ export default function CreateServicesPage() {
   // Fetch all services on component mount
   useEffect(() => {
     fetchServices();
-  }, []);
+  }, [adminId]);
 
   const fetchServices = async () => {
     try {
       const token = getToken();
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/services/all`, {
+      // If adminId is provided, fetch services for that admin, otherwise fetch all
+      const url = adminId 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/services/admin/${adminId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/services/all`;
+        
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -54,6 +59,11 @@ export default function CreateServicesPage() {
       formData.append('service_name_arabic', serviceNameArabic);
       formData.append('initial_ticket', initialTicket);
       formData.append('color', serviceColor);
+      
+      // If adminId is provided (from modal), include it
+      if (adminId) {
+        formData.append('admin_id', adminId);
+      }
       
       if (uploadLogo) {
         formData.append('logo', uploadLogo);

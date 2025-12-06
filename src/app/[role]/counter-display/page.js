@@ -1,10 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getToken } from '@/utils/sessionStorage';
 
 const API_URL = 'http://localhost:5000/api/counter-display';
 
-export default function CounterDisplayPage() {
+export default function CounterDisplayPage({ adminId }) {
   const [contentType, setContentType] = useState('video'); // 'video' or 'images'
   const [uploadedVideo, setUploadedVideo] = useState(null);
   const [videoUrl, setVideoUrl] = useState('');
@@ -20,14 +21,25 @@ export default function CounterDisplayPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  // Helper function to get auth headers
+  const getAuthHeaders = () => {
+    const token = getToken();
+    return {
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
   // Load existing configuration on mount
   useEffect(() => {
     fetchConfiguration();
-  }, []);
+  }, [adminId]);
 
   const fetchConfiguration = async () => {
     try {
-      const response = await axios.get(`${API_URL}/config`);
+      const url = adminId ? `${API_URL}/config?adminId=${adminId}` : `${API_URL}/config`;
+      const response = await axios.get(url, {
+        headers: getAuthHeaders()
+      });
       if (response.data.success) {
         const { config, images } = response.data;
         
@@ -90,10 +102,16 @@ export default function CounterDisplayPage() {
       // Upload immediately
       const formData = new FormData();
       formData.append('video', file);
+      if (adminId) {
+        formData.append('admin_id', adminId);
+      }
       
       try {
         const response = await axios.post(`${API_URL}/upload-video`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            ...getAuthHeaders()
+          }
         });
         
         if (response.data.success) {
@@ -116,10 +134,16 @@ export default function CounterDisplayPage() {
       const formData = new FormData();
       formData.append('logo', file);
       formData.append('logoType', 'left');
+      if (adminId) {
+        formData.append('admin_id', adminId);
+      }
       
       try {
         const response = await axios.post(`${API_URL}/upload-logo`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            ...getAuthHeaders()
+          }
         });
         
         if (response.data.success) {
@@ -142,10 +166,16 @@ export default function CounterDisplayPage() {
       const formData = new FormData();
       formData.append('logo', file);
       formData.append('logoType', 'right');
+      if (adminId) {
+        formData.append('admin_id', adminId);
+      }
       
       try {
         const response = await axios.post(`${API_URL}/upload-logo`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            ...getAuthHeaders()
+          }
         });
         
         if (response.data.success) {
@@ -167,10 +197,16 @@ export default function CounterDisplayPage() {
       files.forEach(file => {
         formData.append('images', file);
       });
+      if (adminId) {
+        formData.append('admin_id', adminId);
+      }
       
       try {
         const response = await axios.post(`${API_URL}/upload-images`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            ...getAuthHeaders()
+          }
         });
         
         if (response.data.success) {
@@ -215,8 +251,14 @@ export default function CounterDisplayPage() {
         tickerContent,
         selectedImageIds: selectedImages
       };
+      
+      if (adminId) {
+        payload.admin_id = adminId;
+      }
 
-      const response = await axios.post(`${API_URL}/config`, payload);
+      const response = await axios.post(`${API_URL}/config`, payload, {
+        headers: getAuthHeaders()
+      });
       
       if (response.data.success) {
         showMessage('success', 'Configuration updated successfully!');

@@ -15,6 +15,14 @@ import CounterDisplayPage from '@/app/[role]/counter-display/page';
 import CreateAdminPage from '@/app/[role]/users/create-admin/page';
 import DisplayScreensSessionsPage from '@/app/[role]/display-screens-sessions/page';
 import UserDashboardBtnsPage from '@/app/[role]/user-dashboard-btns/page';
+import UserSessionsPage from '@/app/[role]/users/user&sessions/page';
+import ProfilePage from '@/app/[role]/profile/page';
+import DashboardPage from '@/app/[role]/dashboard/page';
+import CompletedTasksPage from '@/app/[role]/completed-tasks/page';
+import CreateLicensePage from '@/app/[role]/license/create-license/page';
+import LicenseReportPage from '@/app/[role]/license/license-report/page';
+import DetailsReportsPage from '@/app/[role]/reports/details-reports/page';
+import ShortReportsPage from '@/app/[role]/reports/short-reports/page';
 
 export default function ListOfLicensePage() {
   const router = useRouter();
@@ -32,6 +40,7 @@ export default function ListOfLicensePage() {
   const [loadingAdmin, setLoadingAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState('create-services');
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
+  const [reportsDropdownOpen, setReportsDropdownOpen] = useState(false);
 
   useEffect(() => {
     fetchLicenses();
@@ -116,6 +125,7 @@ export default function ListOfLicensePage() {
     setShowAdminModal(true);
     setActiveTab('create-services');
     setServicesDropdownOpen(false);
+    setReportsDropdownOpen(false);
     fetchAdminDetails(license.admin_id);
   };
 
@@ -349,12 +359,50 @@ export default function ListOfLicensePage() {
                       </div>
                     )}
                   </div>
-                  <SidebarButton 
-                    active={activeTab === 'reports'} 
-                    onClick={() => setActiveTab('reports')}
-                    icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-                    label="Reports"
-                  />
+                  
+                  {/* Reports Dropdown */}
+                  <div>
+                    <SidebarButton 
+                      active={activeTab === 'reports' || activeTab === 'details-reports' || activeTab === 'short-reports'} 
+                      onClick={() => setReportsDropdownOpen(!reportsDropdownOpen)}
+                      icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                      label="Reports"
+                      arrow
+                      dropdownOpen={reportsDropdownOpen}
+                    />
+                    {reportsDropdownOpen && (
+                      <div className="ml-8 mt-1 space-y-1">
+                      
+                        <button
+                          onClick={() => setActiveTab('details-reports')}
+                          className={`flex items-center w-full px-4 py-2 text-sm rounded-lg transition-all ${
+                            activeTab === 'details-reports'
+                              ? 'bg-white text-green-600 font-medium'
+                              : 'text-gray-600 hover:bg-white hover:text-gray-900'
+                          }`}
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Details Reports
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('short-reports')}
+                          className={`flex items-center w-full px-4 py-2 text-sm rounded-lg transition-all ${
+                            activeTab === 'short-reports'
+                              ? 'bg-white text-green-600 font-medium'
+                              : 'text-gray-600 hover:bg-white hover:text-gray-900'
+                          }`}
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                          Short Reports
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
                   <SidebarButton 
                     active={activeTab === 'configuration'} 
                     onClick={() => setActiveTab('configuration')}
@@ -367,12 +415,12 @@ export default function ListOfLicensePage() {
                     icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
                     label="Counter Display"
                   />
+                 
                   <SidebarButton 
-                    active={activeTab === 'users'} 
-                    onClick={() => setActiveTab('users')}
-                    icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
-                    label="Users & Permissions"
-                    arrow
+                    active={activeTab === 'user-sessions'} 
+                    onClick={() => setActiveTab('user-sessions')}
+                    icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
+                    label="User & Sessions"
                   />
                   <SidebarButton 
                     active={activeTab === 'display'} 
@@ -381,8 +429,8 @@ export default function ListOfLicensePage() {
                     label="Display Sessions"
                   />
                   <SidebarButton 
-                    active={activeTab === 'dashboard'} 
-                    onClick={() => setActiveTab('dashboard')}
+                    active={activeTab === 'dashboard-btns'} 
+                    onClick={() => setActiveTab('dashboard-btns')}
                     icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
                     label="User Dashboard Btns"
                   />
@@ -400,14 +448,22 @@ export default function ListOfLicensePage() {
                   </div>
                 ) : (
                   <>
-                    {activeTab === 'create-services' && <CreateServicesPage />}
-                    {activeTab === 'assign-services' && <AssignServicesPage />}
-                    {activeTab === 'reports' && <ReportsPage />}
-                    {activeTab === 'configuration' && <ConfigurationPage />}
-                    {activeTab === 'counter' && <CounterDisplayPage />}
-                    {activeTab === 'users' && <CreateAdminPage />}
-                    {activeTab === 'display' && <DisplayScreensSessionsPage />}
-                    {activeTab === 'dashboard' && <UserDashboardBtnsPage />}
+                    {activeTab === 'create-services' && <CreateServicesPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'assign-services' && <AssignServicesPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'reports' && <ReportsPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'details-reports' && <DetailsReportsPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'short-reports' && <ShortReportsPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'configuration' && <ConfigurationPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'counter' && <CounterDisplayPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'users' && <CreateAdminPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'user-sessions' && <UserSessionsPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'display' && <DisplayScreensSessionsPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'dashboard-btns' && <UserDashboardBtnsPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'admin-dashboard' && <DashboardPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'completed-tasks' && <CompletedTasksPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'create-license' && <CreateLicensePage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'license-report' && <LicenseReportPage adminId={selectedAdmin?.admin_id} />}
+                    {activeTab === 'profile' && <ProfilePage adminId={selectedAdmin?.admin_id} />}
                   </>
                 )}
               </div>
