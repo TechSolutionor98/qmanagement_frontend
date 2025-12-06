@@ -4,12 +4,13 @@ import axios from 'axios';
 import { getToken } from '@/utils/sessionStorage';
 
 export default function AssignServicesPage() {
-  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [users, setUsers] = useState([]);
   const [services, setServices] = useState([]);
   const [assignedServices, setAssignedServices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -75,32 +76,97 @@ export default function AssignServicesPage() {
     }
   };
 
+  const handleUserToggle = async (userId) => {
+    let updatedUsers;
+    if (selectedUsers.includes(userId)) {
+      updatedUsers = selectedUsers.filter(u => u !== userId);
+    } else {
+      updatedUsers = [...selectedUsers, userId];
+    }
+    setSelectedUsers(updatedUsers);
+    
+    // Load common services for all selected users
+    if (updatedUsers.length > 0) {
+      await loadCommonServices(updatedUsers);
+    } else {
+      setSelectedServices([]);
+    }
+  };
+
+  const loadCommonServices = async (userIds) => {
+    try {
+      const token = getToken();
+      
+      // Fetch services for all selected users
+      const promises = userIds.map(userId =>
+        axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/services/user/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        )
+      );
+
+      const responses = await Promise.all(promises);
+      
+      // Extract service IDs from each user
+      const allUserServices = responses.map(response => {
+        if (response.data.success && response.data.services) {
+          return response.data.services.map(service => service.id);
+        }
+        return [];
+      });
+
+      if (allUserServices.length === 0) {
+        setSelectedServices([]);
+        return;
+      }
+
+      // Find common services across all selected users
+      let commonServices = allUserServices[0];
+      for (let i = 1; i < allUserServices.length; i++) {
+        commonServices = commonServices.filter(serviceId => 
+          allUserServices[i].includes(serviceId)
+        );
+      }
+
+      setSelectedServices(commonServices);
+    } catch (error) {
+      console.error('Error loading common services:', error);
+      setSelectedServices([]);
+    }
+  };
+
   const handleAssignServices = async () => {
-    if (!selectedUser) {
-      alert('Please select a user');
+    if (selectedUsers.length === 0) {
+      alert('Please select at least one user');
       return;
     }
 
     setLoading(true);
     try {
       const token = getToken();
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/services/assign`,
-        {
-          user_id: selectedUser,
-          service_ids: selectedServices
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+      
+      // Assign services to multiple users
+      const promises = selectedUsers.map(userId => 
+        axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/services/assign`,
+          {
+            user_id: userId,
+            service_ids: selectedServices
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        )
       );
 
-      if (response.data.success) {
-        alert('Services assigned successfully!');
-        setSelectedUser('');
-        setSelectedServices([]);
-        fetchAssignedServices();
-      }
+      await Promise.all(promises);
+      
+      alert('Services assigned successfully to all selected users!');
+      setSelectedUsers([]);
+      setSelectedServices([]);
+      fetchAssignedServices();
     } catch (error) {
       console.error('Error assigning services:', error);
       alert('Failed to assign services');
@@ -188,22 +254,50 @@ export default function AssignServicesPage() {
         
         <div className="p-6">
           {/* Assign to User Dropdown */}
-          <div className="mb-6">
+          <div className="mb-6 relative">
             <label className="block text-xs font-medium text-gray-600 uppercase mb-2">
-              Assign to User
+              Assign to Users ({selectedUsers.length} selected)
             </label>
-            <select
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-700"
+            <div
+              onClick={() => setShowUserDropdown(!showUserDropdown)}
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-700 cursor-pointer bg-white flex items-center justify-between"
             >
-              <option value="">Select User</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.username}
-                </option>
-              ))}
-            </select>
+              <span>
+                {selectedUsers.length === 0 
+                  ? 'Select Users' 
+                  : selectedUsers.length === 1
+                  ? users.find(u => u.id === selectedUsers[0])?.username
+                  : `${selectedUsers.length} users selected`
+                }
+              </span>
+              <svg className={`w-4 h-4 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            
+            {showUserDropdown && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
+                {users.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-gray-500">No users available</div>
+                ) : (
+                  users.map((user) => (
+                    <div
+                      key={user.id}
+                      onClick={() => handleUserToggle(user.id)}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => {}}
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 pointer-events-none"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">{user.username}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           {/* Select Services */}
