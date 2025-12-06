@@ -7,6 +7,17 @@ export function middleware(request) {
   const hasAuth = request.cookies.get('isAuthenticated')?.value === 'true'
   const userRole = request.cookies.get('userRole')?.value
   
+  // Debug logging
+  if (pathname === '/') {
+    console.log('🔒 Middleware check for "/"')
+    console.log('🍪 hasAuth:', hasAuth)
+    console.log('🎭 userRole:', userRole)
+    console.log('📋 Cookies:', {
+      isAuthenticated: request.cookies.get('isAuthenticated')?.value,
+      userRole: request.cookies.get('userRole')?.value
+    })
+  }
+  
   // Public paths that don't require authentication
   const publicPaths = ['/login', '/api']
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path))

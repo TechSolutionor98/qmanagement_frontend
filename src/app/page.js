@@ -88,30 +88,32 @@ export default function Home() {
   }, [currentUser, token]);
 
   useEffect(() => {
-    // Small delay to let Redux restore auth from sessionStorage
+    // Faster auth check - reduced delay
     const timer = setTimeout(() => {
       setAuthChecking(false);
       
-      console.log('Auth check - isAuthenticated:', isAuthenticated);
-      console.log('Auth check - currentUser:', currentUser);
+      console.log('🔍 Auth check - isAuthenticated:', isAuthenticated);
+      console.log('👤 Auth check - currentUser:', currentUser);
+      console.log('🎭 Auth check - role:', currentUser?.role);
       
       // Check if user is authenticated
-      if (!isAuthenticated) {
-        console.log('Not authenticated, redirecting to login');
+      if (!isAuthenticated || !currentUser) {
+        console.log('❌ Not authenticated, redirecting to login');
         router.push('/login');
         return;
       }
 
       // If user is admin or super_admin, redirect to their dashboard
       if (currentUser?.role === 'admin' || currentUser?.role === 'super_admin') {
-        console.log('Admin user detected, redirecting to dashboard');
+        console.log('👔 Admin user detected, redirecting to dashboard');
         router.push(`/${currentUser.role}/dashboard`);
         return;
       }
 
       // Receptionist and user can access this page
-      console.log('User/Receptionist access granted to home page');
-    }, 300);
+      console.log('✅ User/Receptionist access granted to home page');
+      console.log('📍 Current role:', currentUser.role);
+    }, 100); // Reduced from 300ms to 100ms
 
     return () => clearTimeout(timer);
   }, [isAuthenticated, currentUser, router]);

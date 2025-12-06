@@ -56,16 +56,23 @@ const authSlice = createSlice({
       state.error = null
       state.tabId = getTabId()
       
+      console.log('🔐 setCredentials called')
+      console.log('👤 User role:', user.role)
+      console.log('🎫 Token set:', !!token)
+      
       // Store in sessionStorage (tab-specific)
       if (typeof window !== 'undefined') {
         sessionStorage.setItem(getStorageKey('token'), token)
         sessionStorage.setItem(getStorageKey('user'), JSON.stringify(user))
         sessionStorage.setItem(getStorageKey('isAuthenticated'), 'true')
         
-        // Set cookies for middleware
+        // Set cookies for middleware - CRITICAL for page refresh
         setCookie('isAuthenticated', 'true', 7)
         setCookie('userRole', user.role, 7)
         setCookie(`token_${state.tabId}`, token, 7)
+        
+        console.log('🍪 Cookies set for role:', user.role)
+        console.log('💾 SessionStorage saved')
       }
     },
     
@@ -122,10 +129,16 @@ const authSlice = createSlice({
         state.isAuthenticated = true
         state.tabId = getTabId()
         
-        // Ensure cookies are set
+        console.log('🔄 restoreAuth called')
+        console.log('👤 Restoring user role:', user.role)
+        console.log('🎫 Token restored:', !!token)
+        
+        // Ensure cookies are set - CRITICAL for middleware on page refresh
         setCookie('isAuthenticated', 'true', 7)
         setCookie('userRole', user.role, 7)
         setCookie(`token_${state.tabId}`, token, 7)
+        
+        console.log('🍪 Cookies restored for role:', user.role)
       }
     },
   },

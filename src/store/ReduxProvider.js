@@ -26,22 +26,32 @@ export function ReduxProvider({ children }) {
       const user = getUser()
       const isAuth = isAuthenticated()
       
+      console.log('🔄 ReduxProvider - Restoring auth...')
+      console.log('🎫 Token exists:', !!token)
+      console.log('👤 User exists:', !!user)
+      console.log('✓ Is authenticated:', isAuth)
+      console.log('🎭 User role:', user?.role)
+      
       if (token && user && isAuth) {
         try {
           store.dispatch(restoreAuth({ user, token }))
           
-          // Set cookies for middleware
+          // Set cookies for middleware - IMPORTANT for page refresh
           const tabId = getTabId()
           setCookie('isAuthenticated', 'true', 7)
           setCookie('userRole', user.role, 7)
           setCookie(`token_${tabId}`, token, 7)
+          
+          console.log('✅ Auth restored successfully')
+          console.log('🍪 Cookies set - role:', user.role)
         } catch (err) {
-          console.error('Failed to restore auth:', err)
+          console.error('❌ Failed to restore auth:', err)
           sessionStorage.clear()
           deleteCookie('isAuthenticated')
           deleteCookie('userRole')
         }
       } else {
+        console.log('⚠️ No auth data found, clearing cookies')
         // Clear cookies if no auth in this tab
         deleteCookie('isAuthenticated')
         deleteCookie('userRole')
