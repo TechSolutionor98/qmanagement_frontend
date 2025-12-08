@@ -154,30 +154,18 @@ export default function LoginPage() {
       
       if (activeTab === 'user') {
         endpoint = `${API_URL}/auth/user/login`;
-        // User login without counter - will select counter in modal
+        // User login - only 'user' role allowed
       } else if (activeTab === 'admin') {
-        // First try super admin login
-        endpoint = `${API_URL}/auth/super-admin/login`;
+        // Admin login - only 'admin' role allowed (super_admin has separate route)
+        endpoint = `${API_URL}/auth/admin/login`;
         
-        let response = await fetch(endpoint, {
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(loginData),
         });
-
-        // If super admin login fails, try regular admin login
-        if (!response.ok) {
-          endpoint = `${API_URL}/auth/admin/login`;
-          response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(loginData),
-          });
-        }
 
         const data = await response.json();
 
@@ -205,6 +193,15 @@ export default function LoginPage() {
           return;
         }
 
+        // ✅ Role validation for Admin tab - only 'admin' role allowed
+        if (data.user.role !== 'admin') {
+          const errorMsg = 'Invalid credentials';
+          dispatch(setError(errorMsg));
+          showToast(errorMsg, 'error');
+          dispatch(setLoading(false));
+          return;
+        }
+
         // Store credentials in Redux and sessionStorage
         dispatch(setCredentials({
           user: data.user,
@@ -214,14 +211,9 @@ export default function LoginPage() {
         // Show success message
         showToast('Login successful!', 'success');
 
-        // Redirect immediately based on role
-        const roleMapping = {
-          'super_admin': '/superadmin',
-          'admin': '/admin',
-        };
-        const redirectPath = roleMapping[data.user.role];
-        if (redirectPath) {
-          router.push(redirectPath);
+        // Redirect to admin dashboard
+        if (data.user.role === 'admin') {
+          router.push('/admin');
         }
         
         dispatch(setLoading(false));
@@ -262,6 +254,15 @@ export default function LoginPage() {
       console.log('Login response data:', data);
       console.log('User role:', data.user.role);
       console.log('Active tab:', activeTab);
+
+      // ✅ Role validation for User tab - only 'user' role allowed
+      if (activeTab === 'user' && data.user.role !== 'user') {
+        const errorMsg = 'Invalid credentials';
+        dispatch(setError(errorMsg));
+        showToast(errorMsg, 'error');
+        dispatch(setLoading(false));
+        return;
+      }
 
       // Show counter modal only for users with role='user' (not receptionist)
       if (activeTab === 'user' && data.user.role === 'user') {

@@ -17,6 +17,7 @@ export default function Sidebar() {
   const [isReportsOpen, setIsReportsOpen] = useState(false);
   const [isUsersOpen, setIsUsersOpen] = useState(false);
   const [isLicenseOpen, setIsLicenseOpen] = useState(false);
+  const [isCounterSettingsOpen, setIsCounterSettingsOpen] = useState(false);
 
   // Extract role from pathname instead of using state
   const role = pathname.split('/')[1] || 'admin';
@@ -33,21 +34,31 @@ export default function Sidebar() {
       setIsReportsOpen(false);
       setIsUsersOpen(false);
       setIsLicenseOpen(false);
+      setIsCounterSettingsOpen(false);
     } else if (pathname.includes('/reports')) {
       setIsReportsOpen(true);
       setIsServicesOpen(false);
       setIsUsersOpen(false);
       setIsLicenseOpen(false);
+      setIsCounterSettingsOpen(false);
     } else if (pathname.includes('/users')) {
       setIsUsersOpen(true);
       setIsServicesOpen(false);
       setIsReportsOpen(false);
       setIsLicenseOpen(false);
+      setIsCounterSettingsOpen(false);
     } else if (pathname.includes('/license')) {
       setIsLicenseOpen(true);
       setIsServicesOpen(false);
       setIsReportsOpen(false);
       setIsUsersOpen(false);
+      setIsCounterSettingsOpen(false);
+    } else if (pathname.includes('/counter-display') || pathname.includes('/display-screens-sessions') || pathname.includes('/configuration')) {
+      setIsCounterSettingsOpen(true);
+      setIsServicesOpen(false);
+      setIsReportsOpen(false);
+      setIsUsersOpen(false);
+      setIsLicenseOpen(false);
     }
   }, [pathname]);
 
@@ -57,6 +68,7 @@ export default function Sidebar() {
     setIsReportsOpen(false);
     setIsUsersOpen(false);
     setIsLicenseOpen(false);
+    setIsCounterSettingsOpen(false);
   };
 
   const handleReportsToggle = () => {
@@ -64,6 +76,7 @@ export default function Sidebar() {
     setIsServicesOpen(false);
     setIsUsersOpen(false);
     setIsLicenseOpen(false);
+    setIsCounterSettingsOpen(false);
   };
 
   const handleUsersToggle = () => {
@@ -71,6 +84,7 @@ export default function Sidebar() {
     setIsServicesOpen(false);
     setIsReportsOpen(false);
     setIsLicenseOpen(false);
+    setIsCounterSettingsOpen(false);
   };
 
   const handleLicenseToggle = () => {
@@ -78,6 +92,15 @@ export default function Sidebar() {
     setIsServicesOpen(false);
     setIsReportsOpen(false);
     setIsUsersOpen(false);
+    setIsCounterSettingsOpen(false);
+  };
+
+  const handleCounterSettingsToggle = () => {
+    setIsCounterSettingsOpen(!isCounterSettingsOpen);
+    setIsServicesOpen(false);
+    setIsReportsOpen(false);
+    setIsUsersOpen(false);
+    setIsLicenseOpen(false);
   };
 
   return (
@@ -187,6 +210,111 @@ export default function Sidebar() {
           </div>
         )}
 
+        {/* Configuration - Hidden for Super Admin */}
+        {!isSuperAdmin && (
+          <div>
+            <button
+              onClick={handleCounterSettingsToggle}
+              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+                pathname.includes('/counter-display') || pathname.includes('/display-screens-sessions') || pathname.includes('/configuration') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <MdSettings className="text-lg" />
+                <span className="text-sm font-medium">Counter Settings</span>
+              </div>
+              <IoChevronForward className={`text-sm transition-transform duration-200 ${isCounterSettingsOpen ? 'rotate-90' : ''}`} />
+            </button>
+            {isCounterSettingsOpen && (
+              <div className="bg-black/20 py-1">
+                <Link
+                  href={`/${role}/configuration`}
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/configuration') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/configuration') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
+                  <span className="text-sm">Configuration</span>
+                </Link>
+                <Link
+                  href={`/${role}/counter-display`}
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/counter-display') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/counter-display') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
+                  <span className="text-sm">Counter Display</span>
+                </Link>
+                <Link
+                  href={`/${role}/display-screens-sessions`}
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/display-screens-sessions') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/display-screens-sessions') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
+                  <span className="text-sm">Display Screens Sessions</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Users - Hidden for Super Admin */}
+        {!isSuperAdmin && (
+          <div>
+            <button
+              onClick={handleUsersToggle}
+              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+                pathname.includes('/users') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <FaUsers className="text-lg" />
+                <span className="text-sm font-medium">Users & Permissions</span>
+              </div>
+              <IoChevronForward className={`text-sm transition-transform duration-200 ${isUsersOpen ? 'rotate-90' : ''}`} />
+            </button>
+            {isUsersOpen && (
+              <div className="bg-black/20 py-1">
+                <Link
+                  href={`/${role}/users/user&sessions`}
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/users/user&sessions') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/users/user&sessions') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
+                  <span className="text-sm">User & Sessions</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Display Screens Sessions - Hidden for Super Admin */}
+        {/* Now moved inside Counter Settings dropdown */}
+
+        {/* User Dashboard Btns - Hidden for Super Admin */}
+        {!isSuperAdmin && (
+          <Link
+            href={`/${role}/user-dashboard-btns`}
+            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
+              pathname.includes('/user-dashboard-btns') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            <FaTv className="text-lg" />
+            <span className="text-sm font-medium">User Dashboard Btns</span>
+          </Link>
+        )}
+
+        
         {/* Reports - Hidden for Super Admin */}
         {!isSuperAdmin && (
           <div>
@@ -231,90 +359,6 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* Configuration - Hidden for Super Admin */}
-        {!isSuperAdmin && (
-          <Link
-            href={`/${role}/configuration`}
-            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
-              pathname.includes('/configuration') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            <FaBell className="text-lg" />
-            <span className="text-sm font-medium">Configuration</span>
-          </Link>
-        )}
-
-        {/* Counter Display - Hidden for Super Admin */}
-        {!isSuperAdmin && (
-          <Link
-            href={`/${role}/counter-display`}
-            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
-              pathname.includes('/counter-display') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            <FaTv className="text-lg" />
-            <span className="text-sm font-medium">Counter Display</span>
-          </Link>
-        )}
-
-        {/* Users - Hidden for Super Admin */}
-        {!isSuperAdmin && (
-          <div>
-            <button
-              onClick={handleUsersToggle}
-              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
-                pathname.includes('/users') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <FaUsers className="text-lg" />
-                <span className="text-sm font-medium">Users & Permissions</span>
-              </div>
-              <IoChevronForward className={`text-sm transition-transform duration-200 ${isUsersOpen ? 'rotate-90' : ''}`} />
-            </button>
-            {isUsersOpen && (
-              <div className="bg-black/20 py-1">
-                <Link
-                  href={`/${role}/users/user&sessions`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
-                    pathname.includes('/users/user&sessions') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <span className={`w-2 h-2 rounded-full ${
-                    pathname.includes('/users/user&sessions') ? 'bg-white' : 'bg-gray-500'
-                  }`}></span>
-                  <span className="text-sm">User & Sessions</span>
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Display Screens Sessions - Hidden for Super Admin */}
-        {!isSuperAdmin && (
-          <Link
-            href={`/${role}/display-screens-sessions`}
-            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
-              pathname.includes('/display-screens-sessions') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            <MdDashboard className="text-lg" />
-            <span className="text-sm font-medium">Display Screens Sessions</span>
-          </Link>
-        )}
-
-        {/* User Dashboard Btns - Hidden for Super Admin */}
-        {!isSuperAdmin && (
-          <Link
-            href={`/${role}/user-dashboard-btns`}
-            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
-              pathname.includes('/user-dashboard-btns') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            <FaTv className="text-lg" />
-            <span className="text-sm font-medium">User Dashboard Btns</span>
-          </Link>
-        )}
       </nav>
     </aside>
   );

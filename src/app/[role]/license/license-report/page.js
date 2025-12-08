@@ -92,8 +92,12 @@ export default function LicenseReportPage() {
         start_date: license.start_date?.split('T')[0],
         expiry_date: license.expiry_date?.split('T')[0],
         status: license.status,
-        max_users: license.max_users || '',
-        max_counters: license.max_counters || '',
+        max_users: license.max_users || 10,
+        max_counters: license.max_counters || 5,
+        max_receptionists: license.max_receptionists || 5,
+        max_ticket_info_users: license.max_ticket_info_users || 3,
+        max_sessions_per_receptionist: license.max_sessions_per_receptionist || 1,
+        max_sessions_per_ticket_info: license.max_sessions_per_ticket_info || 1,
         company_name: license.company_name,
         company_logo: license.company_logo || '',
         email: license.email || '',
@@ -141,12 +145,20 @@ export default function LicenseReportPage() {
     try {
       const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
       
+      if (!authToken) {
+        alert('Authentication required. Please login again.');
+        router.push('/login');
+        return;
+      }
+
+      console.log('Submitting update with data:', editFormData);
+      
       // Create FormData for file upload
       const formData = new FormData();
       
-      // Append all form fields
+      // Append all form fields (including empty strings and zeros)
       Object.keys(editFormData).forEach(key => {
-        if (editFormData[key] && key !== 'company_logo') {
+        if (editFormData[key] !== null && editFormData[key] !== undefined && key !== 'company_logo') {
           formData.append(key, editFormData[key]);
         }
       });
@@ -155,6 +167,8 @@ export default function LicenseReportPage() {
       if (logoFile) {
         formData.append('company_logo', logoFile);
       }
+
+      console.log('Sending request to:', `${process.env.NEXT_PUBLIC_API_URL}/license/${editFormData.id}`);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/license/${editFormData.id}`, {
         method: 'PUT',
@@ -165,7 +179,10 @@ export default function LicenseReportPage() {
         body: formData
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
+
       if (data.success) {
         alert('License updated successfully!');
         setShowEditModal(false);
@@ -173,11 +190,12 @@ export default function LicenseReportPage() {
         setLogoPreview(null);
         fetchLicenseReport(); // Refresh data
       } else {
+        console.error('Update failed:', data);
         alert(data.message || 'Failed to update license');
       }
     } catch (error) {
       console.error('Update error:', error);
-      alert('Failed to update license');
+      alert(`Failed to update license: ${error.message}`);
     } finally {
       setUploading(false);
     }
@@ -467,6 +485,70 @@ export default function LicenseReportPage() {
                 </div>
               </div>
 
+              {/* License Limits & Session Controls */}
+              <div className="bg-purple-50 rounded-lg p-5">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <span>📊</span> License Limits & Session Controls
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Receptionists</label>
+                    <input
+                      type="number"
+                      name="max_receptionists"
+                      value={editFormData.max_receptionists}
+                      onChange={handleEditFormChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      min="1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Maximum reception role users</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Ticket Info Users</label>
+                    <input
+                      type="number"
+                      name="max_ticket_info_users"
+                      value={editFormData.max_ticket_info_users}
+                      onChange={handleEditFormChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      min="1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Maximum ticket_info screen users</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Sessions Per Receptionist</label>
+                    <input
+                      type="number"
+                      name="max_sessions_per_receptionist"
+                      value={editFormData.max_sessions_per_receptionist}
+                      onChange={handleEditFormChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      min="1"
+                      max="5"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Concurrent sessions (1-5)</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Sessions Per Ticket Info</label>
+                    <input
+                      type="number"
+                      name="max_sessions_per_ticket_info"
+                      value={editFormData.max_sessions_per_ticket_info}
+                      onChange={handleEditFormChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      min="1"
+                      max="5"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Concurrent sessions (1-5)</p>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+                  <p className="text-xs text-yellow-900">
+                    ⚠️ <strong>Session Limits:</strong> Users must contact tech support to increase limits or delete old sessions
+                  </p>
+                </div>
+              </div>
+
               {/* Modal Footer */}
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <button
@@ -610,6 +692,41 @@ export default function LicenseReportPage() {
                   )}
                 </div>
               </div>
+
+              {/* Session Limits */}
+              {(selectedLicense.max_receptionists || selectedLicense.max_ticket_info_users) && (
+                <div className="bg-purple-50 rounded-lg p-5">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <span>📊</span> License Limits & Sessions
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedLicense.max_receptionists && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Max Receptionists</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_receptionists}</p>
+                      </div>
+                    )}
+                    {selectedLicense.max_ticket_info_users && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Max Ticket Info Users</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_ticket_info_users}</p>
+                      </div>
+                    )}
+                    {selectedLicense.max_sessions_per_receptionist && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Sessions Per Receptionist</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_sessions_per_receptionist}</p>
+                      </div>
+                    )}
+                    {selectedLicense.max_sessions_per_ticket_info && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Sessions Per Ticket Info</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_sessions_per_ticket_info}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Timestamps */}
               <div className="border-t pt-4">
@@ -779,12 +896,6 @@ export default function LicenseReportPage() {
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-800">Recent Licenses</h2>
-          <button
-            onClick={() => router.push(`/${currentUser?.role}/license/list-of-license`)}
-            className="text-sm text-green-600 hover:text-green-700 font-medium"
-          >
-            View All →
-          </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">

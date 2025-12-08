@@ -23,7 +23,11 @@ export default function CreateLicensePage() {
     start_date: '',
     expiry_date: '',
     max_users: 10,
-    max_counters: 5,
+    max_counters: 10,
+    max_receptionists: 5,
+    max_ticket_info_users: 3,
+    max_sessions_per_receptionist: 1,
+    max_sessions_per_ticket_info: 1,
     status: 'active',
     admin_username: '',
     admin_password: ''
@@ -390,37 +394,116 @@ export default function CreateLicensePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Max Users
-            </label>
-            <input
-              type="number"
-              name="max_users"
-              value={formData.max_users}
-              onChange={handleChange}
-              min="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+        {/* License Limits Section */}
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+            <span>📊</span> License Limits & Restrictions
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Users (Total)
+              </label>
+              <input
+                type="number"
+                name="max_users"
+                value={formData.max_users}
+                onChange={handleChange}
+                min="1"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">Total users allowed under this admin</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Counters
+              </label>
+              <input
+                type="number"
+                name="max_counters"
+                value={formData.max_counters}
+                onChange={handleChange}
+                min="1"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">Maximum counters for queue management</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Receptionists
+              </label>
+              <input
+                type="number"
+                name="max_receptionists"
+                value={formData.max_receptionists}
+                onChange={handleChange}
+                min="1"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">Maximum reception role users allowed</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Ticket Info Users
+              </label>
+              <input
+                type="number"
+                name="max_ticket_info_users"
+                value={formData.max_ticket_info_users}
+                onChange={handleChange}
+                min="1"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">Maximum ticket_info screen users</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Sessions Per Receptionist
+              </label>
+              <input
+                type="number"
+                name="max_sessions_per_receptionist"
+                value={formData.max_sessions_per_receptionist}
+                onChange={handleChange}
+                min="1"
+                max="5"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">Sessions for reception role (1-5)</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Sessions Per Ticket Info User
+              </label>
+              <input
+                type="number"
+                name="max_sessions_per_ticket_info"
+                value={formData.max_sessions_per_ticket_info}
+                onChange={handleChange}
+                min="1"
+                max="5"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">Sessions for ticket_info screen (1-5)</p>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Max Counters
-            </label>
-            <input
-              type="number"
-              name="max_counters"
-              value={formData.max_counters}
-              onChange={handleChange}
-              min="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
+            <p className="text-xs text-yellow-900">
+              ⚠️ <strong>Session Limit Warning:</strong> If a user exceeds session limit, they must either:
+              <br/>• Contact tech support to increase session limit
+              <br/>• Delete previous sessions to free up space
+            </p>
           </div>
         </div>
 
- {/* License Key */}
+        {/* License Key */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             License Key *

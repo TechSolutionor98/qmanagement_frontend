@@ -3,10 +3,12 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/Components/ProtectedRoute';
 import { getToken, getUser } from '@/utils/sessionStorage';
 
 function TicketInfoContent() {
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [calledTicket, setCalledTicket] = useState('');
   const [calledTickets, setCalledTickets] = useState([]);
@@ -29,6 +31,26 @@ function TicketInfoContent() {
   
   const slides = ['/assets/img/33.png', '/assets/img/22.png', '/assets/img/11.png'];
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  // Check authentication on mount
+  useEffect(() => {
+    const token = getToken();
+    const user = getUser();
+    
+    if (!token || !user) {
+      console.log('🔐 No authentication found, redirecting to ticket-info-login');
+      router.push('/ticket-info-login');
+      return;
+    }
+
+    if (user.role !== 'ticket_info') {
+      console.log('❌ User role is not ticket_info, redirecting to ticket-info-login');
+      router.push('/ticket-info-login');
+      return;
+    }
+
+    console.log('✅ Ticket info user authenticated:', user.username);
+  }, [router]);
 
   // Fetch called tickets and update display
   const fetchCalledTickets = async () => {
@@ -552,7 +574,7 @@ function TicketInfoContent() {
   }, [lastAnnouncedTime, calledTicket, currentCounter, lastVoiceTime, aiVoiceReady, isAnnouncing, announcementQueue]);
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['ticket_info']}>
       <div className="flex flex-row h-screen w-full bg-white text-white font-sans overflow-hidden">
       {/* Left Panel: Counter Table */}
       <div className="flex-[0_0_30%] bg-green-700 flex flex-col border-r-[3px] border-[#fdbb2d] overflow-hidden">

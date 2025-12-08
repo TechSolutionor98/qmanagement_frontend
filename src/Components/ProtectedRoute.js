@@ -26,7 +26,13 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
         if (!isAuthenticated || !token || !user) {
           console.warn('❌ No valid authentication found');
           dispatch(logout());
-          router.push('/login');
+          
+          // If it's ticket_info role requirement, redirect to ticket-info-login
+          if (allowedRoles.length > 0 && allowedRoles.includes('ticket_info')) {
+            router.push('/ticket-info-login');
+          } else {
+            router.push('/login');
+          }
           return;
         }
 
@@ -43,7 +49,13 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
         if (!response.ok) {
           console.warn('❌ Token validation failed');
           dispatch(logout());
-          router.push('/login');
+          
+          // If it's ticket_info role requirement, redirect to ticket-info-login
+          if (allowedRoles.length > 0 && allowedRoles.includes('ticket_info')) {
+            router.push('/ticket-info-login');
+          } else {
+            router.push('/login');
+          }
           return;
         }
 
@@ -54,7 +66,13 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
           setValidationError('Your license has expired. Please contact support to renew.');
           setTimeout(() => {
             dispatch(logout());
-            router.push('/login');
+            
+            // If it's ticket_info role requirement, redirect to ticket-info-login
+            if (allowedRoles.length > 0 && allowedRoles.includes('ticket_info')) {
+              router.push('/ticket-info-login');
+            } else {
+              router.push('/login');
+            }
           }, 3000);
           return;
         }
@@ -73,7 +91,13 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
       } catch (error) {
         console.error('❌ Auth validation error:', error);
         dispatch(logout());
-        router.push('/login');
+        
+        // If it's ticket_info role requirement, redirect to ticket-info-login
+        if (allowedRoles.length > 0 && allowedRoles.includes('ticket_info')) {
+          router.push('/ticket-info-login');
+        } else {
+          router.push('/login');
+        }
       }
     };
 
