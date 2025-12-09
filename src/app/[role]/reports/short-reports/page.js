@@ -7,8 +7,23 @@ import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, Ali
 import { saveAs } from 'file-saver';
 
 export default function ShortReportsPage({ adminId }) {
-  const [startDate, setStartDate] = useState('2025-01-01');
-  const [endDate, setEndDate] = useState('2025-12-31');
+  // Get current date and first day of current month
+  const getCurrentDates = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    
+    return {
+      startDate: `${year}-${month}-01`, // First day of current month
+      endDate: `${year}-${month}-${day}` // Today's date
+    };
+  };
+
+  const { startDate: initialStartDate, endDate: initialEndDate } = getCurrentDates();
+  
+  const [startDate, setStartDate] = useState(initialStartDate);
+  const [endDate, setEndDate] = useState(initialEndDate);
   const [reportData, setReportData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
