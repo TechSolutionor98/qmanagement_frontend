@@ -24,7 +24,7 @@ export default function TicketInfoLogin() {
     try {
       console.log('🔐 Ticket Info Login Attempt:', { username: formData.username });
 
-      const response = await axios.post(``${process.env.NEXT_PUBLIC_API_URL}/auth/ticket-info/login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/ticket-info/login`, {
         username: formData.username,
         password: formData.password
       });
