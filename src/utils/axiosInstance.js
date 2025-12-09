@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getToken } from './sessionStorage';
+import { getToken, verifySessionWithBackend, clearSessionData } from './sessionStorage';
 
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
@@ -41,13 +41,35 @@ axiosInstance.interceptors.request.use(
 // Response interceptor for error handling
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-      console.error('🔒 Authentication failed - redirecting to login');
-      // Clear invalid session
-      if (typeof window !== 'undefined') {
-        sessionStorage.clear();
-        window.location.href = '/login';
+      console.error('🔒 Authentication failed - verifying session with backend');
+      
+      // ✅ CRITICAL: Verify with backend before clearing session data
+      // Only clear and redirect if backend confirms session is invalid
+      try {
+        const sessionCheck = await verifySessionWithBackend();
+        
+        if (sessionCheck.valid) {
+          // Backend says session is valid - don't clear anything
+          console.log('✅ Session is still valid on backend, keeping user logged in');
+          // Return the original error to let component handle it
+          return Promise.reject(error);
+        } else {
+          // Backend confirms session is invalid - clear and redirect
+          console.error('❌ Backend confirmed session is invalid - logging out');
+          if (typeof window !== 'undefined') {
+            clearSessionData();
+            window.location.href = '/login';
+          }
+        }
+      } catch (verifyError) {
+        console.error('❌ Failed to verify session, clearing data:', verifyError);
+        // If verification fails, assume session is invalid for security
+        if (typeof window !== 'undefined') {
+          clearSessionData();
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

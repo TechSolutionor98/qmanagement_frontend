@@ -20,13 +20,13 @@ function deleteCookie(name) {
 
 export function ReduxProvider({ children }) {
   useEffect(() => {
-    // Restore auth from sessionStorage on mount
+    // Restore auth from localStorage on mount
     if (typeof window !== 'undefined') {
       const token = getToken()
       const user = getUser()
       const isAuth = isAuthenticated()
       
-      console.log('🔄 ReduxProvider - Restoring auth...')
+      console.log('🔄 ReduxProvider - Restoring auth from localStorage...')
       console.log('🎫 Token exists:', !!token)
       console.log('👤 User exists:', !!user)
       console.log('✓ Is authenticated:', isAuth)
@@ -37,25 +37,20 @@ export function ReduxProvider({ children }) {
           store.dispatch(restoreAuth({ user, token }))
           
           // Set cookies for middleware - IMPORTANT for page refresh
-          setCookie('auth_token', token)
+          setCookie('auth_token', token, 7)
           setCookie('isAuthenticated', 'true', 7)
           setCookie('userRole', user.role, 7)
           
-          console.log('✅ Auth restored successfully')
+          console.log('✅ Auth restored successfully from localStorage')
           console.log('🍪 Cookies set - role:', user.role)
         } catch (err) {
           console.error('❌ Failed to restore auth:', err)
-          sessionStorage.clear()
-          deleteCookie('auth_token')
-          deleteCookie('isAuthenticated')
-          deleteCookie('userRole')
+          // Only clear on actual error, not on missing data
         }
       } else {
-        console.log('⚠️ No auth data found, clearing cookies')
-        // Clear cookies if no auth in this tab
-        deleteCookie('auth_token')
-        deleteCookie('isAuthenticated')
-        deleteCookie('userRole')
+        console.log('⚠️ No auth data found in localStorage - user not logged in')
+        // DON'T clear cookies here - they might be valid
+        // Let SessionValidator handle validation
       }
     }
   }, [])

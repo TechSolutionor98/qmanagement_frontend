@@ -345,7 +345,7 @@ export default function UserDashboard() {
         if (error.response?.data?.no_counter) {
           alert(error.response.data.message);
           // Redirect to login to select counter
-          sessionStorage.clear();
+          // Don't clear session - just redirect
           router.push('/login');
         } else {
           // Generic error

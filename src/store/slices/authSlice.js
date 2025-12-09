@@ -4,17 +4,17 @@ import { createSlice } from '@reduxjs/toolkit'
 const getTabId = () => {
   if (typeof window === 'undefined') return null
   
-  // Check sessionStorage for existing tab ID
-  let tabId = sessionStorage.getItem('tabId')
+  // Use localStorage for tab ID to persist across refreshes
+  let tabId = localStorage.getItem('tabId')
   if (!tabId) {
     // Generate new unique tab ID
     tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    sessionStorage.setItem('tabId', tabId)
+    localStorage.setItem('tabId', tabId)
   }
   return tabId
 }
 
-// Get session storage key with tab ID
+// Get storage key with tab ID
 const getStorageKey = (key) => {
   const tabId = getTabId()
   return tabId ? `${key}_${tabId}` : key
@@ -25,7 +25,7 @@ const setCookie = (name, value, days = 7) => {
   if (typeof window !== 'undefined') {
     const expires = new Date()
     expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000)
-    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`
   }
 }
 
@@ -60,24 +60,21 @@ const authSlice = createSlice({
       console.log('👤 User role:', user.role)
       console.log('🎫 Token set:', !!token)
       
-      // Store in sessionStorage - USE SIMPLE KEYS for compatibility
+      // Store in localStorage for 1 week persistence
       if (typeof window !== 'undefined') {
         // Simple keys that sessionStorage.js can read
-        sessionStorage.setItem('auth_token', token)
-        sessionStorage.setItem('auth_user', JSON.stringify(user))
-        sessionStorage.setItem('isAuthenticated', 'true')
+        localStorage.setItem('auth_token', token)
+        localStorage.setItem('auth_user', JSON.stringify(user))
+        localStorage.setItem('isAuthenticated', 'true')
         
-        // Also keep tab-specific for Redux state
-        sessionStorage.setItem(getStorageKey('token'), token)
-        sessionStorage.setItem(getStorageKey('user'), JSON.stringify(user))
-        
-        // Set cookies for middleware - CRITICAL for page refresh
+        // Set cookies for middleware - CRITICAL for page refresh (1 week)
         setCookie('isAuthenticated', 'true', 7)
         setCookie('userRole', user.role, 7)
+        setCookie('auth_token', token, 7)
         setCookie(`token_${state.tabId}`, token, 7)
         
         console.log('🍪 Cookies set for role:', user.role)
-        console.log('💾 SessionStorage saved with auth_token key')
+        console.log('💾 localStorage saved with auth_token key (1 week)')
       }
     },
     
@@ -89,26 +86,23 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.error = null
       
-      // Clear sessionStorage - both simple and tab-specific keys
+      // Clear localStorage - all auth keys
       if (typeof window !== 'undefined') {
         // Clear simple keys
-        sessionStorage.removeItem('auth_token')
-        sessionStorage.removeItem('auth_user')
-        sessionStorage.removeItem('isAuthenticated')
-        
-        // Clear tab-specific keys
-        sessionStorage.removeItem(getStorageKey('token'))
-        sessionStorage.removeItem(getStorageKey('user'))
-        sessionStorage.removeItem(getStorageKey('isAuthenticated'))
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('auth_user')
+        localStorage.removeItem('isAuthenticated')
+        localStorage.removeItem('tabId')
         
         // Clear cookies
         deleteCookie('isAuthenticated')
         deleteCookie('userRole')
+        deleteCookie('auth_token')
         if (currentTabId) {
           deleteCookie(`token_${currentTabId}`)
         }
         
-        console.log('🧹 Session cleared - logout')
+        console.log('🧹 Session cleared - logout (localStorage + cookies)')
       }
     },
     
@@ -128,9 +122,9 @@ const authSlice = createSlice({
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload }
       
-      // Update sessionStorage
+      // Update localStorage
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem(getStorageKey('user'), JSON.stringify(state.user))
+        localStorage.setItem('auth_user', JSON.stringify(state.user))
       }
     },
     
@@ -146,19 +140,20 @@ const authSlice = createSlice({
         console.log('👤 Restoring user role:', user.role)
         console.log('🎫 Token restored:', !!token)
         
-        // Store in sessionStorage - USE SIMPLE KEYS
+        // Store in localStorage for 1 week persistence
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem('auth_token', token)
-          sessionStorage.setItem('auth_user', JSON.stringify(user))
-          sessionStorage.setItem('isAuthenticated', 'true')
+          localStorage.setItem('auth_token', token)
+          localStorage.setItem('auth_user', JSON.stringify(user))
+          localStorage.setItem('isAuthenticated', 'true')
           
           // Ensure cookies are set - CRITICAL for middleware on page refresh
           setCookie('isAuthenticated', 'true', 7)
           setCookie('userRole', user.role, 7)
+          setCookie('auth_token', token, 7)
           setCookie(`token_${state.tabId}`, token, 7)
           
           console.log('🍪 Cookies restored for role:', user.role)
-          console.log('💾 Auth restored with auth_token key')
+          console.log('💾 Auth restored with auth_token key (localStorage)')
         }
       }
     },

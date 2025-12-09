@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ReduxProvider } from "@/store/ReduxProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import SessionValidator from "@/Components/SessionValidator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +27,9 @@ export default function RootLayout({ children }) {
       >
         <ReduxProvider>
           <AuthProvider>
-            {children}
+            <SessionValidator>
+              {children}
+            </SessionValidator>
           </AuthProvider>
         </ReduxProvider>
       </body>

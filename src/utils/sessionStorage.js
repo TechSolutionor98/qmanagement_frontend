@@ -1,38 +1,108 @@
 // Session storage utilities for authentication
+// Uses localStorage for 1 week persistence + cookies as backup
 
-// Get token from session storage
-export const getToken = () => {
-  if (typeof window === 'undefined') return null
-  return sessionStorage.getItem('auth_token')
+// Cookie utilities
+const setCookie = (name, value, days = 7) => {
+  if (typeof window === 'undefined') return
+  const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString()
+  document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Strict`
 }
 
-// Get user from session storage
+const getCookie = (name) => {
+  if (typeof window === 'undefined') return null
+  const cookies = document.cookie.split(';')
+  for (let cookie of cookies) {
+    const [key, value] = cookie.trim().split('=')
+    if (key === name) return value
+  }
+  return null
+}
+
+const deleteCookie = (name) => {
+  if (typeof window === 'undefined') return
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+}
+
+// Get token from localStorage (primary) or cookie (fallback)
+export const getToken = () => {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('auth_token') || getCookie('auth_token')
+}
+
+// Get user from localStorage (primary) or cookie (fallback)
 export const getUser = () => {
   if (typeof window === 'undefined') return null
-  const userStr = sessionStorage.getItem('auth_user')
-  return userStr ? JSON.parse(userStr) : null
+  let userStr = localStorage.getItem('auth_user')
+  if (!userStr) {
+    userStr = getCookie('auth_user')
+  }
+  return userStr ? JSON.parse(decodeURIComponent(userStr)) : null
 }
 
 // Check if authenticated
 export const isAuthenticated = () => {
   if (typeof window === 'undefined') return false
-  return sessionStorage.getItem('auth_token') !== null
+  return !!(localStorage.getItem('auth_token') || getCookie('auth_token'))
 }
 
-// Set session data
+// Set session data - localStorage + cookies for 1 week persistence
 export const setSessionData = (token, user) => {
   if (typeof window === 'undefined') return
   
-  sessionStorage.setItem('auth_token', token)
-  sessionStorage.setItem('auth_user', JSON.stringify(user))
-  console.log('✅ Session data saved:', { token: token.substring(0, 20) + '...', user: user.username })
+  // Store in localStorage
+  localStorage.setItem('auth_token', token)
+  localStorage.setItem('auth_user', JSON.stringify(user))
+  
+  // Also store in cookies as backup (1 week expiry)
+  setCookie('auth_token', token, 7)
+  setCookie('auth_user', encodeURIComponent(JSON.stringify(user)), 7)
+  
+  console.log('✅ Session data saved (localStorage + cookies):', { 
+    token: token.substring(0, 20) + '...', 
+    user: user.username 
+  })
 }
 
-// Clear session data
+// Clear session data - only after backend confirms session is invalid
 export const clearSessionData = () => {
   if (typeof window === 'undefined') return
   
-  sessionStorage.removeItem('auth_token')
-  sessionStorage.removeItem('auth_user')
-  console.log('🧹 Session data cleared')
+  // Clear localStorage
+  localStorage.removeItem('auth_token')
+  localStorage.removeItem('auth_user')
+  
+  // Clear cookies
+  deleteCookie('auth_token')
+  deleteCookie('auth_user')
+  
+  console.log('🧹 Session data cleared from localStorage and cookies')
+}
+
+// Verify session with backend before clearing
+export const verifySessionWithBackend = async () => {
+  if (typeof window === 'undefined') return { valid: false }
+  
+  const token = getToken()
+  if (!token) return { valid: false }
+  
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+    const response = await fetch(`${API_URL}/auth/verify`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      return { valid: true, user: data.user }
+    }
+    
+    return { valid: false }
+  } catch (error) {
+    console.error('❌ Session verification failed:', error)
+    return { valid: false }
+  }
 }

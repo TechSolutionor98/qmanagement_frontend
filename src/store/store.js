@@ -11,10 +11,11 @@ import licenseReducer from './slices/licenseSlice'
 // Get tab-specific storage key
 const getTabId = () => {
   if (typeof window === 'undefined') return null
-  let tabId = sessionStorage.getItem('tabId')
+  // Use localStorage for tab ID to persist across refreshes
+  let tabId = localStorage.getItem('tabId')
   if (!tabId) {
     tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    sessionStorage.setItem('tabId', tabId)
+    localStorage.setItem('tabId', tabId)
   }
   return tabId
 }
@@ -24,16 +25,16 @@ const getStorageKey = (key) => {
   return tabId ? `${key}_${tabId}` : key
 }
 
-// Load state from sessionStorage (tab-specific)
+// Load state from localStorage (1 week persistence)
 const loadState = () => {
   try {
     if (typeof window === 'undefined') return undefined
 
-    const token = sessionStorage.getItem(getStorageKey('token'))
-    const userStr = sessionStorage.getItem(getStorageKey('user'))
-    const isAuthenticated = sessionStorage.getItem(getStorageKey('isAuthenticated'))
+    // Try to load from localStorage (primary) - 1 week persistence
+    const token = localStorage.getItem('auth_token')
+    const userStr = localStorage.getItem('auth_user')
 
-    if (token && userStr && isAuthenticated === 'true') {
+    if (token && userStr) {
       const user = JSON.parse(userStr)
       return {
         auth: {
@@ -47,7 +48,7 @@ const loadState = () => {
       }
     }
   } catch (err) {
-    console.error('Error loading state from sessionStorage:', err)
+    console.error('Error loading state from localStorage:', err)
   }
   return undefined
 }

@@ -67,24 +67,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token, isAuthenticated, lastValidation, dispatch, router]);
 
-  // Auto-validate on mount and periodically (skip on login page)
+  // DISABLED: Auto-validation causes data clearing issues
+  // Only validate when explicitly called, not on mount
   useEffect(() => {
-    // Don't validate on login page
-    if (typeof window !== 'undefined' && window.location.pathname === '/login') {
-      return;
-    }
-
-    if (isAuthenticated && token) {
-      validateSession();
-
-      // Set up periodic validation (every 5 minutes)
-      const interval = setInterval(() => {
-        validateSession();
-      }, 5 * 60 * 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [isAuthenticated, token, validateSession]);
+    // Don't auto-validate - let SessionValidator and axiosInstance handle it
+    console.log('🔵 AuthContext: Auto-validation disabled');
+    return () => {
+      // No cleanup needed
+    };
+  }, [isAuthenticated, token]);
 
   // Validate on tab/window focus (skip on login page)
   useEffect(() => {

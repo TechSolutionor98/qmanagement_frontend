@@ -20,77 +20,12 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
   useEffect(() => {
     if (!mounted) return;
 
-    const validateAuth = async () => {
-      try {
-        // Check authentication
-        if (!isAuthenticated || !token || !user) {
-          console.warn('❌ No valid authentication found');
-          dispatch(logout());
-          
-          // If it's ticket_info role requirement, redirect to ticket-info-login
-          if (allowedRoles.length > 0 && allowedRoles.includes('ticket_info')) {
-            router.push('/ticket-info-login');
-          } else {
-            router.push('/login');
-          }
-          return;
-        }
-
-        // Verify token with backend
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-        const response = await fetch(`${API_URL}/auth/verify`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          console.warn('❌ Token validation failed');
-          dispatch(logout());
-          
-          // If it's ticket_info role requirement, redirect to ticket-info-login
-          if (allowedRoles.length > 0 && allowedRoles.includes('ticket_info')) {
-            router.push('/ticket-info-login');
-          } else {
-            router.push('/login');
-          }
-          return;
-        }
-
-        const data = await response.json();
-
-        // Check if license is expired (for admins)
-        if (data.license_expired) {
-          setValidationError('Your license has expired. Please contact support to renew.');
-          setTimeout(() => {
-            dispatch(logout());
-            
-            // If it's ticket_info role requirement, redirect to ticket-info-login
-            if (allowedRoles.length > 0 && allowedRoles.includes('ticket_info')) {
-              router.push('/ticket-info-login');
-            } else {
-              router.push('/login');
-            }
-          }, 3000);
-          return;
-        }
-
-        // Check role-based access
-        if (allowedRoles.length > 0 && user) {
-          const hasAccess = allowedRoles.includes(user.role);
-          
-          if (!hasAccess) {
-            setIsChecking(false);
-            return;
-          }
-        }
-
-        setIsChecking(false);
-      } catch (error) {
-        console.error('❌ Auth validation error:', error);
-        dispatch(logout());
+    const checkAuth = () => {
+      // Simple check - NO backend validation, NO logout dispatch
+      // Just check if token exists in Redux state
+      
+      if (!isAuthenticated || !token || !user) {
+        console.warn('⚠️ ProtectedRoute: No auth - redirecting');
         
         // If it's ticket_info role requirement, redirect to ticket-info-login
         if (allowedRoles.length > 0 && allowedRoles.includes('ticket_info')) {
@@ -98,12 +33,27 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
         } else {
           router.push('/login');
         }
+        return;
       }
+
+      // Check role-based access
+      if (allowedRoles.length > 0 && user) {
+        const hasAccess = allowedRoles.includes(user.role);
+        
+        if (!hasAccess) {
+          console.warn('⚠️ ProtectedRoute: Access denied for role:', user.role);
+          setIsChecking(false);
+          return;
+        }
+      }
+
+      console.log('✅ ProtectedRoute: Access granted');
+      setIsChecking(false);
     };
 
-    const timer = setTimeout(validateAuth, 100);
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, user, token, allowedRoles, router, mounted, dispatch]);
+    // Simple sync check - no async, no backend calls, no logout
+    checkAuth();
+  }, [isAuthenticated, user, token, allowedRoles, router, mounted]);
 
   // Show validation error (license expired, etc.)
   if (validationError) {

@@ -19,7 +19,7 @@ export const useAuthValidator = (requiredRole = null) => {
       // Check if user is authenticated
       if (!isAuthenticated || !token || !user) {
         console.warn('❌ No valid authentication found');
-        dispatch(logout());
+        // Don't dispatch logout here - it might clear data unnecessarily
         router.push('/login');
         return;
       }
@@ -67,8 +67,13 @@ export const useAuthValidator = (requiredRole = null) => {
 
       } catch (error) {
         console.error('❌ Auth validation error:', error);
-        dispatch(logout());
-        router.push('/login');
+        // Don't logout on network errors - only on auth errors
+        if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
+          dispatch(logout());
+          router.push('/login');
+        } else {
+          console.warn('⚠️ Network error - keeping session intact');
+        }
       }
     };
 
