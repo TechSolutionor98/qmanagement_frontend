@@ -312,99 +312,115 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="p-8">
-            {/* Logo */}
-            <div className="flex flex-col items-center mb-6">
-              <Link href="/" className="text-2xl font-bold text-gray-800 mb-3">
-                Q Management
-              </Link>
+        {/* Login Card */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          {/* Logo/Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-600 rounded-full mb-4 shadow-lg">
+              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Q Management</h1>
+            <p className="text-gray-600">Login to access your account</p>
+          </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                <span className="block sm:inline whitespace-pre-line">{error}</span>
-                <button
-                  onClick={() => dispatch(clearError())}
-                  className="absolute top-0 bottom-0 right-0 px-4 py-3"
-                >
-                  <span className="text-red-700 text-xl">&times;</span>
-                </button>
-              </div>
-            )}
-
-            {/* Tabs Navigation */}
-            <div className="flex mb-6 border-b border-gray-200">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-2">
+              <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="font-semibold whitespace-pre-line flex-1">{error}</span>
               <button
-                onClick={() => setActiveTab('user')}
-                disabled={loading}
-                className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${
-                  activeTab === 'user'
-                    ? 'bg-green-600 text-white border-b-2 border-green-600'
-                    : 'text-green-900 hover:bg-green-100'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                onClick={() => dispatch(clearError())}
+                className="text-red-700 hover:text-red-900 text-xl leading-none"
               >
-                User Login
-              </button>
-              <button
-                onClick={() => setActiveTab('admin')}
-                disabled={loading}
-                className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${
-                  activeTab === 'admin'
-                    ? 'bg-green-600 text-white border-b-2 border-green-600'
-                    : 'text-green-900 hover:bg-green-100'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                Admin Login
+                &times;
               </button>
             </div>
+          )}
+
+          {/* Tabs Navigation */}
+          <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab('user')}
+              disabled={loading}
+              className={`flex-1 py-3 px-4 rounded-lg text-center font-semibold transition-all ${
+                activeTab === 'user'
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                  : 'text-gray-700 hover:text-gray-900'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              User Login
+            </button>
+            <button
+              onClick={() => setActiveTab('admin')}
+              disabled={loading}
+              className={`flex-1 py-3 px-4 rounded-lg text-center font-semibold transition-all ${
+                activeTab === 'admin'
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                  : 'text-gray-700 hover:text-gray-900'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              Admin Login
+            </button>
+          </div>
 
             {/* User Login Form */}
             {activeTab === 'user' && (
               <div>
-                <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">User Login</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Email or Username
                     </label>
-                    <input
-                      type="text"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Enter your email or username"
-                      required
-                      disabled={loading}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors"
+                        placeholder="Enter your email or username"
+                        required
+                        disabled={loading}
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Password
                     </label>
                     <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        id="password"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors"
                         placeholder="············"
                         required
                         disabled={loading}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition pr-10 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         disabled={loading}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
                         {showPassword ? '👁️' : '👁️‍🗨️'}
                       </button>
@@ -414,18 +430,25 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+                    className={`w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all transform hover:scale-105 flex items-center justify-center gap-2 ${
+                      loading ? 'opacity-75 cursor-not-allowed' : ''
+                    }`}
                   >
                     {loading ? (
                       <>
-                        <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         Signing in...
                       </>
                     ) : (
-                      'Sign in'
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        Sign in
+                      </>
                     )}
                   </button>
                 </form>
@@ -435,46 +458,55 @@ export default function LoginPage() {
             {/* Admin Login Form */}
             {activeTab === 'admin' && (
               <div>
-                <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Admin Login</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label htmlFor="admin_email" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Email or Username
                     </label>
-                    <input
-                      type="text"
-                      id="admin_email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Enter your email or username"
-                      required
-                      disabled={loading}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors"
+                        placeholder="Enter your email or username"
+                        required
+                        disabled={loading}
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label htmlFor="admin_password" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Password
                     </label>
                     <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
                       <input
                         type={showAdminPassword ? 'text' : 'password'}
-                        id="admin_password"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-colors"
                         placeholder="············"
                         required
                         disabled={loading}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition pr-10 disabled:bg-gray-100 disabled:cursor-not-allowed"
                       />
                       <button
                         type="button"
                         onClick={() => setShowAdminPassword(!showAdminPassword)}
                         disabled={loading}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
                         {showAdminPassword ? '👁️' : '👁️‍🗨️'}
                       </button>
@@ -484,18 +516,25 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+                    className={`w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all transform hover:scale-105 flex items-center justify-center gap-2 ${
+                      loading ? 'opacity-75 cursor-not-allowed' : ''
+                    }`}
                   >
                     {loading ? (
                       <>
-                        <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         Signing in...
                       </>
                     ) : (
-                      'Sign in'
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        Sign in
+                      </>
                     )}
                   </button>
                 </form>
@@ -503,7 +542,6 @@ export default function LoginPage() {
             )}
           </div>
         </div>
-      </div>
       
       {/* Toast Animation Styles */}
       <style jsx global>{`
