@@ -14,6 +14,7 @@ export default function UserManagementPage({ adminId }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userCount, setUserCount] = useState(0);
   const [selectedAdminId, setSelectedAdminId] = useState(adminId || '');
+  const [licenseInfo, setLicenseInfo] = useState(null);
 
   const [formData, setFormData] = useState({
     username: '',
@@ -69,8 +70,29 @@ export default function UserManagementPage({ adminId }) {
         setUsers(list);
         setUserCount(list.length);
       }
+      
+      // Fetch license info for this admin
+      if (targetAdminId) {
+        fetchLicenseInfo(targetAdminId);
+      }
     } catch (e) {
       console.error('[Users][GET] error', e.response?.data || e.message);
+    }
+  };
+
+  const fetchLicenseInfo = async (targetAdminId) => {
+    const token = getToken();
+    if (!token || !targetAdminId) return;
+    try {
+      const res = await axios.get(`${apiUrl}/license/admin/${targetAdminId}`, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      if (res.data.success) {
+        setLicenseInfo(res.data.license);
+      }
+    } catch (e) {
+      console.error('[License][GET] error', e.response?.data || e.message);
+      setLicenseInfo(null);
     }
   };
 
@@ -238,11 +260,41 @@ export default function UserManagementPage({ adminId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    
+    // 🔒 Client-side license validation
+    const targetAdminId = adminId || (currentUser?.role === 'admin' ? currentUser.id : Number(formData.adminId));
+    const userRole = formData.role || 'user';
+    
+    // Count users of the same role
+    const currentRoleUsers = users.filter(u => u.role === userRole && u.admin_id === targetAdminId);
+    const currentCount = currentRoleUsers.length;
+    
+    // Check license limits
+    if (licenseInfo) {
+      let maxAllowed = 0;
+      let roleLabel = '';
+      
+      if (userRole === 'user') {
+        maxAllowed = licenseInfo.max_users || 10;
+        roleLabel = 'users';
+      } else if (userRole === 'receptionist') {
+        maxAllowed = licenseInfo.max_receptionists || 5;
+        roleLabel = 'receptionists';
+      } else if (userRole === 'ticket_info') {
+        maxAllowed = licenseInfo.max_ticket_info_users || 3;
+        roleLabel = 'ticket info users';
+      }
+      
+      if (maxAllowed > 0 && currentCount >= maxAllowed) {
+        alert(`⚠️ License Limit Reached!\n\nMaximum ${roleLabel} limit: ${maxAllowed}\nCurrent ${roleLabel}: ${currentCount}\n\nPlease contact tech support to upgrade your license.`);
+        return;
+      }
+    }
+    
     setIsSubmitting(true);
     try {
       const token = getToken();
       // Determine admin_id: use prop adminId if provided (modal mode), else use form selection or current admin
-      const targetAdminId = adminId || (currentUser?.role === 'admin' ? currentUser.id : Number(formData.adminId));
       const payload = {
         username: formData.username,
         email: formData.email,
@@ -321,6 +373,11 @@ export default function UserManagementPage({ adminId }) {
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-700 flex items-center gap-3">
           User Management
+          {licenseInfo && (
+            <span className="text-sm font-normal text-gray-500">
+              ({users.filter(u => u.role === 'user').length}/{licenseInfo.max_users} users)
+            </span>
+          )}
         </h1>
         <div className="flex items-center gap-3">
           {!adminId && currentUser?.role === 'super_admin' && admins.length > 0 && (
@@ -331,6 +388,11 @@ export default function UserManagementPage({ adminId }) {
             >
               {admins.map(a => <option key={a.id} value={a.id}>{a.username}</option>)}
             </select>
+          )}
+          {licenseInfo && users.filter(u => u.role === 'user').length >= licenseInfo.max_users && (
+            <div className="px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+              ⚠️ User limit reached ({licenseInfo.max_users}/{licenseInfo.max_users})
+            </div>
           )}
           <button
             onClick={() => setShowCreateModal(true)}
