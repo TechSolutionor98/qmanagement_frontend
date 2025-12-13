@@ -19,7 +19,7 @@ function TicketInfoContent() {
   const [isAnnouncing, setIsAnnouncing] = useState(false); // Prevent overlapping announcements
   const [announcementQueue, setAnnouncementQueue] = useState([]); // Queue for pending tickets
   const [broadcastChannel, setBroadcastChannel] = useState(null);
-  const [audioUnlocked, setAudioUnlocked] = useState(false); // Track if user has interacted
+  const [audioUnlocked, setAudioUnlocked] = useState(true); // Auto-enabled - no user interaction needed
   
   // Counter Display Config from database
   const [leftLogoUrl, setLeftLogoUrl] = useState('');
@@ -353,17 +353,22 @@ function TicketInfoContent() {
     return translations[langCode] || translations['en'];
   };
 
-  // Unlock audio context on first user interaction
-  const unlockAudio = () => {
-    if (!audioUnlocked) {
-      console.log('🔓 Audio unlocked by user interaction');
-      setAudioUnlocked(true);
-      
-      // Play a silent audio to unlock audio context
-      const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
-      silentAudio.play().catch(e => console.log('Silent audio play:', e));
-    }
-  };
+  // Auto-unlock audio on component mount
+  useEffect(() => {
+    console.log('🔓 Auto-unlocking audio on page load');
+    
+    // Play a silent audio to unlock audio context automatically
+    const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+    silentAudio.play()
+      .then(() => {
+        console.log('✅ Audio automatically unlocked');
+        setAudioUnlocked(true);
+      })
+      .catch(e => {
+        console.log('⚠️ Auto-unlock failed (browser policy), will retry on first announcement:', e);
+        // Audio will still work on first announcement
+      });
+  }, []);
 
   // Announce ticket using ChatterBox AI with admin-configured settings
   const announceTicket = async (ticketNumber, counterNumber) => {
@@ -372,11 +377,7 @@ function TicketInfoContent() {
       return;
     }
     
-    // Check if audio is unlocked
-    if (!audioUnlocked) {
-      console.warn('⚠️ Audio not unlocked - user needs to click "Enable Audio" button');
-      return;
-    }
+    // Audio is auto-enabled, no need to check
 
     // Prevent overlapping announcements
     if (isAnnouncing) {
@@ -505,15 +506,41 @@ function TicketInfoContent() {
           
           console.log(`🔊 Box ${i + 1} final audio URL:`, audioUrl);
           
+          // Verify audio file exists before playing
+          try {
+            const checkResponse = await fetch(audioUrl, { method: 'HEAD' });
+            if (!checkResponse.ok) {
+              console.error(`❌ Box ${i + 1} audio file not accessible (${checkResponse.status})`);
+              continue; // Skip this language and move to next
+            }
+            console.log(`✅ Box ${i + 1} audio file verified and accessible`);
+          } catch (checkError) {
+            console.error(`❌ Box ${i + 1} audio check failed:`, checkError);
+            continue; // Skip this language
+          }
+          
           // Play audio and wait for completion before next language
           await new Promise((resolve, reject) => {
-            const audio = new Audio(audioUrl);
+            const audio = new Audio();
             audio.volume = 1.0;
             audio.preload = 'auto';
             audio.crossOrigin = 'anonymous'; // Handle CORS
             
+            // Set src AFTER setting up event listeners to avoid race conditions
+            let isResolved = false;
+            
+            audio.onloadeddata = () => {
+              console.log(`✅ Box ${i + 1} audio data loaded, starting playback...`);
+            };
+            
+            audio.oncanplaythrough = () => {
+              console.log(`✅ Box ${i + 1} audio can play through`);
+            };
+            
             audio.onplay = () => console.log(`▶️ Box ${i + 1} (${lang}) announcement started`);
             audio.onended = () => {
+              if (isResolved) return;
+              isResolved = true;
               console.log(`✅ Box ${i + 1} (${lang}) announcement completed`);
               // Clean up this audio element
               audio.pause();
@@ -521,19 +548,23 @@ function TicketInfoContent() {
               audio.remove();
               resolve();
             };
+            
             let hasErrored = false; // Prevent infinite error loop
             
             audio.onerror = (e) => {
-              if (hasErrored) {
+              if (hasErrored || isResolved) {
                 console.log(`⏭️ Already handled error for Box ${i + 1}, skipping`);
                 return;
               }
               hasErrored = true;
+              isResolved = true;
               
               console.error(`❌ Box ${i + 1} audio error:`, e);
               console.error(`❌ Failed audio URL:`, audioUrl);
               console.error(`❌ Audio error code:`, audio.error?.code);
               console.error(`❌ Audio error message:`, audio.error?.message);
+              console.error(`❌ Network state:`, audio.networkState);
+              console.error(`❌ Ready state:`, audio.readyState);
               
               // Clean up and skip this audio
               audio.pause();
@@ -541,6 +572,10 @@ function TicketInfoContent() {
               audio.remove();
               resolve(); // Continue to next language
             };
+            
+            // Set source and load
+            audio.src = audioUrl;
+            audio.load(); // Explicitly load the audio
             
             // Handle autoplay policy - NO automatic retry
             const playPromise = audio.play();
@@ -550,6 +585,8 @@ function TicketInfoContent() {
                   console.log(`✅ Box ${i + 1} audio playing`);
                 })
                 .catch(error => {
+                  if (isResolved) return;
+                  
                   console.error(`❌ Box ${i + 1} play failed:`, error);
                   console.error(`❌ Error type:`, error.name);
                   console.error(`❌ Error message:`, error.message);
@@ -564,10 +601,13 @@ function TicketInfoContent() {
                   }
                   
                   // Clean up and continue
-                  audio.pause();
-                  audio.src = '';
-                  audio.remove();
-                  resolve();
+                  if (!isResolved) {
+                    isResolved = true;
+                    audio.pause();
+                    audio.src = '';
+                    audio.remove();
+                    resolve();
+                  }
                 });
             }
           }).catch(err => {
@@ -749,19 +789,6 @@ function TicketInfoContent() {
 
       {/* Right Panel: Header, Slider, and News Ticker */}
       <div className="flex-[0_0_70%] flex flex-col relative">
-        {/* Enable Audio Button - Only show if audio not unlocked */}
-        {!audioUnlocked && (
-          <button
-            onClick={unlockAudio}
-            className="absolute top-4 right-4 z-50 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center gap-2 animate-pulse"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-            </svg>
-            Enable Audio
-          </button>
-        )}
-        
         {/* Header Section */}
         <div className="w-full flex justify-around items-center bg-white/95 shadow-lg h-[200px] border-b border-gray-300">
           {/* Left Logo - Dynamic from database */}
