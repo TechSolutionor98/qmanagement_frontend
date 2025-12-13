@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import axios from '@/utils/axiosInstance';
 import { getToken, getUser } from '@/utils/sessionStorage';
 
-const API_URL = 'http://localhost:5000/api/counter-display';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ||  'http://localhost:5000/api/counter-display';
 
 export default function CounterDisplayPage({ adminId }) {
   const router = useRouter();
@@ -122,7 +122,7 @@ export default function CounterDisplayPage({ adminId }) {
         return;
       }
       
-      const response = await axios.get(`http://localhost:5000/api/user/ticket-info-users?adminId=${effectiveAdminId}`, {
+      const response = await axios.get(`${API_URL}/user/ticket-info-users?adminId=${effectiveAdminId}`, {
         headers: getAuthHeaders()
       });
       if (response.data.success) {
@@ -157,7 +157,7 @@ export default function CounterDisplayPage({ adminId }) {
     });
 
     try {
-      const response = await axios.post('http://localhost:5000/api/user/create-ticket-info', {
+      const response = await axios.post(`${API_URL}/user/create-ticket-info`, {
         ...newUserData,
         admin_id: effectiveAdminId,
         role: 'ticket_info'
@@ -187,7 +187,7 @@ export default function CounterDisplayPage({ adminId }) {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const response = await axios.delete(`http://localhost:5000/api/user/${userId}`, {
+      const response = await axios.delete(`${API_URL}/user/${userId}`, {
         headers: getAuthHeaders()
       });
 

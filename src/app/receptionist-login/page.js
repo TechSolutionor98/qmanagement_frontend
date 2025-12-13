@@ -24,7 +24,7 @@ export default function ReceptionistLogin() {
     try {
       console.log('🔐 Receptionist Login Attempt:', { username: formData.username });
 
-      const response = await axios.post('http://localhost:5000/api/auth/receptionist/login', {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/receptionist/login`, {
         username: formData.username,
         password: formData.password
       });
