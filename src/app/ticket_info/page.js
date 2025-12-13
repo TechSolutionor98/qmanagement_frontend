@@ -377,8 +377,18 @@ function TicketInfoContent() {
     };
     
     try {
-      // Try to load from database
-      const response = await axios.get(`${apiUrl}/voices/settings`);
+      // Try to load from database with authentication token
+      const token = getToken();
+      console.log('🔑 Fetching voice settings with auth token:', token ? 'Present' : 'Missing');
+      
+      const response = await axios.get(`${apiUrl}/voices/settings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('📦 Voice settings response:', response.data);
+      
       if (response.data.success && response.data.settings) {
         const dbSettings = response.data.settings;
         
@@ -401,9 +411,11 @@ function TicketInfoContent() {
           selectedLanguages: languages
         };
         console.log('✅ Using settings from database:', settings);
+      } else {
+        console.log('ℹ️ No custom settings found, using defaults:', settings);
       }
     } catch (error) {
-      console.warn('⚠️ Could not load from database, using localStorage:', error.message);
+      console.warn('⚠️ Could not load from database:', error.response?.status, error.message);
       // Fallback to localStorage
       const savedSettings = localStorage.getItem('tts_settings');
       if (savedSettings) {
@@ -417,6 +429,8 @@ function TicketInfoContent() {
         } catch (e) {
           console.error('❌ Error parsing TTS settings:', e);
         }
+      } else {
+        console.log('ℹ️ No localStorage settings, using defaults:', settings);
       }
     }
     
