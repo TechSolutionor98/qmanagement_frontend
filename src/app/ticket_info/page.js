@@ -505,9 +505,20 @@ function TicketInfoContent() {
             audio.onerror = (e) => {
               console.error(`❌ Box ${i + 1} audio error:`, e);
               console.error(`❌ Failed audio URL:`, audioUrl);
-              console.error(`❌ Audio element:`, audio);
-              audio.remove();
-              reject(new Error(`Audio failed to load from ${audioUrl}`));
+              console.error(`❌ Audio error code:`, audio.error?.code);
+              console.error(`❌ Audio error message:`, audio.error?.message);
+              
+              // Try without crossOrigin on retry
+              audio.crossOrigin = null;
+              audio.load();
+              
+              setTimeout(() => {
+                audio.play().catch(retryErr => {
+                  console.error(`❌ Retry also failed:`, retryErr);
+                  audio.remove();
+                  resolve(); // Continue to next language even if this fails
+                });
+              }, 500);
             };
             
             // Handle autoplay policy
