@@ -19,6 +19,7 @@ function TicketInfoContent() {
   const [isAnnouncing, setIsAnnouncing] = useState(false); // Prevent overlapping announcements
   const [announcementQueue, setAnnouncementQueue] = useState([]); // Queue for pending tickets
   const [broadcastChannel, setBroadcastChannel] = useState(null);
+  const [audioUnlocked, setAudioUnlocked] = useState(false); // Track if user has interacted
   
   // Counter Display Config from database
   const [leftLogoUrl, setLeftLogoUrl] = useState('');
@@ -352,10 +353,28 @@ function TicketInfoContent() {
     return translations[langCode] || translations['en'];
   };
 
+  // Unlock audio context on first user interaction
+  const unlockAudio = () => {
+    if (!audioUnlocked) {
+      console.log('🔓 Audio unlocked by user interaction');
+      setAudioUnlocked(true);
+      
+      // Play a silent audio to unlock audio context
+      const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+      silentAudio.play().catch(e => console.log('Silent audio play:', e));
+    }
+  };
+
   // Announce ticket using ChatterBox AI with admin-configured settings
   const announceTicket = async (ticketNumber, counterNumber) => {
     if (!aiVoiceReady) {
       console.error('❌ ChatterBox AI Voice service not ready');
+      return;
+    }
+    
+    // Check if audio is unlocked
+    if (!audioUnlocked) {
+      console.warn('⚠️ Audio not unlocked - user needs to click "Enable Audio" button');
       return;
     }
 
@@ -502,26 +521,28 @@ function TicketInfoContent() {
               audio.remove();
               resolve();
             };
+            let hasErrored = false; // Prevent infinite error loop
+            
             audio.onerror = (e) => {
+              if (hasErrored) {
+                console.log(`⏭️ Already handled error for Box ${i + 1}, skipping`);
+                return;
+              }
+              hasErrored = true;
+              
               console.error(`❌ Box ${i + 1} audio error:`, e);
               console.error(`❌ Failed audio URL:`, audioUrl);
               console.error(`❌ Audio error code:`, audio.error?.code);
               console.error(`❌ Audio error message:`, audio.error?.message);
               
-              // Try without crossOrigin on retry
-              audio.crossOrigin = null;
-              audio.load();
-              
-              setTimeout(() => {
-                audio.play().catch(retryErr => {
-                  console.error(`❌ Retry also failed:`, retryErr);
-                  audio.remove();
-                  resolve(); // Continue to next language even if this fails
-                });
-              }, 500);
+              // Clean up and skip this audio
+              audio.pause();
+              audio.src = '';
+              audio.remove();
+              resolve(); // Continue to next language
             };
             
-            // Handle autoplay policy
+            // Handle autoplay policy - NO automatic retry
             const playPromise = audio.play();
             if (playPromise !== undefined) {
               playPromise
@@ -533,15 +554,20 @@ function TicketInfoContent() {
                   console.error(`❌ Error type:`, error.name);
                   console.error(`❌ Error message:`, error.message);
                   
-                  if (i === 0) {
-                    // Only show alert for first language
-                    alert('🔊 Click OK to hear announcements (Browser autoplay policy)');
+                  // For NotAllowedError (autoplay blocked), skip silently
+                  if (error.name === 'NotAllowedError') {
+                    console.log('⚠️ Autoplay blocked by browser - user interaction required');
+                    if (i === 0) {
+                      // Show toast/notification instead of alert (non-blocking)
+                      console.warn('🔊 Browser blocked autoplay - user needs to interact with page first');
+                    }
                   }
-                  audio.play().catch(e => {
-                    console.error('❌ Retry failed:', e);
-                    audio.remove();
-                    resolve(); // Continue to next language even if this fails
-                  });
+                  
+                  // Clean up and continue
+                  audio.pause();
+                  audio.src = '';
+                  audio.remove();
+                  resolve();
                 });
             }
           }).catch(err => {
@@ -722,7 +748,20 @@ function TicketInfoContent() {
       </div>
 
       {/* Right Panel: Header, Slider, and News Ticker */}
-      <div className="flex-[0_0_70%] flex flex-col">
+      <div className="flex-[0_0_70%] flex flex-col relative">
+        {/* Enable Audio Button - Only show if audio not unlocked */}
+        {!audioUnlocked && (
+          <button
+            onClick={unlockAudio}
+            className="absolute top-4 right-4 z-50 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center gap-2 animate-pulse"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            </svg>
+            Enable Audio
+          </button>
+        )}
+        
         {/* Header Section */}
         <div className="w-full flex justify-around items-center bg-white/95 shadow-lg h-[200px] border-b border-gray-300">
           {/* Left Logo - Dynamic from database */}
