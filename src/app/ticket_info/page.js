@@ -240,9 +240,22 @@ function TicketInfoContent() {
   useEffect(() => {
     console.log('🚀 Setting up BroadcastChannel for ticket_info');
     
-    // Create broadcast channel
+    // Create broadcast channel for ticket calls
     const channel = new BroadcastChannel('ticket-calls');
     setBroadcastChannel(channel);
+    
+    // Also listen for voice settings updates
+    const voiceSettingsChannel = new BroadcastChannel('voice-settings-update');
+    
+    voiceSettingsChannel.onmessage = (event) => {
+      console.log('🔔 Voice settings updated by admin:', event.data);
+      if (event.data && event.data.updated) {
+        console.log('🔄 Admin changed voice settings - will use NEW settings on next announcement');
+        // Clear localStorage cache
+        localStorage.removeItem('tts_settings');
+        // Settings will be fetched fresh from database on next announcement
+      }
+    };
     
     // Listen for messages from dashboard
     channel.onmessage = (event) => {
@@ -298,8 +311,9 @@ function TicketInfoContent() {
     }
     
     return () => {
-      console.log('🧹 Closing BroadcastChannel');
+      console.log('🧹 Closing BroadcastChannels');
       channel.close();
+      voiceSettingsChannel.close();
     };
   }, []);
 
@@ -353,9 +367,40 @@ function TicketInfoContent() {
     return translations[langCode] || translations['en'];
   };
 
+  // Manual unlock audio function
+  const unlockAudio = () => {
+    console.log('🔓 Manual audio unlock triggered');
+    
+    // Initialize AudioContext
+    if (typeof window !== 'undefined' && !window.audioContext) {
+      try {
+        window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('✅ AudioContext initialized');
+      } catch (e) {
+        console.warn('⚠️ AudioContext not supported:', e);
+      }
+    }
+    
+    // Resume AudioContext if suspended
+    if (window.audioContext && window.audioContext.state === 'suspended') {
+      window.audioContext.resume();
+    }
+    
+    // Play a silent audio to unlock
+    const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+    silentAudio.play()
+      .then(() => {
+        console.log('✅ Audio manually unlocked successfully');
+        setAudioUnlocked(true);
+      })
+      .catch(e => {
+        console.error('❌ Manual unlock also failed:', e);
+      });
+  };
+
   // Auto-unlock audio on component mount
   useEffect(() => {
-    console.log('🔓 Auto-unlocking audio on page load');
+    console.log('🔓 Attempting auto-unlock audio on page load');
     
     // Initialize AudioContext for better audio quality
     if (typeof window !== 'undefined' && !window.audioContext) {
@@ -380,8 +425,8 @@ function TicketInfoContent() {
         }
       })
       .catch(e => {
-        console.log('⚠️ Auto-unlock failed (browser policy), will retry on first announcement:', e);
-        // Audio will still work on first announcement
+        console.log('⚠️ Auto-unlock failed (browser policy) - user needs to click unlock button');
+        setAudioUnlocked(false); // Keep it false so button shows
       });
   }, []);
 
@@ -405,7 +450,7 @@ function TicketInfoContent() {
 
     // Get admin's saved TTS settings from database first, then localStorage
     let settings = {
-      selectedChatterboxVoice: 'default',
+      selectedChatterboxVoice: 'male',  // Default to 'male' instead of 'default'
       speechRate: 0.9,
       speechPitch: 1.0,
       selectedLanguages: ['en'] // Support multiple languages
@@ -413,67 +458,106 @@ function TicketInfoContent() {
     
     try {
       // Try to load from database with authentication token
+      // Add timestamp to prevent caching of old settings
       const token = getToken();
-      console.log('🔑 Fetching voice settings with auth token:', token ? 'Present' : 'Missing');
+      const user = getUser();
       
-      const response = await axios.get(`${apiUrl}/voices/settings`, {
+      console.log('🔑 Fetching FRESH voice settings with auth token:', token ? 'Present' : 'Missing');
+      console.log('👤 Current user:', user?.username, '| Role:', user?.role, '| Admin ID:', user?.admin_id);
+      
+      // Build URL with admin_id if available (for ticket_info users)
+      let settingsUrl = `${apiUrl}/voices/settings`;
+      const params = new URLSearchParams();
+      params.append('t', Date.now().toString());
+      
+      if (user?.admin_id) {
+        params.append('adminId', user.admin_id.toString());
+        console.log('📌 Fetching settings for admin_id:', user.admin_id);
+      }
+      
+      settingsUrl += `?${params.toString()}`;
+      console.log('🌐 Full settings URL:', settingsUrl);
+      
+      const response = await axios.get(settingsUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      console.log('📦 Voice settings response:', response.data);
+      console.log('📦 Voice settings response (FRESH):', response.data);
+      console.log('📦 Settings received:', response.data?.settings);
       
       if (response.data.success && response.data.settings) {
         const dbSettings = response.data.settings;
+        
+        console.log('🎯 Database settings received:', {
+          voice_type: dbSettings.voice_type,
+          language: dbSettings.language,
+          languages: dbSettings.languages,
+          speech_rate: dbSettings.speech_rate,
+          speech_pitch: dbSettings.speech_pitch
+        });
         
         // Parse languages array
         let languages = ['en'];
         if (dbSettings.languages) {
           try {
             languages = JSON.parse(dbSettings.languages);
+            console.log('✅ Parsed languages array:', languages);
           } catch (e) {
+            console.warn('⚠️ Failed to parse languages, using single language');
             languages = [dbSettings.language || 'en'];
           }
         } else if (dbSettings.language) {
           languages = [dbSettings.language];
+          console.log('✅ Using single language:', languages);
         }
         
         settings = {
-          selectedChatterboxVoice: dbSettings.voice_type || 'default',
-          speechRate: dbSettings.speech_rate || 0.9,
-          speechPitch: dbSettings.speech_pitch || 1.0,
+          selectedChatterboxVoice: dbSettings.voice_type || 'male',
+          speechRate: parseFloat(dbSettings.speech_rate) || 0.9,
+          speechPitch: parseFloat(dbSettings.speech_pitch) || 1.0,
           selectedLanguages: languages
         };
-        console.log('✅ Using settings from database:', settings);
+        console.log('✅ FINAL settings from database:', settings);
       } else {
-        console.log('ℹ️ No custom settings found, using defaults:', settings);
+        console.log('⚠️ No custom settings found in database, using defaults:', settings);
       }
     } catch (error) {
-      console.warn('⚠️ Could not load from database:', error.response?.status, error.message);
+      console.error('❌ ERROR fetching voice settings from database:');
+      console.error('   Status:', error.response?.status);
+      console.error('   Message:', error.message);
+      console.error('   Response:', error.response?.data);
+      
       // Fallback to localStorage
       const savedSettings = localStorage.getItem('tts_settings');
       if (savedSettings) {
         try {
           const parsed = JSON.parse(savedSettings);
           settings.selectedLanguages = parsed.selectedLanguages || [parsed.preferredLanguage || 'en'];
-          settings.selectedChatterboxVoice = parsed.selectedChatterboxVoice || 'default';
-          settings.speechRate = parsed.speechRate || 0.9;
-          settings.speechPitch = parsed.speechPitch || 1.0;
-          console.log('✅ Using admin ChatterBox AI settings from localStorage:', settings);
+          settings.selectedChatterboxVoice = parsed.selectedChatterboxVoice || 'male';
+          settings.speechRate = parseFloat(parsed.speechRate) || 0.9;
+          settings.speechPitch = parseFloat(parsed.speechPitch) || 1.0;
+          console.log('✅ Fallback: Using localStorage settings:', settings);
         } catch (e) {
-          console.error('❌ Error parsing TTS settings:', e);
+          console.error('❌ Error parsing localStorage TTS settings:', e);
+          console.log('⚠️ Using hardcoded defaults:', settings);
         }
       } else {
-        console.log('ℹ️ No localStorage settings, using defaults:', settings);
+        console.log('⚠️ No localStorage settings found, using hardcoded defaults:', settings);
       }
     }
     
-    console.log('🎙️ Announcing ticket in multiple languages:');
+    console.log('═══════════════════════════════════════════════');
+    console.log('🎙️ TICKET ANNOUNCEMENT - SETTINGS BEING USED:');
+    console.log('═══════════════════════════════════════════════');
     console.log('  🎫 Ticket:', ticketNumber);
     console.log('  🏪 Counter:', counterNumber);
     console.log('  🌐 Languages:', settings.selectedLanguages);
-    console.log('  🎤 Voice:', settings.selectedChatterboxVoice);
+    console.log('  🎤 Voice Type:', settings.selectedChatterboxVoice);
+    console.log('  ⚡ Speech Rate:', settings.speechRate);
+    console.log('  🎵 Speech Pitch:', settings.speechPitch);
+    console.log('═══════════════════════════════════════════════');
     
     // Stop any existing audio (cleanup)
     if (typeof window !== 'undefined') {
@@ -497,8 +581,8 @@ function TicketInfoContent() {
         // Call ChatterBox AI synthesis endpoint
         const response = await axios.post(`${apiUrl}/voices/synthesize`, {
           text: translation.text,
-          voiceType: settings.selectedChatterboxVoice || 'default',
-          rate: settings.speechRate || 0.9,
+          voice_type: settings.selectedChatterboxVoice || 'male',  // ✅ Fallback to 'male' instead of 'default'
+          speed: settings.speechRate || 0.9,  // ✅ Changed from 'rate' to 'speed'
           pitch: settings.speechPitch || 1.0,
           language: lang
         });
@@ -605,12 +689,13 @@ function TicketInfoContent() {
             audio.src = audioUrl;
             audio.load(); // Explicitly load the audio
             
-            // Handle autoplay policy - NO automatic retry
+            // Handle autoplay policy with user interaction requirement
             const playPromise = audio.play();
             if (playPromise !== undefined) {
               playPromise
                 .then(() => {
-                  console.log(`✅ Box ${i + 1} audio playing`);
+                  console.log(`✅ Box ${i + 1} audio playing successfully`);
+                  setAudioUnlocked(true); // Mark as unlocked on successful play
                 })
                 .catch(error => {
                   if (isResolved) return;
@@ -619,16 +704,20 @@ function TicketInfoContent() {
                   console.error(`❌ Error type:`, error.name);
                   console.error(`❌ Error message:`, error.message);
                   
-                  // For NotAllowedError (autoplay blocked), skip silently
+                  // For NotAllowedError (autoplay blocked by browser)
                   if (error.name === 'NotAllowedError') {
-                    console.log('⚠️ Autoplay blocked by browser - user interaction required');
+                    console.log('⚠️ AUTOPLAY BLOCKED - User needs to click "Enable Audio" button');
+                    setAudioUnlocked(false); // Show the unlock button
+                    
+                    // Don't skip - wait for user to unlock audio
+                    // Keep the audio element ready to play
                     if (i === 0) {
-                      // Show toast/notification instead of alert (non-blocking)
-                      console.warn('🔊 Browser blocked autoplay - user needs to interact with page first');
+                      console.warn('🔴 BROWSER BLOCKED AUDIO AUTOPLAY');
+                      console.warn('🔵 Please click the "Enable Audio" button in top-right corner');
                     }
                   }
                   
-                  // Clean up and continue
+                  // Clean up and continue to next language
                   if (!isResolved) {
                     isResolved = true;
                     audio.pause();
@@ -817,6 +906,22 @@ function TicketInfoContent() {
 
       {/* Right Panel: Header, Slider, and News Ticker */}
       <div className="flex-[0_0_70%] flex flex-col relative">
+        {/* Audio Unlock Button - Show if audio not unlocked */}
+        {!audioUnlocked && (
+          <div className="absolute top-4 right-4 z-50">
+            <button
+              onClick={unlockAudio}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full shadow-2xl flex items-center gap-3 animate-bounce transition-all duration-300 hover:scale-110"
+              style={{ fontSize: '20px' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+              </svg>
+              <span>🔊 Click to Enable Audio</span>
+            </button>
+          </div>
+        )}
+        
         {/* Header Section */}
         <div className="w-full flex justify-around items-center bg-white/95 shadow-lg h-[200px] border-b border-gray-300">
           {/* Left Logo - Dynamic from database */}

@@ -11,7 +11,7 @@ export default function ConfigurationPage({ adminId }) {
   
   // ChatterBox AI Voice states
   const [chatterboxVoices, setChatterboxVoices] = useState([]);
-  const [selectedChatterboxVoice, setSelectedChatterboxVoice] = useState('');
+  const [selectedChatterboxVoice, setSelectedChatterboxVoice] = useState('male');  // ✅ Default to 'male' instead of empty string
   const [chatterboxServiceStatus, setChatterboxServiceStatus] = useState('unknown');
   const [uploadingVoice, setUploadingVoice] = useState(false);
   const [synthesizing, setSynthesizing] = useState(false);
@@ -48,14 +48,16 @@ export default function ConfigurationPage({ adminId }) {
         setSelectedLanguages(languages);
         setSpeechRate(settings.speech_rate || 0.9);
         setSpeechPitch(settings.speech_pitch || 1.0);
-        setSelectedChatterboxVoice(settings.voice_type || 'default');
+        // Load voice_type directly from database
+        setSelectedChatterboxVoice(settings.voice_type || 'male');
+        console.log('📥 Loaded voice_type from database:', settings.voice_type);
         
         // Also save to localStorage for offline access
         localStorage.setItem('tts_settings', JSON.stringify({
           selectedLanguages: languages,
           speechRate: settings.speech_rate,
           speechPitch: settings.speech_pitch,
-          selectedChatterboxVoice: settings.voice_type,
+          selectedChatterboxVoice: settings.voice_type || 'male',
           useAI: true
         }));
         
@@ -70,7 +72,9 @@ export default function ConfigurationPage({ adminId }) {
         setSelectedLanguages(settings.selectedLanguages || ['en']);
         setSpeechRate(settings.speechRate || 0.9);
         setSpeechPitch(settings.speechPitch || 1.0);
-        setSelectedChatterboxVoice(settings.selectedChatterboxVoice || 'default');
+        // Load voice directly from localStorage
+        setSelectedChatterboxVoice(settings.selectedChatterboxVoice || 'male');
+        console.log('📥 Loaded voice_type from localStorage:', settings.selectedChatterboxVoice);
       }
     }
   };
@@ -92,15 +96,25 @@ export default function ConfigurationPage({ adminId }) {
   const loadChatterboxVoices = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/voices/list`);
-      console.log('Loaded voices:', response.data);
-      if (response.data.success) {
-        setChatterboxVoices(response.data.data || []);
+      console.log('✅ Loaded voices from Python service:', response.data);
+      if (response.data.success && response.data.data) {
+        const voicesData = response.data.data;
+        
+        // Filter to only use voices with clean IDs (male, female, child)
+        const cleanVoices = voicesData.filter(voice => 
+          ['male', 'female', 'child'].includes(voice.id)
+        );
+        
+        setChatterboxVoices(cleanVoices);
+        console.log(`🎤 ${cleanVoices.length} voice(s) loaded (filtered for clean IDs only)`);
       }
     } catch (error) {
-      console.error('Failed to load ChatterBox voices:', error);
-      // Set default voices as fallback
+      console.error('❌ Failed to load ChatterBox voices:', error);
+      // Set fallback voices if service is down
       setChatterboxVoices([
-        { id: 'default', name: 'Default Voice', type: 'system' }
+        { id: 'male', name: '👨 Male Voice', type: 'male' },
+        { id: 'female', name: '👩 Female Voice', type: 'female' },
+        { id: 'child', name: '👶 Child Voice', type: 'child' }
       ]);
     }
   };
@@ -247,6 +261,22 @@ export default function ConfigurationPage({ adminId }) {
         // Also save to localStorage for offline access
         localStorage.setItem('tts_settings', JSON.stringify(settings));
         console.log('✅ Settings saved to database and localStorage');
+        
+        // 🔔 Broadcast settings update to ticket_info page
+        try {
+          const voiceSettingsChannel = new BroadcastChannel('voice-settings-update');
+          voiceSettingsChannel.postMessage({ 
+            updated: true, 
+            voice_type: selectedChatterboxVoice,
+            languages: selectedLanguages,
+            timestamp: Date.now()
+          });
+          voiceSettingsChannel.close();
+          console.log('📢 Broadcasted voice settings update to ticket_info page');
+        } catch (broadcastError) {
+          console.warn('⚠️ Could not broadcast settings update:', broadcastError);
+        }
+        
         alert('✅ Settings saved successfully to database!');
       } else {
         throw new Error(response.data.message || 'Failed to save');
@@ -272,6 +302,11 @@ export default function ConfigurationPage({ adminId }) {
       speechPitch,
       selectedChatterboxVoice
     });
+    
+    console.log('🔍 DEBUG - Current state selectedChatterboxVoice:', selectedChatterboxVoice);
+    console.log('🔍 DEBUG - Type:', typeof selectedChatterboxVoice);
+    console.log('🔍 DEBUG - Is empty?', !selectedChatterboxVoice);
+    console.log('🔍 DEBUG - Is default?', selectedChatterboxVoice === 'default');
 
     if (selectedLanguages.length === 0) {
       alert('⚠️ Please select at least one language!');
@@ -292,13 +327,14 @@ export default function ConfigurationPage({ adminId }) {
         console.log(`   Rate: ${speechRate}, Pitch: ${speechPitch}`);
 
         console.log(`🌐 Making API request for Box ${i + 1}...`);
+        console.log(`🎤 SENDING TO API - Voice Type: ${selectedChatterboxVoice}`);
         
         const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/voices/synthesize`, {
           text: translatedText,
           language: lang,
-          rate: speechRate,
+          speed: speechRate,
           pitch: speechPitch,
-          voiceType: selectedChatterboxVoice || 'default'
+          voice_type: selectedChatterboxVoice || 'male'  // Send selected voice directly
         }).catch(err => {
           console.error(`❌ Box ${i + 1} API request failed:`, err);
           throw err;
@@ -404,24 +440,41 @@ export default function ConfigurationPage({ adminId }) {
             
             {/* AI Voice Configuration */}
             <div className="space-y-4">
-              {/* Voice Type Selection */}
+              {/* Voice Type Selection - Dynamic from Python Service */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Voice Type (AI will adjust)
+                  Voice Type (Dynamically Loaded)
                 </label>
                 <select
                   value={selectedChatterboxVoice}
-                  onChange={(e) => setSelectedChatterboxVoice(e.target.value)}
+                  onChange={(e) => {
+                    console.log('🔄 Dropdown changed to:', e.target.value);
+                    setSelectedChatterboxVoice(e.target.value);
+                  }}
                   disabled={chatterboxServiceStatus === 'offline'}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700"
                 >
-                  <option value="default">🔊 Default Voice</option>
-                  <option value="male">👨 Male Voice</option>
-                  <option value="female">👩 Female Voice</option>
-                  <option value="child">👶 Child Voice</option>
+                  {chatterboxVoices.length > 0 ? (
+                    chatterboxVoices.map(voice => {
+                      console.log('🎤 Voice option:', { id: voice.id, name: voice.name, type: voice.type });
+                      return (
+                        <option key={voice.id || voice.name} value={voice.id}>
+                          {voice.name}
+                        </option>
+                      );
+                    })
+                  ) : (
+                    <>
+                      <option value="male">👨 Male Voice</option>
+                      <option value="female">👩 Female Voice</option>
+                      <option value="child">👶 Child Voice</option>
+                    </>
+                  )}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
-                  AI will use the selected voice type for announcements
+                  {chatterboxVoices.length > 0 
+                    ? `${chatterboxVoices.length} voice(s) loaded from Python service` 
+                    : 'Loading voices from Python service...'}
                 </p>
               </div>
             </div>
