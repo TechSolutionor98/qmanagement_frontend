@@ -9,6 +9,7 @@ import { MdSettings, MdDashboard } from 'react-icons/md';
 import { HiDocumentReport } from 'react-icons/hi';
 import { FaUsers, FaFileContract } from 'react-icons/fa6';
 import { IoChevronForward } from 'react-icons/io5';
+import { FaClock } from 'react-icons/fa';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -18,6 +19,7 @@ export default function Sidebar() {
   const [isUsersOpen, setIsUsersOpen] = useState(false);
   const [isLicenseOpen, setIsLicenseOpen] = useState(false);
   const [isCounterSettingsOpen, setIsCounterSettingsOpen] = useState(false);
+  const [isAdminSettingsOpen, setIsAdminSettingsOpen] = useState(false);
 
   // Extract role from pathname instead of using state
   const role = pathname.split('/')[1] || 'admin';
@@ -35,30 +37,42 @@ export default function Sidebar() {
       setIsUsersOpen(false);
       setIsLicenseOpen(false);
       setIsCounterSettingsOpen(false);
+      setIsAdminSettingsOpen(false);
     } else if (pathname.includes('/reports')) {
       setIsReportsOpen(true);
       setIsServicesOpen(false);
       setIsUsersOpen(false);
       setIsLicenseOpen(false);
       setIsCounterSettingsOpen(false);
+      setIsAdminSettingsOpen(false);
     } else if (pathname.includes('/users')) {
       setIsUsersOpen(true);
       setIsServicesOpen(false);
       setIsReportsOpen(false);
       setIsLicenseOpen(false);
       setIsCounterSettingsOpen(false);
+      setIsAdminSettingsOpen(false);
     } else if (pathname.includes('/license')) {
       setIsLicenseOpen(true);
       setIsServicesOpen(false);
       setIsReportsOpen(false);
       setIsUsersOpen(false);
       setIsCounterSettingsOpen(false);
+      setIsAdminSettingsOpen(false);
     } else if (pathname.includes('/counter-display') || pathname.includes('/display-screens-sessions') || pathname.includes('/configuration')) {
       setIsCounterSettingsOpen(true);
       setIsServicesOpen(false);
       setIsReportsOpen(false);
       setIsUsersOpen(false);
       setIsLicenseOpen(false);
+      setIsAdminSettingsOpen(false);
+    } else if (pathname.includes('/admin-settings')) {
+      setIsAdminSettingsOpen(true);
+      setIsServicesOpen(false);
+      setIsReportsOpen(false);
+      setIsUsersOpen(false);
+      setIsLicenseOpen(false);
+      setIsCounterSettingsOpen(false);
     }
   }, [pathname]);
 
@@ -101,6 +115,16 @@ export default function Sidebar() {
     setIsReportsOpen(false);
     setIsUsersOpen(false);
     setIsLicenseOpen(false);
+    setIsAdminSettingsOpen(false);
+  };
+
+  const handleAdminSettingsToggle = () => {
+    setIsAdminSettingsOpen(!isAdminSettingsOpen);
+    setIsServicesOpen(false);
+    setIsReportsOpen(false);
+    setIsUsersOpen(false);
+    setIsLicenseOpen(false);
+    setIsCounterSettingsOpen(false);
   };
 
   return (
@@ -353,6 +377,42 @@ export default function Sidebar() {
                     pathname.includes('/reports/details-reports') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
                   <span className="text-sm">Details Reports</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Admin Settings - For Admin Users */}
+        {!isSuperAdmin && (
+          <div>
+            <button
+              onClick={handleAdminSettingsToggle}
+              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+                pathname.includes('/admin-settings') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <MdSettings className="text-lg" />
+                <span className="text-sm font-medium">Admin Settings</span>
+              </div>
+              <IoChevronForward className={`text-sm transition-transform duration-200 ${isAdminSettingsOpen ? 'rotate-90' : ''}`} />
+            </button>
+            {isAdminSettingsOpen && (
+              <div className="bg-black/20 py-1">
+                <Link
+                  href={`/${role}/admin-settings/timezone/admin-timezone`}
+                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                    pathname.includes('/admin-settings/timezone/admin-timezone') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${
+                    pathname.includes('/admin-settings/timezone/admin-timezone') ? 'bg-white' : 'bg-gray-500'
+                  }`}></span>
+                  <div className="flex items-center gap-2">
+                    <FaClock className="text-sm" />
+                    <span className="text-sm">My Timezone</span>
+                  </div>
                 </Link>
               </div>
             )}

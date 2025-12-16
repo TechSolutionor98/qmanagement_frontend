@@ -17,7 +17,10 @@ export default function CompletedTasks() {
   // Fetch completed tickets
   const fetchCompletedTickets = async (filterStartDate = '', filterEndDate = '') => {
     const token = getToken();
+    console.log('🔐 Token check:', token ? '✅ Token exists' : '❌ No token');
+    
     if (!token) {
+      console.log('❌ No token - redirecting to login');
       router.push('/login');
       return;
     }
@@ -37,30 +40,53 @@ export default function CompletedTasks() {
         url += `?${params.toString()}`;
       }
 
-      console.log('Fetching from:', url);
+      console.log('📡 Fetching from:', url);
+      console.log('🎫 Headers being sent:', { Authorization: `Bearer ${token.substring(0, 20)}...` });
 
-      const response = await axios.get(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await axios.get(url);
+
+      console.log('✅ Response received:', response.status);
+      console.log('📦 Response data:', response.data);
 
       if (response.data.success) {
-        setCompletedTasks(response.data.tickets || []);
-        console.log(`✅ Loaded ${response.data.tickets.length} completed tickets`);
+        const tickets = response.data.tickets || [];
+        console.log(`✅ Setting ${tickets.length} completed tickets to state`);
+        setCompletedTasks(tickets);
+        console.log(`✅ Loaded ${tickets.length} completed tickets`);
+        if (tickets.length > 0) {
+          console.log('📊 First ticket:', tickets[0]);
+          console.log('📊 Last ticket:', tickets[tickets.length - 1]);
+        } else {
+          console.log('⚠️ No tickets in response');
+        }
       } else {
+        console.log('❌ Response success=false:', response.data);
         setError('Failed to load tickets');
       }
     } catch (err) {
-      console.error('Error fetching tickets:', err);
-      setError(err.response?.data?.message || 'Failed to load completed tickets');
+      console.error('❌ Error fetching tickets:', err);
+      console.error('Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        config: {
+          url: err.config?.url,
+          method: err.config?.method
+        }
+      });
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to load completed tickets';
+      console.error('Setting error:', errorMsg);
+      setError(errorMsg);
     } finally {
       setLoading(false);
+      console.log('✅ Loading complete');
     }
   };
 
   // Load tickets on component mount (all tickets)
   useEffect(() => {
+    console.log('🚀 Component mounted, fetching completed tickets...');
     fetchCompletedTickets();
   }, []);
 
@@ -84,8 +110,10 @@ export default function CompletedTasks() {
       case 'not_solved':
       case 'not solved':
         return 'bg-red-500 text-white';
-      case 'unattendant':
+      case 'unattended':
         return 'bg-yellow-500 text-white';
+      case 'pending':
+        return 'bg-blue-500 text-white';
       case 'called':
         return 'bg-blue-500 text-white';
       default:
@@ -167,6 +195,13 @@ export default function CompletedTasks() {
           {!loading && !error && (
             <div className="mt-4 text-gray-600">
               Total Tickets: <span className="font-semibold text-gray-800">{completedTasks.length}</span>
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-2 text-xs bg-gray-100 p-2 rounded">
+                  <div>Loading: {String(loading)}</div>
+                  <div>Error: {String(error)}</div>
+                  <div>Tasks length: {completedTasks.length}</div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -182,6 +217,11 @@ export default function CompletedTasks() {
         {!loading && !error && completedTasks.length === 0 && (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
             <div className="text-gray-600">No completed tickets found</div>
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 text-xs text-gray-500">
+                <div>Debug: loading={String(loading)}, error={String(error)}, tasks={completedTasks.length}</div>
+              </div>
+            )}
           </div>
         )}
 

@@ -6,6 +6,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+
 export default function DetailsReportsPage({ adminId }) {
   const { token, callAPI, user } = useAuthContext();
   const [filterBy, setFilterBy] = useState('');
@@ -162,6 +163,29 @@ export default function DetailsReportsPage({ adminId }) {
     );
   };
 
+  // Format timestamp to YYYY-MM-DD HH:MM:SS
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp || timestamp === '0000-00-00 00:00:00') return '-';
+    
+    try {
+      // Check if it's ISO format (2025-12-16T06:34:54.000Z)
+      if (typeof timestamp === 'string' && timestamp.includes('T')) {
+        const date = new Date(timestamp);
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const hours = String(date.getUTCHours()).padStart(2, '0');
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      }
+      // MySQL format is already: "2025-12-03 11:03:50" - just return as-is
+      return timestamp.trim();
+    } catch (e) {
+      return timestamp;
+    }
+  };
+
   // Get value for a specific column from ticket
   const getColumnValue = (ticket, key) => {
     switch(key) {
@@ -172,17 +196,17 @@ export default function DetailsReportsPage({ adminId }) {
       case 'service_name':
         return ticket.service_name || '-';
       case 'created_at':
-        return ticket.created_at ? new Date(ticket.created_at).toLocaleString() : '-';
+        return ticket.created_at ? formatTimestamp(ticket.created_at) : '-';
       case 'representative_id':
         return ticket.representative_id || '-';
       case 'calling_time':
         return ticket.call_count || ticket.calling_time || '0';
       case 'calling_user_time':
-        return ticket.calling_user_time ? new Date(ticket.calling_user_time).toLocaleString() : '-';
+        return ticket.calling_user_time ? formatTimestamp(ticket.calling_user_time) : '-';
       case 'status':
         return ticket.status || 'Pending';
       case 'status_time':
-        return ticket.status_time && ticket.status_time !== '0000-00-00 00:00:00' ? new Date(ticket.status_time).toLocaleString() : '0000-00-00 00:00:00';
+        return ticket.status_time && ticket.status_time !== '0000-00-00 00:00:00' ? formatTimestamp(ticket.status_time) : '-';
       case 'reason':
         return ticket.reason || '-';
       case 'service_time':
@@ -197,12 +221,12 @@ export default function DetailsReportsPage({ adminId }) {
         return ticket.transfered && ticket.transfered !== 'NULL' && ticket.transfered !== '' ? 'Yes' : 'No';
       case 'transfered_time':
         return ticket.transfered && ticket.transfered !== 'NULL' && ticket.transfered !== '' 
-          ? (ticket.transfered_time && ticket.transfered_time !== '0000-00-00 00:00:00' ? new Date(ticket.transfered_time).toLocaleString() : '-')
-          : '0000-00-00 00:00:00';
+          ? (ticket.transfered_time && ticket.transfered_time !== '0000-00-00 00:00:00' ? formatTimestamp(ticket.transfered_time) : '-')
+          : '-';
       case 'transfer_by':
         return ticket.transfer_by || '-';
       case 'last_updated':
-        return ticket.last_updated ? new Date(ticket.last_updated).toLocaleString() : '-';
+        return ticket.last_updated ? formatTimestamp(ticket.last_updated) : '-';
       default:
         return '-';
     }

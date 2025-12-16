@@ -5,6 +5,7 @@ import { selectCurrentUser } from '@/store/slices/authSlice';
 import { setLicenseReport, selectLicenseReport } from '@/store/slices/licenseSlice';
 import { useRouter } from 'next/navigation';
 
+
 export default function LicenseReportPage() {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -731,9 +732,9 @@ export default function LicenseReportPage() {
               {/* Timestamps */}
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>Created: {new Date(selectedLicense.created_at).toLocaleString()}</span>
+                  <span>Created: {selectedLicense.created_at}</span>
                   {selectedLicense.updated_at && (
-                    <span>Updated: {new Date(selectedLicense.updated_at).toLocaleString()}</span>
+                    <span>Updated: {selectedLicense.updated_at}</span>
                   )}
                 </div>
               </div>

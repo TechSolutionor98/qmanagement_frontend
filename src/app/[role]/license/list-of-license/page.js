@@ -23,6 +23,7 @@ import CreateLicensePage from '@/app/[role]/license/create-license/page';
 import LicenseReportPage from '@/app/[role]/license/license-report/page';
 import DetailsReportsPage from '@/app/[role]/reports/details-reports/page';
 import ShortReportsPage from '@/app/[role]/reports/short-reports/page';
+import ActivityLogsPage from '@/app/[role]/activity-logs/page';
 
 export default function ListOfLicensePage() {
   const router = useRouter();
@@ -122,6 +123,9 @@ export default function ListOfLicensePage() {
   };
 
   const handleAdminClick = (license) => {
+    console.log('🔍 [handleAdminClick] License object:', license);
+    console.log('🔍 [handleAdminClick] admin_id:', license.admin_id);
+    console.log('🔍 [handleAdminClick] All keys:', Object.keys(license));
     setSelectedAdmin(license);
     setShowAdminModal(true);
     setActiveTab('create-services');
@@ -293,6 +297,8 @@ export default function ListOfLicensePage() {
       {showAdminModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowAdminModal(false)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            {console.log('🔍 [Modal Render] selectedAdmin:', selectedAdmin)}
+            {console.log('🔍 [Modal Render] selectedAdmin.admin_id:', selectedAdmin?.admin_id)}
             {/* Modal Header */}
             <div className="px-6 py-4 bg-gradient-to-r from-green-600 to-green-700">
               <div className="flex items-center">
@@ -485,6 +491,12 @@ export default function ListOfLicensePage() {
                         icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
                         label="User Dashboard Btns"
                       />
+                      <SidebarButton 
+                        active={activeTab === 'activity-logs'} 
+                        onClick={() => setActiveTab('activity-logs')}
+                        icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                        label="Activity Logs"
+                      />
                     </>
                   ) : (
                     <>
@@ -520,24 +532,25 @@ export default function ListOfLicensePage() {
                     {panelType === 'admin' ? (
                       <>
                         {/* Admin Panel Content */}
-                        {activeTab === 'create-services' && <CreateServicesPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'assign-services' && <AssignServicesPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'reports' && <ReportsPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'details-reports' && <DetailsReportsPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'short-reports' && <ShortReportsPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'configuration' && <ConfigurationPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'counter' && <CounterDisplayPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'users' && <CreateAdminPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'user-sessions' && <UserSessionsPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'display' && <DisplayScreensSessionsPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'dashboard-btns' && <UserDashboardBtnsPage adminId={selectedAdmin?.admin_id} />}
+                        {activeTab === 'create-services' && <CreateServicesPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'assign-services' && <AssignServicesPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'reports' && <ReportsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'details-reports' && <DetailsReportsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'short-reports' && <ShortReportsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'configuration' && <ConfigurationPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'counter' && <CounterDisplayPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'users' && <CreateAdminPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'user-sessions' && <UserSessionsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'display' && <DisplayScreensSessionsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'dashboard-btns' && <UserDashboardBtnsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'activity-logs' && <ActivityLogsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
                       </>
                     ) : (
                       <>
                         {/* User Panel Content */}
-                        {activeTab === 'dashboard' && <DashboardPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'completed-tasks' && <CompletedTasksPage adminId={selectedAdmin?.admin_id} />}
-                        {activeTab === 'profile' && <ProfilePage adminId={selectedAdmin?.admin_id} />}
+                        {activeTab === 'dashboard' && <DashboardPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'completed-tasks' && <CompletedTasksPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'profile' && <ProfilePage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
                       </>
                     )}
                   </>
