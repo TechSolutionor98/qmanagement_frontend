@@ -195,13 +195,6 @@ export default function CompletedTasks() {
           {!loading && !error && (
             <div className="mt-4 text-gray-600">
               Total Tickets: <span className="font-semibold text-gray-800">{completedTasks.length}</span>
-              {process.env.NODE_ENV === 'development' && (
-                <div className="mt-2 text-xs bg-gray-100 p-2 rounded">
-                  <div>Loading: {String(loading)}</div>
-                  <div>Error: {String(error)}</div>
-                  <div>Tasks length: {completedTasks.length}</div>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -217,11 +210,6 @@ export default function CompletedTasks() {
         {!loading && !error && completedTasks.length === 0 && (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
             <div className="text-gray-600">No completed tickets found</div>
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 text-xs text-gray-500">
-                <div>Debug: loading={String(loading)}, error={String(error)}, tasks={completedTasks.length}</div>
-              </div>
-            )}
           </div>
         )}
 
@@ -240,6 +228,9 @@ export default function CompletedTasks() {
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Service
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Service Time
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status Update Time
@@ -275,6 +266,9 @@ export default function CompletedTasks() {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {task.service}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {formatDateTime(task.serviceTime)}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                         {formatDateTime(task.statusUpdateTime)}

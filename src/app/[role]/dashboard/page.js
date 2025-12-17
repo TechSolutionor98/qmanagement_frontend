@@ -27,6 +27,9 @@ export default function UserDashboard() {
   const [showCalledDrawer, setShowCalledDrawer] = useState(false);
   const [calledTickets, setCalledTickets] = useState([]);
   const [userCounter, setUserCounter] = useState(null);
+  // Button settings from admin
+  const [showNextButton, setShowNextButton] = useState(true);
+  const [showTransferButton, setShowTransferButton] = useState(true);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   
@@ -82,6 +85,33 @@ export default function UserDashboard() {
 
     checkUserCounter();
   }, [router, apiUrl]);
+
+  // Fetch button settings from admin
+  useEffect(() => {
+    const fetchButtonSettings = async () => {
+      try {
+        const token = getToken();
+        if (!token) return;
+
+        const response = await axios.get(`${apiUrl}/button-settings`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.data.success) {
+          setShowNextButton(response.data.settings.showNextButton);
+          setShowTransferButton(response.data.settings.showTransferButton);
+          console.log('✅ Button settings loaded:', response.data.settings);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching button settings:', error);
+        // Default to showing buttons if API fails
+        setShowNextButton(true);
+        setShowTransferButton(true);
+      }
+    };
+
+    fetchButtonSettings();
+  }, [apiUrl]);
 
   const fetchAssignedTickets = async (showLoader = false) => {
     const token = getToken();
@@ -799,12 +829,14 @@ export default function UserDashboard() {
             >
               {isCalling ? 'Calling...' : 'Call'}
             </button>
-            <button
-              onClick={handleNext}
-              className="bg-red-500 hover:bg-red-600 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
-            >
-              Next
-            </button>
+            {showNextButton && (
+              <button
+                onClick={handleNext}
+                className="bg-red-500 hover:bg-red-600 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
+              >
+                Next
+              </button>
+            )}
             <button
               onClick={handleAccept}
               className="bg-green-600 hover:bg-green-700 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
@@ -835,12 +867,14 @@ export default function UserDashboard() {
               >
                 Not Solved
               </button>
-              <button
-                onClick={handleTransfer}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
-              >
-                Transfer
-              </button>
+              {showTransferButton && (
+                <button
+                  onClick={handleTransfer}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-3 rounded-lg text-lg font-medium transition-colors"
+                >
+                  Transfer
+                </button>
+              )}
             </div>
           </>
         )}
