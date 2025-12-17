@@ -61,7 +61,7 @@ export default function TicketInfoLogin() {
         setLoading(false);
         
         // Immediate synchronous redirect
-        window.location.href = '/ticket_info';
+        window.location.href = '/ticket_info_vertical';
       } else {
         console.log('❌ Login failed:', response.data.message);
         setError(response.data.message || 'Login failed');

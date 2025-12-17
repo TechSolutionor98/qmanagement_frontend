@@ -19,7 +19,7 @@ function TicketInfoContent() {
   const [isAnnouncing, setIsAnnouncing] = useState(false); // Prevent overlapping announcements
   const [announcementQueue, setAnnouncementQueue] = useState([]); // Queue for pending tickets
   const [broadcastChannel, setBroadcastChannel] = useState(null);
-  const [audioUnlocked, setAudioUnlocked] = useState(true); // Auto-enabled - no user interaction needed
+  const [audioUnlocked, setAudioUnlocked] = useState(false); // Auto-enabled in background
   
   // Counter Display Config from database
   const [leftLogoUrl, setLeftLogoUrl] = useState('');
@@ -367,67 +367,157 @@ function TicketInfoContent() {
     return translations[langCode] || translations['en'];
   };
 
-  // Manual unlock audio function
-  const unlockAudio = () => {
-    console.log('🔓 Manual audio unlock triggered');
+  // Silent background audio enabler - no user interaction needed
+  const enableAudioSilently = async () => {
+    try {
+      // Initialize AudioContext
+      if (typeof window !== 'undefined') {
+        if (!window.audioContext) {
+          window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (window.audioContext.state === 'suspended') {
+          await window.audioContext.resume();
+        }
+      }
+      
+      // Play silent audio to unlock
+      const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+      silentAudio.volume = 0.001;
+      await silentAudio.play();
+      silentAudio.pause();
+      
+      setAudioUnlocked(true);
+      console.log('✅ Audio enabled silently in background');
+      return true;
+    } catch (e) {
+      console.log('⚠️ Silent audio enable attempt...');
+      return false;
+    }
+  };
+
+  // Continuous background audio enabler - runs automatically
+  useEffect(() => {
+    let enableInterval;
+    
+    // Start trying to enable audio immediately and continuously
+    const tryEnableAudio = async () => {
+      try {
+        if (typeof window !== 'undefined') {
+          if (!window.audioContext) {
+            window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (window.audioContext.state === 'suspended') {
+            await window.audioContext.resume();
+          }
+        }
+        
+        const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+        silentAudio.volume = 0.001;
+        await silentAudio.play();
+        silentAudio.pause();
+        
+        setAudioUnlocked(true);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+    
+    // Try immediately on mount
+    tryEnableAudio();
+    
+    // Keep trying every 500ms until successful
+    enableInterval = setInterval(() => {
+      tryEnableAudio().then(success => {
+        if (success) {
+          clearInterval(enableInterval);
+        }
+      });
+    }, 500);
+    
+    return () => {
+      if (enableInterval) clearInterval(enableInterval);
+    };
+  }, []);
+
+  // Auto-enable audio on any user interaction (background - no UI)
+  useEffect(() => {
+    const handleUserInteraction = async () => {
+      if (!audioUnlocked) {
+        await enableAudioSilently();
+      } else if (window.audioContext && window.audioContext.state === 'suspended') {
+        await window.audioContext.resume();
+      }
+    };
+    
+    const events = ['click', 'touchstart', 'keydown', 'mousedown', 'mousemove', 'scroll'];
+    events.forEach(event => {
+      document.addEventListener(event, handleUserInteraction, { passive: true, once: false });
+    });
+    
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserInteraction);
+      });
+    };
+  }, [audioUnlocked]);
+
+  // Initialize AudioContext on mount and keep it active
+  useEffect(() => {
+    // Auto-enable audio silently on page load
+    console.log('🔊 Auto-enabling audio in background...');
     
     // Initialize AudioContext
     if (typeof window !== 'undefined' && !window.audioContext) {
       try {
         window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('✅ AudioContext initialized');
+        console.log('✅ AudioContext created');
       } catch (e) {
-        console.warn('⚠️ AudioContext not supported:', e);
+        console.log('⚠️ AudioContext creation failed:', e);
       }
     }
     
-    // Resume AudioContext if suspended
-    if (window.audioContext && window.audioContext.state === 'suspended') {
-      window.audioContext.resume();
-    }
-    
-    // Play a silent audio to unlock
-    const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
-    silentAudio.play()
-      .then(() => {
-        console.log('✅ Audio manually unlocked successfully');
-        setAudioUnlocked(true);
-      })
-      .catch(e => {
-        console.error('❌ Manual unlock also failed:', e);
-      });
-  };
-
-  // Auto-unlock audio on component mount
-  useEffect(() => {
-    console.log('🔓 Attempting auto-unlock audio on page load');
-    
-    // Initialize AudioContext for better audio quality
-    if (typeof window !== 'undefined' && !window.audioContext) {
+    // Attempt silent unlock
+    const unlockAudio = async () => {
       try {
-        window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('✅ AudioContext initialized for high quality playback');
-      } catch (e) {
-        console.warn('⚠️ AudioContext not supported:', e);
-      }
-    }
-    
-    // Play a silent audio to unlock audio context automatically
-    const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
-    silentAudio.play()
-      .then(() => {
-        console.log('✅ Audio automatically unlocked');
-        setAudioUnlocked(true);
-        
-        // Resume AudioContext if suspended
         if (window.audioContext && window.audioContext.state === 'suspended') {
-          window.audioContext.resume();
+          await window.audioContext.resume();
+          console.log('✅ AudioContext resumed');
         }
-      })
-      .catch(e => {
-        console.log('⚠️ Auto-unlock failed (browser policy) - user needs to click unlock button');
-        setAudioUnlocked(false); // Keep it false so button shows
-      });
+        
+        // Create and play silent audio
+        const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+        silentAudio.volume = 0.001;
+        
+        try {
+          await silentAudio.play();
+          silentAudio.pause();
+          silentAudio.remove();
+          setAudioUnlocked(true);
+          console.log('✅ Audio auto-enabled successfully (silent)');
+        } catch (playError) {
+          // If autoplay fails, retry periodically
+          console.log('⚠️ Silent audio play blocked, will retry on interaction...');
+        }
+      } catch (e) {
+        console.log('⚠️ Audio unlock attempt:', e.name);
+      }
+    };
+    
+    unlockAudio();
+      
+    // Keep AudioContext resumed and retry audio unlock
+    const contextResumeInterval = setInterval(async () => {
+      if (window.audioContext && window.audioContext.state === 'suspended') {
+        await window.audioContext.resume().catch(() => {});
+      }
+      // Retry silent unlock if not yet unlocked
+      if (!audioUnlocked) {
+        unlockAudio();
+      }
+    }, 1000);
+    
+    return () => clearInterval(contextResumeInterval);
   }, []);
 
   // Announce ticket using ChatterBox AI with admin-configured settings
@@ -640,24 +730,45 @@ function TicketInfoContent() {
             
             // Set src AFTER setting up event listeners to avoid race conditions
             let isResolved = false;
+            let playbackTimeout = null;
+            
+            // Cleanup function
+            const cleanup = () => {
+              if (playbackTimeout) clearTimeout(playbackTimeout);
+              try {
+                audio.pause();
+                audio.src = '';
+                audio.remove();
+              } catch (e) {}
+            };
             
             audio.onloadeddata = () => {
               console.log(`✅ Box ${i + 1} audio data loaded, starting playback...`);
             };
             
             audio.oncanplaythrough = () => {
-              console.log(`✅ Box ${i + 1} audio can play through`);
+              console.log(`✅ Box ${i + 1} audio can play through, duration: ${audio.duration}s`);
             };
             
-            audio.onplay = () => console.log(`▶️ Box ${i + 1} (${lang}) announcement started`);
+            audio.onplay = () => {
+              console.log(`▶️ Box ${i + 1} (${lang}) announcement started`);
+              // Set a maximum timeout based on audio duration + buffer
+              const maxDuration = (audio.duration || 30) * 1000 + 5000; // duration + 5s buffer
+              playbackTimeout = setTimeout(() => {
+                if (!isResolved) {
+                  console.log(`⏰ Box ${i + 1} timeout reached, moving on...`);
+                  isResolved = true;
+                  cleanup();
+                  resolve();
+                }
+              }, maxDuration);
+            };
+            
             audio.onended = () => {
               if (isResolved) return;
               isResolved = true;
-              console.log(`✅ Box ${i + 1} (${lang}) announcement completed`);
-              // Clean up this audio element
-              audio.pause();
-              audio.src = '';
-              audio.remove();
+              console.log(`✅ Box ${i + 1} (${lang}) announcement completed successfully`);
+              cleanup();
               resolve();
             };
             
@@ -675,13 +786,8 @@ function TicketInfoContent() {
               console.error(`❌ Failed audio URL:`, audioUrl);
               console.error(`❌ Audio error code:`, audio.error?.code);
               console.error(`❌ Audio error message:`, audio.error?.message);
-              console.error(`❌ Network state:`, audio.networkState);
-              console.error(`❌ Ready state:`, audio.readyState);
               
-              // Clean up and skip this audio
-              audio.pause();
-              audio.src = '';
-              audio.remove();
+              cleanup();
               resolve(); // Continue to next language
             };
             
@@ -706,24 +812,28 @@ function TicketInfoContent() {
                   
                   // For NotAllowedError (autoplay blocked by browser)
                   if (error.name === 'NotAllowedError') {
-                    console.log('⚠️ AUTOPLAY BLOCKED - User needs to click "Enable Audio" button');
-                    setAudioUnlocked(false); // Show the unlock button
+                    console.log('⚠️ AUTOPLAY BLOCKED - Retrying silently...');
                     
-                    // Don't skip - wait for user to unlock audio
-                    // Keep the audio element ready to play
-                    if (i === 0) {
-                      console.warn('🔴 BROWSER BLOCKED AUDIO AUTOPLAY');
-                      console.warn('🔵 Please click the "Enable Audio" button in top-right corner');
+                    // Attempt immediate recovery and retry playback
+                    enableAudioSilently().then(() => {
+                      if (!isResolved) {
+                        audio.play().catch(e => {
+                          console.log('⚠️ Retry playback failed, continuing...');
+                          if (!isResolved) {
+                            isResolved = true;
+                            cleanup();
+                            resolve();
+                          }
+                        });
+                      }
+                    });
+                  } else {
+                    // For other errors, cleanup and continue
+                    if (!isResolved) {
+                      isResolved = true;
+                      cleanup();
+                      resolve();
                     }
-                  }
-                  
-                  // Clean up and continue to next language
-                  if (!isResolved) {
-                    isResolved = true;
-                    audio.pause();
-                    audio.src = '';
-                    audio.remove();
-                    resolve();
                   }
                 });
             }
@@ -906,21 +1016,6 @@ function TicketInfoContent() {
 
       {/* Right Panel: Header, Slider, and News Ticker */}
       <div className="flex-[0_0_70%] flex flex-col relative">
-        {/* Audio Unlock Button - Show if audio not unlocked */}
-        {!audioUnlocked && (
-          <div className="absolute top-4 right-4 z-50">
-            <button
-              onClick={unlockAudio}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full shadow-2xl flex items-center gap-3 animate-bounce transition-all duration-300 hover:scale-110"
-              style={{ fontSize: '20px' }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-              </svg>
-              <span>🔊 Click to Enable Audio</span>
-            </button>
-          </div>
-        )}
         
         {/* Header Section */}
         <div className="w-full flex justify-around items-center bg-white/95 shadow-lg h-[200px] border-b border-gray-300">

@@ -568,6 +568,17 @@ export default function CounterDisplayPage({ adminId }) {
           <div className="mt-2 text-xs text-gray-500 text-center">
             Current: <span className="font-semibold text-green-600">{screenType}</span>
           </div>
+          <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+            <p className="text-xs text-gray-600 mb-1">Display Link:</p>
+            <a 
+              href={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket_info_${screenType}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 underline break-all font-medium"
+            >
+              {typeof window !== 'undefined' ? window.location.origin : ''}/ticket_info_{screenType}
+            </a>
+          </div>
         </div>
       </div>
           {/* Ticket Info Users Management Section */}
