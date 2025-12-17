@@ -67,6 +67,11 @@ export default function UserManagementPage({ adminId }) {
       const res = await axios.get(endpoint, { headers: { Authorization: `Bearer ${token}` } });
       const list = res.data.data || res.data.users || res.data;
       if (Array.isArray(list)) {
+        console.log('[Users] Fetched users with login status:', list.map(u => ({ 
+          id: u.id, 
+          username: u.username, 
+          isLoggedIn: u.isLoggedIn 
+        })));
         setUsers(list);
         setUserCount(list.length);
       }
@@ -84,11 +89,11 @@ export default function UserManagementPage({ adminId }) {
     const token = getToken();
     if (!token || !targetAdminId) return;
     try {
-      const res = await axios.get(`${apiUrl}/license/admin/${targetAdminId}`, { 
+      const res = await axios.get(`${apiUrl}/license/admin-license/${targetAdminId}`, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
       if (res.data.success) {
-        setLicenseInfo(res.data.license);
+        setLicenseInfo(res.data.data);
       }
     } catch (e) {
       console.error('[License][GET] error', e.response?.data || e.message);
@@ -433,10 +438,12 @@ export default function UserManagementPage({ adminId }) {
                     <div className="flex items-center gap-2">
                       <button onClick={() => handleView(user)} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors" title="View Details"><FaEye /></button>
                       <button onClick={() => handleEdit(user)} className="px-4 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors font-medium">Edit</button>
-                      <button onClick={() => handleToggleStatus(user.id)} className={`px-4 py-2 rounded font-medium transition-colors text-sm ${user.status === 'active' ? 'bg-gray-500 text-white hover:bg-gray-600' : 'bg-green-500 text-white hover:bg-green-600'}`}>{user.status === 'active' ? 'Inactive' : 'Active'}</button>
-                      {user.isLoggedIn === 1 && (
-                        <button onClick={() => handleLogout(user.id)} className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" title="Logout User"><FaSignOutAlt /></button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleToggleStatus(user.id)} className={`px-4 py-2 rounded font-medium transition-colors text-sm ${user.status === 'active' ? 'bg-gray-500 text-white hover:bg-gray-600' : 'bg-green-500 text-white hover:bg-green-600'}`}>{user.status === 'active' ? 'Inactive' : 'Active'}</button>
+                        {(user.isLoggedIn === 1 || user.isLoggedIn === '1') && (
+                          <button onClick={() => handleLogout(user.id)} className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" title="Logout User"><FaSignOutAlt /></button>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
