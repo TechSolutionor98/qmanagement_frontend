@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/store/slices/authSlice';
-import { FaBell, FaLock, FaGlobe, FaSignOutAlt, FaInfoCircle } from 'react-icons/fa';
+import { FaBell, FaLock, FaGlobe, FaSignOutAlt, FaInfoCircle, FaUser, FaIdCard, FaBuilding, FaDesktop, FaKey, FaEnvelope } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import MainLogo from '@/Components/images/logo_main.png';
 
@@ -12,6 +12,9 @@ export default function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [licenseDetails, setLicenseDetails] = useState(null);
+  const [loadingLicense, setLoadingLicense] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -29,7 +32,7 @@ export default function Navbar() {
 
   // Lock body scroll when modal is open
   useEffect(() => {
-    if (showPasswordModal) {
+    if (showPasswordModal || showAboutModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -39,7 +42,33 @@ export default function Navbar() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [showPasswordModal]);
+  }, [showPasswordModal, showAboutModal]);
+
+  // Fetch license details when About modal opens
+  const fetchLicenseDetails = async () => {
+    setLoadingLicense(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${API_URL}/license/details`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setLicenseDetails(data);
+      }
+    } catch (error) {
+      console.error('Error fetching license details:', error);
+    } finally {
+      setLoadingLicense(false);
+    }
+  };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -190,7 +219,11 @@ export default function Navbar() {
                   <div className="py-2">
                     <button
                       className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors text-left"
-                      onClick={() => setShowProfile(false)}
+                      onClick={() => {
+                        setShowProfile(false);
+                        setShowAboutModal(true);
+                        fetchLicenseDetails();
+                      }}
                     >
                       <FaInfoCircle className="text-base" />
                       <span>About</span>
@@ -229,6 +262,189 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
+      {/* About Modal */}
+      {showAboutModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
+          onClick={() => {
+            setShowAboutModal(false);
+            setLicenseDetails(null);
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform transition-all animate-slideUp max-h-[90vh] overflow-y-auto custom-scrollbar"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="relative px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <FaInfoCircle className="text-green-600 text-lg" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">About & License Information</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">Your account and license details</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAboutModal(false);
+                  setLicenseDetails(null);
+                }}
+                className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-white rounded-full transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-8 py-6">
+              {loadingLicense ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* User Information */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <FaUser className="text-green-600 text-lg" />
+                      User Information
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Username</p>
+                        <p className="text-sm font-semibold text-gray-900">{currentUser?.username || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Email</p>
+                        <p className="text-sm font-semibold text-gray-900">{currentUser?.email || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Role</p>
+                        <p className="text-sm font-semibold text-gray-900 capitalize">{currentUser?.role?.replace('_', ' ') || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">User ID</p>
+                        <p className="text-sm font-semibold text-gray-900">{currentUser?.id || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* License Information */}
+                  {licenseDetails && (
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <FaIdCard className="text-green-600 text-lg" />
+                        License Details
+                      </h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">License Key</p>
+                          <p className="text-sm font-mono font-semibold text-gray-900 break-all">
+                            {licenseDetails.licenseKey || 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Status</p>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            licenseDetails.isActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {licenseDetails.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">User Limit</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {licenseDetails.userLimit === -1 ? 'Unlimited' : licenseDetails.userLimit}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Current Users</p>
+                          <p className="text-sm font-semibold text-gray-900">{licenseDetails.currentUserCount || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Issue Date</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {licenseDetails.issueDate ? new Date(licenseDetails.issueDate).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Expiry Date</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {licenseDetails.expiryDate 
+                              ? new Date(licenseDetails.expiryDate).toLocaleDateString() 
+                              : 'No Expiry'}
+                          </p>
+                        </div>
+                        {licenseDetails.companyName && (
+                          <div className="col-span-2">
+                            <p className="text-xs text-gray-500 mb-1">Company Name</p>
+                            <p className="text-sm font-semibold text-gray-900">{licenseDetails.companyName}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* License Usage Bar */}
+                      {licenseDetails.userLimit !== -1 && (
+                        <div className="mt-4 pt-4 border-t border-green-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs text-gray-600 font-medium">License Usage</p>
+                            <p className="text-xs text-gray-600 font-medium">
+                              {licenseDetails.currentUserCount} / {licenseDetails.userLimit}
+                            </p>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div 
+                              className="bg-gradient-to-r from-green-500 to-emerald-600 h-2.5 rounded-full transition-all duration-500"
+                              style={{ 
+                                width: `${Math.min((licenseDetails.currentUserCount / licenseDetails.userLimit) * 100, 100)}%` 
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* System Information */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <FaDesktop className="text-green-600 text-lg" />
+                      System Information
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Application</p>
+                        <p className="text-sm font-semibold text-gray-900">Queue Management System</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">License Key</p>
+                        <p className="text-sm font-mono font-semibold text-gray-900 break-all">
+                          {licenseDetails?.licenseKey || 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Developer By</p>
+                        <p className="text-sm font-semibold text-gray-900">Tech Solutionor</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Support</p>
+                        <p className="text-sm font-semibold text-gray-900">support@techsolutionor.com</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Change Password Modal */}
       {showPasswordModal && (
@@ -443,6 +659,16 @@ export default function Navbar() {
 
         .animate-shake {
           animation: shake 0.3s ease-out;
+        }
+
+        /* Hide scrollbar but keep functionality */
+        .custom-scrollbar {
+          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          display: none; /* Chrome, Safari, Opera */
         }
       `}</style>
     </>
