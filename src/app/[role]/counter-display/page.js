@@ -72,7 +72,7 @@ export default function CounterDisplayPage({ adminId }) {
 
   const fetchConfiguration = async () => {
     try {
-      const url = adminId ? `${API_URL}/config?adminId=${adminId}` : `${API_URL}/config`;
+      const url = adminId ? `${API_URL}/counter-display/config?adminId=${adminId}` : `${API_URL}/counter-display/config`;
       const response = await axios.get(url, {
         headers: getAuthHeaders()
       });
@@ -380,7 +380,7 @@ export default function CounterDisplayPage({ adminId }) {
         payload.admin_id = adminId;
       }
 
-      const response = await axios.post(`${API_URL}/config`, payload, {
+      const response = await axios.post(`${API_URL}/counter-display/config`, payload, {
         headers: getAuthHeaders()
       });
       

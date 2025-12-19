@@ -55,13 +55,48 @@ export default function TicketInfoLogin() {
           token
         }));
         
-        console.log('✅ Session stored. Redirecting...');
+        console.log('✅ Session stored. Fetching screen configuration...');
         
-        // Important: Set loading to false before redirect
-        setLoading(false);
-        
-        // Immediate synchronous redirect
-        window.location.href = '/ticket_info_vertical';
+        // Fetch counter display configuration to determine screen type
+        try {
+          const configResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/counter-display/config`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          console.log('📊 Config response:', configResponse.data);
+          
+          if (configResponse.data.success && configResponse.data.config) {
+            const screenType = configResponse.data.config.screen_type;
+            console.log('🖥️ Screen type:', screenType);
+            
+            // Important: Set loading to false before redirect
+            setLoading(false);
+            
+            // Redirect based on screen type
+            if (screenType === 'horizontal') {
+              console.log('➡️ Redirecting to horizontal screen');
+              window.location.href = '/ticket_info_horizontal';
+            } else if (screenType === 'vertical') {
+              console.log('➡️ Redirecting to vertical screen');
+              window.location.href = '/ticket_info_vertical';
+            } else {
+              // Default to vertical if screen_type is not set
+              console.log('➡️ No screen type set, defaulting to vertical');
+              window.location.href = '/ticket_info_vertical';
+            }
+          } else {
+            // If no config found, default to vertical
+            console.log('⚠️ No config found, defaulting to vertical screen');
+            setLoading(false);
+            window.location.href = '/ticket_info_vertical';
+          }
+        } catch (configError) {
+          console.error('❌ Error fetching config:', configError);
+          // On error, default to vertical screen
+          console.log('➡️ Config fetch failed, defaulting to vertical screen');
+          setLoading(false);
+          window.location.href = '/ticket_info_vertical';
+        }
       } else {
         console.log('❌ Login failed:', response.data.message);
         setError(response.data.message || 'Login failed');
