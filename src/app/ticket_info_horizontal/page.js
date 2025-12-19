@@ -196,7 +196,7 @@ function TicketInfoContent() {
         // Load selected images for slider
         if (images && images.length > 0) {
           const selectedImages = images.filter(img => img.is_selected === 1);
-          setSliderImages(selectedImages.map(img => `http://localhost:5000${img.image_url}`));
+          setSliderImages(selectedImages.map(img => `${process.env.NEXT_PUBLIC_API_URL_WS}${img.image_url}`));
           console.log('✅ Slider images loaded:', selectedImages.length);
         }
       }
@@ -937,7 +937,7 @@ function TicketInfoContent() {
           <div className="flex-[0_0_25%] text-center">
             {leftLogoUrl ? (
               <img
-                src={`http://localhost:5000${leftLogoUrl}`}
+                src={`${process.env.NEXT_PUBLIC_API_URL_WS}${leftLogoUrl}`}
                 alt="Left Logo"
                 className="w-[150px] h-[100px] mx-auto object-contain"
               />
@@ -969,7 +969,7 @@ function TicketInfoContent() {
           <div className="flex-[0_0_25%] text-center">
             {rightLogoUrl ? (
               <img
-                src={`http://localhost:5000${rightLogoUrl}`}
+                src={`${process.env.NEXT_PUBLIC_API_URL_WS}${rightLogoUrl}`}
                 alt="Right Logo"
                 className="w-[150px] h-[100px] mx-auto object-contain"
               />

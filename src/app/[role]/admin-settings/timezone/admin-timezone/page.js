@@ -35,7 +35,7 @@ export default function AdminTimezonePage() {
   useEffect(() => {
     const fetchTimezones = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/timezones');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/timezones`);
         if (response.ok) {
           const data = await response.json();
           if (data.timezones && Array.isArray(data.timezones)) {
@@ -61,7 +61,7 @@ export default function AdminTimezonePage() {
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/admin/timezone/${adminId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/timezone/${adminId}`);
         if (response.ok) {
           const data = await response.json();
           const tz = data.timezone || '+05:00';
@@ -126,7 +126,7 @@ export default function AdminTimezonePage() {
 
     setSaving(true);
     try {
-      const response = await fetch('http://localhost:5000/api/admin/timezone', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/timezone`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

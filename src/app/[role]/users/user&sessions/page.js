@@ -28,7 +28,13 @@ export default function UserManagementPage({ adminId }) {
       canCreateTickets: true,
       canViewReports: false,
       canManageQueue: false,
-      canCallTickets: false
+      canCallTickets: false,
+      canAccessDashboard: false,
+      canManageUsers: false,
+      canManageTickets: false,
+      canManageSettings: false,
+      canManageCounters: false,
+      canManageServices: false
     }
   });
 
@@ -49,7 +55,13 @@ export default function UserManagementPage({ adminId }) {
       canCreateTickets: true,
       canViewReports: false,
       canManageQueue: false,
-      canCallTickets: false
+      canCallTickets: false,
+      canAccessDashboard: false,
+      canManageUsers: false,
+      canManageTickets: false,
+      canManageSettings: false,
+      canManageCounters: false,
+      canManageServices: false
     }
   });
 
@@ -174,8 +186,38 @@ export default function UserManagementPage({ adminId }) {
     }));
   };
 
+  // Toggle all admin permissions for user role
+  const handleAdminAccessToggle = () => {
+    const hasAdminAccess = formData.permissions.canAccessDashboard;
+    setFormData(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        canAccessDashboard: !hasAdminAccess,
+        canManageUsers: !hasAdminAccess,
+        canManageTickets: !hasAdminAccess,
+        canManageQueue: !hasAdminAccess,
+        canViewReports: !hasAdminAccess,
+        canManageSettings: !hasAdminAccess,
+        canManageCounters: !hasAdminAccess,
+        canManageServices: !hasAdminAccess
+      }
+    }));
+  };
+
   // Edit helpers
   const handleEdit = (user) => {
+    // Parse permissions if it's a string
+    let userPermissions = user.permissions;
+    if (typeof userPermissions === 'string') {
+      try {
+        userPermissions = JSON.parse(userPermissions);
+      } catch (e) {
+        console.error('Failed to parse permissions:', e);
+        userPermissions = null;
+      }
+    }
+
     setEditForm({
       id: user.id,
       username: user.username,
@@ -186,10 +228,16 @@ export default function UserManagementPage({ adminId }) {
       status: user.status,
       adminId: user.admin_id ? String(user.admin_id) : '',
       permissions: {
-        canCreateTickets: true,
-        canViewReports: false,
-        canManageQueue: false,
-        canCallTickets: false
+        canCreateTickets: userPermissions?.canCreateTickets ?? true,
+        canViewReports: userPermissions?.canViewReports ?? false,
+        canManageQueue: userPermissions?.canManageQueue ?? false,
+        canCallTickets: userPermissions?.canCallTickets ?? false,
+        canAccessDashboard: userPermissions?.canAccessDashboard ?? false,
+        canManageUsers: userPermissions?.canManageUsers ?? false,
+        canManageTickets: userPermissions?.canManageTickets ?? false,
+        canManageSettings: userPermissions?.canManageSettings ?? false,
+        canManageCounters: userPermissions?.canManageCounters ?? false,
+        canManageServices: userPermissions?.canManageServices ?? false
       }
     });
     setEditErrors({});
@@ -206,6 +254,25 @@ export default function UserManagementPage({ adminId }) {
     setEditForm(prev => ({
       ...prev,
       permissions: { ...prev.permissions, [perm]: !prev.permissions[perm] }
+    }));
+  };
+
+  // Toggle all admin permissions for user role in edit form
+  const handleEditAdminAccessToggle = () => {
+    const hasAdminAccess = editForm.permissions.canAccessDashboard;
+    setEditForm(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        canAccessDashboard: !hasAdminAccess,
+        canManageUsers: !hasAdminAccess,
+        canManageTickets: !hasAdminAccess,
+        canManageQueue: !hasAdminAccess,
+        canViewReports: !hasAdminAccess,
+        canManageSettings: !hasAdminAccess,
+        canManageCounters: !hasAdminAccess,
+        canManageServices: !hasAdminAccess
+      }
     }));
   };
 
@@ -228,7 +295,7 @@ export default function UserManagementPage({ adminId }) {
     setEditSubmitting(true);
     try {
       const token = getToken();
-      const payload = { username: editForm.username, email: editForm.email, role: editForm.role, status: editForm.status };
+      const payload = { username: editForm.username, email: editForm.email, role: editForm.role, status: editForm.status, permissions: editForm.permissions };
       if (editForm.password) payload.password = editForm.password;
       if (currentUser?.role === 'super_admin' && editForm.adminId) payload.admin_id = Number(editForm.adminId);
       const res = await axios.put(`${apiUrl}/admin/users/${editForm.id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
@@ -307,6 +374,7 @@ export default function UserManagementPage({ adminId }) {
         role: formData.role || 'user',
         admin_id: targetAdminId,
         status: formData.status,
+        permissions: formData.permissions
       };
       console.debug('[Users][POST] payload', payload);
       const res = await axios.post(`${apiUrl}/admin/users`, payload, { headers: { Authorization: `Bearer ${token}` } });
@@ -324,7 +392,18 @@ export default function UserManagementPage({ adminId }) {
       setFormData(prev => ({
         ...prev,
         username: '', email: '', password: '', confirmPassword: '', status: 'active',
-        permissions: { canCreateTickets: true, canViewReports: false, canManageQueue: false, canCallTickets: false }
+        permissions: {
+          canCreateTickets: true,
+          canViewReports: false,
+          canManageQueue: false,
+          canCallTickets: false,
+          canAccessDashboard: false,
+          canManageUsers: false,
+          canManageTickets: false,
+          canManageSettings: false,
+          canManageCounters: false,
+          canManageServices: false
+        }
       }));
       setShowCreateModal(false);
     } catch (e) {
@@ -371,7 +450,20 @@ export default function UserManagementPage({ adminId }) {
     }
   };
 
-  const handleView = (user) => { setSelectedUser(user); setShowViewModal(true); };
+  const handleView = (user) => {
+    // Parse permissions if it's a string
+    let userWithParsedPermissions = { ...user };
+    if (typeof user.permissions === 'string') {
+      try {
+        userWithParsedPermissions.permissions = JSON.parse(user.permissions);
+      } catch (e) {
+        console.error('Failed to parse permissions:', e);
+        userWithParsedPermissions.permissions = null;
+      }
+    }
+    setSelectedUser(userWithParsedPermissions);
+    setShowViewModal(true);
+  };
 
   return (
     <div className="p-8">
@@ -470,11 +562,43 @@ export default function UserManagementPage({ adminId }) {
               <DetailRow label="ID" value={selectedUser.id} />
               <DetailRow label="Username" value={selectedUser.username} />
               <DetailRow label="Email" value={selectedUser.email} />
+              <DetailRow label="Role" value={selectedUser.role} badge="purple" />
               <DetailRow label="Password" value="••••••" />
               <DetailRow label="Login Status" value={selectedUser.isLoggedIn ? 'Logged In' : 'Logged Out'} badge={selectedUser.isLoggedIn ? 'blue' : 'gray'} />
               <DetailRow label="Last Login" value={selectedUser.lastLogin || 'Never'} />
               <DetailRow label="Session Expiry" value={selectedUser.sessionExpiry || 'N/A'} />
               <DetailRow label="Account Status" value={selectedUser.status === 'active' ? 'Active' : 'Inactive'} badge={selectedUser.status === 'active' ? 'green' : 'gray'} />
+              
+              {/* Permissions Section */}
+              {selectedUser.permissions && (
+                <div className="pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Permissions</h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    {Object.entries(selectedUser.permissions).map(([key, value]) => {
+                      const labels = {
+                        canAccessDashboard: 'Dashboard Access',
+                        canManageUsers: 'Manage Users',
+                        canManageTickets: 'Manage Tickets',
+                        canManageQueue: 'Manage Queue',
+                        canViewReports: 'View Reports',
+                        canManageSettings: 'Settings Access',
+                        canManageCounters: 'Manage Counters',
+                        canManageServices: 'Manage Services',
+                        canCreateTickets: 'Create Tickets',
+                        canCallTickets: 'Call Tickets'
+                      };
+                      return (
+                        <div key={key} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm text-gray-700">{labels[key] || key}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${value ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {value ? '✓ Enabled' : '✗ Disabled'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
             {/* <div className="px-8 py-4 border-t border-gray-100 flex justify-end">
               <button onClick={() => setShowViewModal(false)} className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95">Close</button>
@@ -526,12 +650,42 @@ export default function UserManagementPage({ adminId }) {
                 </div>
               </div>
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">User Permissions</h3>
+                <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                  {formData.role === 'admin' ? 'Admin Permissions' : formData.role === 'receptionist' ? 'Receptionist Permissions' : 'User Permissions'}
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <PermissionCheckbox checked={formData.permissions.canCreateTickets} onChange={() => handlePermissionChange('canCreateTickets')} title="Create Tickets" description="Allow user to create new tickets" />
-                  <PermissionCheckbox checked={formData.permissions.canCallTickets} onChange={() => handlePermissionChange('canCallTickets')} title="Call Tickets" description="Allow user to call next ticket" />
-                  <PermissionCheckbox checked={formData.permissions.canManageQueue} onChange={() => handlePermissionChange('canManageQueue')} title="Manage Queue" description="Manage and organize ticket queue" />
-                  <PermissionCheckbox checked={formData.permissions.canViewReports} onChange={() => handlePermissionChange('canViewReports')} title="View Reports" description="Access reports and statistics" />
+                  {formData.role === 'user' && (
+                    <>
+                      <PermissionCheckbox checked={formData.permissions.canCallTickets} onChange={() => handlePermissionChange('canCallTickets')} title="Call Tickets" description="Allow user to call next ticket" />
+                      <PermissionCheckbox checked={formData.permissions.canCreateTickets} onChange={() => handlePermissionChange('canCreateTickets')} title="Completed Task" description="Allow user to mark tickets as completed" />
+                      <PermissionCheckbox 
+                        checked={formData.permissions.canAccessDashboard} 
+                        onChange={handleAdminAccessToggle} 
+                        title="Admin Access" 
+                        description="Grant full admin-level permissions (Dashboard, Users, Tickets, Queue, Reports, Settings, Counters, Services)" 
+                      />
+                    </>
+                  )}
+                  {formData.role === 'receptionist' && (
+                    <>
+                      <PermissionCheckbox checked={formData.permissions.canCreateTickets} onChange={() => handlePermissionChange('canCreateTickets')} title="Create Tickets" description="Allow receptionist to create new tickets" />
+                      <PermissionCheckbox checked={formData.permissions.canCallTickets} onChange={() => handlePermissionChange('canCallTickets')} title="Call Tickets" description="Allow receptionist to call next ticket" />
+                      <PermissionCheckbox checked={formData.permissions.canManageQueue} onChange={() => handlePermissionChange('canManageQueue')} title="Manage Queue" description="Manage and organize ticket queue" />
+                      <PermissionCheckbox checked={formData.permissions.canViewReports} onChange={() => handlePermissionChange('canViewReports')} title="View Reports" description="Access reports and statistics" />
+                    </>
+                  )}
+                  {formData.role === 'admin' && (
+                    <>
+                      <PermissionCheckbox checked={formData.permissions.canAccessDashboard} onChange={() => handlePermissionChange('canAccessDashboard')} title="Dashboard Access" description="Access admin dashboard" />
+                      <PermissionCheckbox checked={formData.permissions.canManageUsers} onChange={() => handlePermissionChange('canManageUsers')} title="Manage Users" description="Create, edit, and delete users" />
+                      <PermissionCheckbox checked={formData.permissions.canManageTickets} onChange={() => handlePermissionChange('canManageTickets')} title="Manage Tickets" description="Full ticket management access" />
+                      <PermissionCheckbox checked={formData.permissions.canManageQueue} onChange={() => handlePermissionChange('canManageQueue')} title="Manage Queue" description="Queue management and organization" />
+                      <PermissionCheckbox checked={formData.permissions.canViewReports} onChange={() => handlePermissionChange('canViewReports')} title="View Reports" description="Access all reports and analytics" />
+                      <PermissionCheckbox checked={formData.permissions.canManageSettings} onChange={() => handlePermissionChange('canManageSettings')} title="Settings Access" description="Access system settings" />
+                      <PermissionCheckbox checked={formData.permissions.canManageCounters} onChange={() => handlePermissionChange('canManageCounters')} title="Manage Counters" description="Counter configuration and management" />
+                      <PermissionCheckbox checked={formData.permissions.canManageServices} onChange={() => handlePermissionChange('canManageServices')} title="Manage Services" description="Service category management" />
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-end gap-4 mt-6 pt-4 border-t border-gray-200">
@@ -586,12 +740,42 @@ export default function UserManagementPage({ adminId }) {
                 </div>
               </div>
               <div className="mt-6 pt-4 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">User Permissions</h3>
+                <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                  {editForm.role === 'admin' ? 'Admin Permissions' : editForm.role === 'receptionist' ? 'Receptionist Permissions' : 'User Permissions'}
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <PermissionCheckbox checked={editForm.permissions.canCreateTickets} onChange={() => handleEditPermissionChange('canCreateTickets')} title="Create Tickets" description="Allow user to create new tickets" />
-                  <PermissionCheckbox checked={editForm.permissions.canCallTickets} onChange={() => handleEditPermissionChange('canCallTickets')} title="Call Tickets" description="Allow user to call next ticket" />
-                  <PermissionCheckbox checked={editForm.permissions.canManageQueue} onChange={() => handleEditPermissionChange('canManageQueue')} title="Manage Queue" description="Manage and organize ticket queue" />
-                  <PermissionCheckbox checked={editForm.permissions.canViewReports} onChange={() => handleEditPermissionChange('canViewReports')} title="View Reports" description="Access reports and statistics" />
+                  {editForm.role === 'user' && (
+                    <>
+                      <PermissionCheckbox checked={editForm.permissions.canCallTickets} onChange={() => handleEditPermissionChange('canCallTickets')} title="Call Tickets" description="Allow user to call next ticket" />
+                      <PermissionCheckbox checked={editForm.permissions.canCreateTickets} onChange={() => handleEditPermissionChange('canCreateTickets')} title="Completed Task" description="Allow user to mark tickets as completed" />
+                      <PermissionCheckbox 
+                        checked={editForm.permissions.canAccessDashboard} 
+                        onChange={handleEditAdminAccessToggle} 
+                        title="Admin Access" 
+                        description="Grant full admin-level permissions (Dashboard, Users, Tickets, Queue, Reports, Settings, Counters, Services)" 
+                      />
+                    </>
+                  )}
+                  {editForm.role === 'receptionist' && (
+                    <>
+                      <PermissionCheckbox checked={editForm.permissions.canCreateTickets} onChange={() => handleEditPermissionChange('canCreateTickets')} title="Create Tickets" description="Allow receptionist to create new tickets" />
+                      <PermissionCheckbox checked={editForm.permissions.canCallTickets} onChange={() => handleEditPermissionChange('canCallTickets')} title="Call Tickets" description="Allow receptionist to call next ticket" />
+                      <PermissionCheckbox checked={editForm.permissions.canManageQueue} onChange={() => handleEditPermissionChange('canManageQueue')} title="Manage Queue" description="Manage and organize ticket queue" />
+                      <PermissionCheckbox checked={editForm.permissions.canViewReports} onChange={() => handleEditPermissionChange('canViewReports')} title="View Reports" description="Access reports and statistics" />
+                    </>
+                  )}
+                  {editForm.role === 'admin' && (
+                    <>
+                      <PermissionCheckbox checked={editForm.permissions.canAccessDashboard} onChange={() => handleEditPermissionChange('canAccessDashboard')} title="Dashboard Access" description="Access admin dashboard" />
+                      <PermissionCheckbox checked={editForm.permissions.canManageUsers} onChange={() => handleEditPermissionChange('canManageUsers')} title="Manage Users" description="Create, edit, and delete users" />
+                      <PermissionCheckbox checked={editForm.permissions.canManageTickets} onChange={() => handleEditPermissionChange('canManageTickets')} title="Manage Tickets" description="Full ticket management access" />
+                      <PermissionCheckbox checked={editForm.permissions.canManageQueue} onChange={() => handleEditPermissionChange('canManageQueue')} title="Manage Queue" description="Queue management and organization" />
+                      <PermissionCheckbox checked={editForm.permissions.canViewReports} onChange={() => handleEditPermissionChange('canViewReports')} title="View Reports" description="Access all reports and analytics" />
+                      <PermissionCheckbox checked={editForm.permissions.canManageSettings} onChange={() => handleEditPermissionChange('canManageSettings')} title="Settings Access" description="Access system settings" />
+                      <PermissionCheckbox checked={editForm.permissions.canManageCounters} onChange={() => handleEditPermissionChange('canManageCounters')} title="Manage Counters" description="Counter configuration and management" />
+                      <PermissionCheckbox checked={editForm.permissions.canManageServices} onChange={() => handleEditPermissionChange('canManageServices')} title="Manage Services" description="Service category management" />
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-end gap-4 mt-6 pt-4 border-t border-gray-200">
@@ -607,7 +791,10 @@ export default function UserManagementPage({ adminId }) {
 }
 
 function DetailRow({ label, value, badge }) {
-  const badgeClass = badge === 'green' ? 'bg-green-100 text-green-800' : badge === 'blue' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800';
+  const badgeClass = badge === 'green' ? 'bg-green-100 text-green-800' : 
+                      badge === 'blue' ? 'bg-blue-100 text-blue-800' : 
+                      badge === 'purple' ? 'bg-purple-100 text-purple-800' : 
+                      'bg-gray-100 text-gray-800';
   return (
     <div className="flex justify-between items-center pb-3 border-b border-gray-100">
       <span className="text-sm font-medium text-gray-500">{label}</span>

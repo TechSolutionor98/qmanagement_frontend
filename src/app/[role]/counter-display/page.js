@@ -92,7 +92,7 @@ export default function CounterDisplayPage({ adminId }) {
         if (images && images.length > 0) {
           const formattedImages = images.map(img => ({
             id: img.id,
-            preview: `http://localhost:5000${img.image_url}`,
+            preview: `${process.env.NEXT_PUBLIC_API_URL_WS}${img.image_url}`,
             name: img.image_name,
             file: null
           }));
@@ -336,7 +336,7 @@ export default function CounterDisplayPage({ adminId }) {
         if (response.data.success) {
           const uploadedImages = response.data.images.map(img => ({
             id: img.id,
-            preview: `http://localhost:5000${img.imageUrl}`,
+            preview: `${process.env.NEXT_PUBLIC_API_URL_WS}${img.imageUrl}`,
             name: img.imageName,
             file: null
           }));
@@ -524,7 +524,7 @@ export default function CounterDisplayPage({ adminId }) {
           {(leftLogo || leftLogoUrl) && (
             <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
               <img 
-                src={leftLogo ? URL.createObjectURL(leftLogo) : `http://localhost:5000${leftLogoUrl}`} 
+                src={leftLogo ? URL.createObjectURL(leftLogo) : `${process.env.NEXT_PUBLIC_API_URL_WS}${leftLogoUrl}`} 
                 alt="Left Logo" 
                 className="h-12 object-contain mx-auto"
               />
@@ -545,7 +545,7 @@ export default function CounterDisplayPage({ adminId }) {
           {(rightLogo || rightLogoUrl) && (
             <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
               <img 
-                src={rightLogo ? URL.createObjectURL(rightLogo) : `http://localhost:5000${rightLogoUrl}`} 
+                src={rightLogo ? URL.createObjectURL(rightLogo) : `${process.env.NEXT_PUBLIC_API_URL_WS}${rightLogoUrl}`} 
                 alt="Right Logo" 
                 className="h-12 object-contain mx-auto"
               />
@@ -740,7 +740,7 @@ export default function CounterDisplayPage({ adminId }) {
           <div className="border-4 border-dashed border-gray-300 rounded-lg h-80 flex items-center justify-center bg-gray-50">
             {(uploadedVideo || videoUrl) ? (
               <video 
-                src={uploadedVideo ? URL.createObjectURL(uploadedVideo) : `http://localhost:5000${videoUrl}`}
+                src={uploadedVideo ? URL.createObjectURL(uploadedVideo) : `${process.env.NEXT_PUBLIC_API_URL_WS}${videoUrl}`}
                 controls 
                 className="max-h-full max-w-full rounded"
               >

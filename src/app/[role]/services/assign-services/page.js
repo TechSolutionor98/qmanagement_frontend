@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from '@/utils/axiosInstance';  // Use centralized axios instance
-import { getToken } from '@/utils/sessionStorage';
+import { getToken, getUser } from '@/utils/sessionStorage';
 
 export default function AssignServicesPage({ adminId }) {
   const router = useRouter();
@@ -30,9 +30,13 @@ export default function AssignServicesPage({ adminId }) {
 
   const fetchUsers = async () => {
     try {
+      // Get current user to determine admin_id
+      const currentUser = getUser();
+      const effectiveAdminId = adminId || currentUser?.admin_id || currentUser?.id;
+      
       // Axios interceptor will automatically add token
-      const url = adminId 
-        ? `/users/admin/${adminId}`
+      const url = effectiveAdminId 
+        ? `/users/admin/${effectiveAdminId}`
         : `/users/all`;
         
       const response = await axios.get(url);
@@ -46,9 +50,13 @@ export default function AssignServicesPage({ adminId }) {
 
   const fetchServices = async () => {
     try {
+      // Get current user to determine admin_id
+      const currentUser = getUser();
+      const effectiveAdminId = adminId || currentUser?.admin_id || currentUser?.id;
+      
       // Axios interceptor will automatically add token
-      const url = adminId 
-        ? `/services/admin/${adminId}`
+      const url = effectiveAdminId 
+        ? `/services/admin/${effectiveAdminId}`
         : `/services/all`;
         
       const response = await axios.get(url);
@@ -62,9 +70,13 @@ export default function AssignServicesPage({ adminId }) {
 
   const fetchAssignedServices = async () => {
     try {
+      // Get current user to determine admin_id
+      const currentUser = getUser();
+      const effectiveAdminId = adminId || currentUser?.admin_id || currentUser?.id;
+      
       // Axios interceptor will automatically add token
-      const url = adminId
-        ? `/services/assigned/admin/${adminId}`
+      const url = effectiveAdminId
+        ? `/services/assigned/admin/${effectiveAdminId}`
         : `/services/assigned`;
         
       const response = await axios.get(url);
