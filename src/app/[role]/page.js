@@ -1,14 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { FaFilter, FaCalendarAlt, FaSearch, FaChevronDown, FaFileWord } from 'react-icons/fa';
 import { HiMenu } from 'react-icons/hi';
 import { useAuthContext } from '@/contexts/AuthContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-export default function SuperAdminPage() {
-  const router = useRouter();
+
+export default function SuperAdminPage({ adminId }) {
   const { token, callAPI, user } = useAuthContext();
   const [filterBy, setFilterBy] = useState('');
   const [filterValue, setFilterValue] = useState('');
@@ -29,19 +28,19 @@ export default function SuperAdminPage() {
     { key: 'counter_no', label: 'C#', selected: true },
     { key: 'service_name', label: 'Service Name', selected: true },
     { key: 'created_at', label: 'Created At', selected: true },
-    { key: 'representative_id', label: 'Caller', selected: true },
+    { key: 'representative', label: 'Caller', selected: true },
     { key: 'calling_time', label: 'Calling Time', selected: true },
     { key: 'calling_user_time', label: 'Calling User Time', selected: true },
     { key: 'status', label: 'Status', selected: true },
     { key: 'status_time', label: 'Status Time', selected: true },
-    { key: 'reason', label: 'Reason', selected: true },
     { key: 'service_time', label: 'Service Time', selected: true },
-    { key: 'name', label: 'Name', selected: true },
-    { key: 'email', label: 'Email', selected: true },
-    { key: 'representative', label: 'Representative', selected: true },
+    // { key: 'representative', label: 'Representative', selected: true },
     { key: 'transfered', label: 'Transferred', selected: true },
     { key: 'transfered_time', label: 'Transferred Time', selected: true },
     { key: 'transfer_by', label: 'Transfer By', selected: true },
+    { key: 'reason', label: 'Reason', selected: true },
+    { key: 'name', label: 'Name', selected: true },
+    { key: 'email', label: 'Email', selected: true },
     { key: 'last_updated', label: 'Last Updated', selected: true }
   ];
 
@@ -49,28 +48,30 @@ export default function SuperAdminPage() {
 
   // Fetch tickets data
   useEffect(() => {
-    if (user) {
+    if (user || adminId) {
       fetchTickets();
       fetchCounters();
       fetchRepresentatives();
     }
-  }, [user]);
+  }, [user, adminId]);
 
   // Fetch counters for current admin
   const fetchCounters = async () => {
     try {
-      const adminId = user?.role === 'admin' ? user.id : user?.admin_id;
+      // Use adminId prop if provided (modal mode), else get from current user
+      const targetAdminId = adminId || (user?.role === 'admin' ? user.id : user?.admin_id);
       
-      if (!adminId) {
+      if (!targetAdminId) {
         console.error('No admin ID found');
         return;
       }
 
-      const data = await callAPI(`/admin/counters/${adminId}`, {
+      const data = await callAPI(`/admin/counters/${targetAdminId}`, {
         method: 'GET',
         validateSession: false
       });
       
+      // Create array of counters from 1 to totalCounters
       const counterList = [];
       for (let i = 1; i <= (data.totalCounters || 5); i++) {
         counterList.push({
@@ -85,14 +86,19 @@ export default function SuperAdminPage() {
     }
   };
 
-  // Fetch representatives
+  // Fetch representatives (users under this admin)
   const fetchRepresentatives = async () => {
     try {
-      const data = await callAPI('/admin/users', {
+      // Use admin-specific endpoint if adminId prop is provided
+      const endpoint = adminId ? `/users/admin/${adminId}` : '/admin/users';
+      
+      const data = await callAPI(endpoint, {
         method: 'GET',
         validateSession: false
       });
-      const userRoleOnly = (data.users || []).filter(user => user.role === 'user');
+      // Filter only users with role 'user'
+      const userList = data.data || data.users || [];
+      const userRoleOnly = userList.filter(u => u.role === 'user');
       setRepresentatives(userRoleOnly);
     } catch (err) {
       console.error('Error fetching representatives:', err);
@@ -109,12 +115,22 @@ export default function SuperAdminPage() {
         return;
       }
 
-      const data = await callAPI('/tickets', {
+      // Add adminId to query params if provided
+      const queryParams = new URLSearchParams();
+      if (adminId) {
+        queryParams.append('adminId', adminId);
+      }
+      const queryString = queryParams.toString();
+      const endpoint = queryString ? `/tickets?${queryString}` : '/tickets';
+
+      const data = await callAPI(endpoint, {
         method: 'GET',
         validateSession: false
       });
       
+      console.log('Response:', data);
       setServices(data.tickets || []);
+      console.log('Fetched tickets:', data.tickets);
       setError(null);
     } catch (err) {
       console.error('Error fetching tickets:', err);
@@ -137,6 +153,13 @@ export default function SuperAdminPage() {
       prev.map(col => 
         col.key === key ? { ...col, selected: !col.selected } : col
       )
+    );
+  };
+
+  // Select/Deselect all columns
+  const toggleAllColumns = (selectAll) => {
+    setSelectedColumns(prev => 
+      prev.map(col => ({ ...col, selected: selectAll }))
     );
   };
 
@@ -169,7 +192,18 @@ export default function SuperAdminPage() {
       case 'ticket_id':
         return ticket.ticket_id || '-';
       case 'counter_no':
-        return ticket.counter_no || '-';
+        const counterNo = ticket.counter_no;
+        // Check if it's a valid number (not null, not empty, not 0, and is actually a number)
+        if (!counterNo || 
+            counterNo === '' || 
+            counterNo === '0' || 
+            counterNo === 0 || 
+            counterNo === 'null' || 
+            counterNo === 'NULL' || 
+            isNaN(Number(counterNo))) {  // If it's not a number (includes alphabets)
+          return 'N/A';
+        }
+        return counterNo;
       case 'service_name':
         return ticket.service_name || '-';
       case 'created_at':
@@ -212,16 +246,21 @@ export default function SuperAdminPage() {
   // Download as Excel (CSV format)
   const downloadAsExcel = () => {
     const visibleColumns = selectedColumns.filter(col => col.selected);
+    
+    // Create CSV header
     let csv = visibleColumns.map(col => col.label).join(',') + '\n';
     
+    // Add data rows
     services.forEach(ticket => {
       const row = visibleColumns.map(col => {
         const value = getColumnValue(ticket, col.key);
+        // Escape commas and quotes in values
         return `"${String(value).replace(/"/g, '""')}"`;
       });
       csv += row.join(',') + '\n';
     });
     
+    // Create and download file
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -236,25 +275,31 @@ export default function SuperAdminPage() {
   // Download as PDF
   const downloadAsPDF = () => {
     const visibleColumns = selectedColumns.filter(col => col.selected);
-    const doc = new jsPDF('l', 'mm', 'a4');
     
+    const doc = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+    
+    // Add title
     doc.setFontSize(18);
     doc.text('Service Details Report', 14, 20);
+    
+    // Add date range
     doc.setFontSize(11);
     doc.text(`Generated on ${new Date().toLocaleString()}`, 14, 30);
     
+    // Prepare table data
     const tableData = services.map(ticket => {
       return visibleColumns.map(col => {
         return String(getColumnValue(ticket, col.key));
       });
     });
 
+    // Add table using autoTable function
     autoTable(doc, {
       head: [visibleColumns.map(col => col.label)],
       body: tableData,
       startY: 40,
       styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [22, 163, 74], textColor: [255, 255, 255] },
+      headStyles: { fillColor: [22, 163, 74], textColor: [255, 255, 255] }, // Green color
       alternateRowStyles: { fillColor: [249, 249, 249] },
       margin: { top: 40, left: 10, right: 10 },
     });
@@ -265,16 +310,20 @@ export default function SuperAdminPage() {
   // Download as Word
   const downloadAsWord = () => {
     const visibleColumns = selectedColumns.filter(col => col.selected);
+    
+    // Create HTML table
     let html = '<html><head><meta charset="utf-8"><title>Report</title></head><body>';
     html += '<h1>Service Details Report</h1>';
     html += '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
     
+    // Add header
     html += '<thead><tr>';
     visibleColumns.forEach(col => {
       html += `<th style="background-color: #f3f4f6; padding: 8px;">${col.label}</th>`;
     });
     html += '</tr></thead>';
     
+    // Add data rows
     html += '<tbody>';
     services.forEach(ticket => {
       html += '<tr>';
@@ -286,6 +335,7 @@ export default function SuperAdminPage() {
     });
     html += '</tbody></table></body></html>';
     
+    // Create and download file
     const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -303,6 +353,12 @@ export default function SuperAdminPage() {
       setLoading(true);
       
       const params = new URLSearchParams();
+      
+      // Add adminId first for admin-specific filtering
+      if (adminId) {
+        params.append('adminId', adminId);
+      }
+      
       if (filterBy && filterValue) {
         if (filterBy === 'counter') {
           params.append('counter_no', filterValue);
@@ -360,7 +416,7 @@ export default function SuperAdminPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 w-full" style={{maxWidth: 'calc(100vw - 272px)'}}>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold text-gray-700">Admin Panel</h1>
@@ -442,6 +498,17 @@ export default function SuperAdminPage() {
             className="px-4 py-2 border border-gray-300 rounded"
           />
         </div>
+
+        {/* <div className="flex items-center gap-2">
+          <FaCalendarAlt className="text-gray-400" />
+          <input
+            type="date"
+            placeholder="mm/dd/yyyy"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded"
+          />
+        </div> */}
       </div>
 
       {/* Second Row Filters */}
@@ -531,7 +598,7 @@ export default function SuperAdminPage() {
       </div>
 
       {/* Service Details Table */}
-      <div style={{width:'940px'}} className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg shadow overflow-hidden w-full">
         <div className="p-4 border-b">
           <h2 className="text-lg font-semibold text-gray-700">Service Details</h2>
         </div>
@@ -563,8 +630,10 @@ export default function SuperAdminPage() {
                     {selectedColumns.filter(col => col.selected).map((column) => (
                       <td 
                         key={column.key}
-                        className={`px-3 py-3 text-sm whitespace-nowrap ${
-                          column.key === 'service_name' ? 'text-green-600' : 'text-gray-900'
+                        className={`px-3 py-3 whitespace-nowrap ${
+                          column.key === 'service_name' ? 'text-green-600 text-sm' : 
+                          column.key === 'created_at' || column.key === 'calling_user_time' || column.key === 'status_time' || column.key === 'transfered_time' || column.key === 'last_updated' ? 'text-gray-900 text-xs' : 
+                          'text-gray-900 text-sm'
                         }`}
                       >
                         {column.key === 'status' ? (

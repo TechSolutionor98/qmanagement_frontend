@@ -466,7 +466,8 @@ export default function UserManagementPage({ adminId }) {
   };
 
   return (
-    <div className="p-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-[calc(100vw-280px)] mx-auto p-8">
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-700 flex items-center gap-3">
           User Management
@@ -493,7 +494,7 @@ export default function UserManagementPage({ adminId }) {
           )}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all"
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-lg shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 hover:scale-105 active:scale-95 transition-all"
           >
             <FaPlus /> Create User
           </button>
@@ -504,16 +505,17 @@ export default function UserManagementPage({ adminId }) {
         <div className="p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-700">Manage Users</h2>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-gray-50 border-b sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Username</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Password</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Username</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Password</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -522,6 +524,16 @@ export default function UserManagementPage({ adminId }) {
                   <td className="px-6 py-4 text-sm text-gray-700">{user.id}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{user.username}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{user.email}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                      user.role === 'receptionist' ? 'bg-blue-100 text-blue-800' :
+                      user.role === 'ticket_info' ? 'bg-indigo-100 text-indigo-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {user.role === 'ticket_info' ? 'Ticket Info' : user.role?.charAt(0).toUpperCase() + user.role?.slice(1) || 'User'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-700">••••••</td>
                   <td className="px-6 py-4 text-sm">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{user.status === 'active' ? 'Active' : 'Inactive'}</span>
@@ -690,7 +702,7 @@ export default function UserManagementPage({ adminId }) {
               </div>
               <div className="flex items-center justify-end gap-4 mt-6 pt-4 border-t border-gray-200">
                 <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
-                <button type="submit" disabled={isSubmitting} className={`px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-all ${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95'}`}>{isSubmitting ? 'Creating...' : 'Create User'}</button>
+                <button type="submit" disabled={isSubmitting} className={`px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-all ${isSubmitting ? 'bg-green-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 hover:scale-105 active:scale-95'}`}>{isSubmitting ? 'Creating...' : 'Create User'}</button>
               </div>
             </form>
           </div>
@@ -787,6 +799,7 @@ export default function UserManagementPage({ adminId }) {
         </div>
       )}
     </div>
+    </div>
   );
 }
 
@@ -846,3 +859,4 @@ function PermissionCheckbox({ checked, onChange, title, description }) {
     </label>
   );
 }
+

@@ -11,6 +11,7 @@ export default function CreateServicesPage({ adminId }) {
   const [initialTicket, setInitialTicket] = useState('');
   const [serviceColor, setServiceColor] = useState('#000000');
   const [uploadLogo, setUploadLogo] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
   const [mainService, setMainService] = useState('');
   const [showSubServicePopup, setShowSubServicePopup] = useState('No');
 
@@ -79,7 +80,16 @@ export default function CreateServicesPage({ adminId }) {
       }
       
       if (uploadLogo) {
+        console.log('📤 Uploading logo:', uploadLogo.name, uploadLogo.type, uploadLogo.size, 'bytes');
         formData.append('logo', uploadLogo);
+      } else {
+        console.log('⚠️ No logo selected');
+      }
+      
+      // Debug: Log FormData contents
+      console.log('📦 FormData contents:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0], ':', pair[1]);
       }
 
       const url = editingId 
@@ -90,8 +100,8 @@ export default function CreateServicesPage({ adminId }) {
 
       const response = await axios[method](url, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+          Authorization: `Bearer ${token}`
+          // Don't set Content-Type - let browser set it automatically with boundary
         }
       });
 
@@ -114,7 +124,11 @@ export default function CreateServicesPage({ adminId }) {
     setInitialTicket('');
     setServiceColor('#000000');
     setUploadLogo(null);
+    setLogoPreview(null);
     setEditingId(null);
+    // Reset file input
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) fileInput.value = '';
   };
 
   const handleEdit = (service) => {
@@ -220,13 +234,75 @@ export default function CreateServicesPage({ adminId }) {
               <label className="block text-xs font-medium text-gray-600 uppercase mb-2">
                 Upload Logo
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <input
                   type="file"
-                  onChange={(e) => setUploadLogo(e.target.files[0])}
+                  accept=".jpg,.jpeg,.png,.gif,.svg,.webp,image/jpeg,image/png,image/gif,image/svg+xml,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      // Validate file type
+                      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
+                      if (!allowedTypes.includes(file.type)) {
+                        alert('❌ Invalid file type! Only JPG, PNG, GIF, SVG, and WebP images are allowed.');
+                        e.target.value = '';
+                        return;
+                      }
+                      
+                      // Validate file size (5MB)
+                      const maxSize = 5 * 1024 * 1024; // 5MB
+                      if (file.size > maxSize) {
+                        alert('❌ File too large! Maximum size is 5MB.');
+                        e.target.value = '';
+                        return;
+                      }
+                      
+                      console.log('✅ File selected:', file.name, file.type, file.size);
+                      setUploadLogo(file);
+                      // Create preview
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setLogoPreview(reader.result);
+                      };
+                      reader.readAsDataURL(file);
+                    } else {
+                      console.log('❌ No file selected');
+                      setUploadLogo(null);
+                      setLogoPreview(null);
+                    }
+                  }}
                   className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                 />
+                {logoPreview && (
+                  <div className="flex items-center gap-2">
+                    <img 
+                      src={logoPreview} 
+                      alt="Preview" 
+                      className="w-16 h-16 object-cover rounded border-2 border-green-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadLogo(null);
+                        setLogoPreview(null);
+                        const fileInput = document.querySelector('input[type="file"]');
+                        if (fileInput) fileInput.value = '';
+                      }}
+                      className="text-red-500 hover:text-red-700 text-sm font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
+              {uploadLogo && (
+                <p className="text-xs text-green-600 mt-1">
+                  ✓ Selected: {uploadLogo.name} ({(uploadLogo.size / 1024).toFixed(2)} KB)
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Allowed: JPG, PNG, GIF, SVG, WebP | Max size: 5MB
+              </p>
             </div>
 
             {/* Main Service */}

@@ -31,6 +31,13 @@ axiosInstance.interceptors.request.use(
       console.warn('⚠️ No valid token available for request:', config.url);
     }
     
+    // CRITICAL: Remove Content-Type header for FormData requests
+    // Let the browser set it automatically with the boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+      console.log('📤 FormData detected - removing Content-Type header to allow multipart/form-data');
+    }
+    
     return config;
   },
   (error) => {

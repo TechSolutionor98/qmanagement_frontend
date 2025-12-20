@@ -28,19 +28,19 @@ export default function DetailsReportsPage({ adminId }) {
     { key: 'counter_no', label: 'C#', selected: true },
     { key: 'service_name', label: 'Service Name', selected: true },
     { key: 'created_at', label: 'Created At', selected: true },
-    { key: 'representative_id', label: 'Caller', selected: true },
+    { key: 'representative', label: 'Caller', selected: true },
     { key: 'calling_time', label: 'Calling Time', selected: true },
     { key: 'calling_user_time', label: 'Calling User Time', selected: true },
     { key: 'status', label: 'Status', selected: true },
     { key: 'status_time', label: 'Status Time', selected: true },
-    { key: 'reason', label: 'Reason', selected: true },
     { key: 'service_time', label: 'Service Time', selected: true },
-    { key: 'name', label: 'Name', selected: true },
-    { key: 'email', label: 'Email', selected: true },
-    { key: 'representative', label: 'Representative', selected: true },
+    // { key: 'representative', label: 'Representative', selected: true },
     { key: 'transfered', label: 'Transferred', selected: true },
     { key: 'transfered_time', label: 'Transferred Time', selected: true },
     { key: 'transfer_by', label: 'Transfer By', selected: true },
+    { key: 'reason', label: 'Reason', selected: true },
+    { key: 'name', label: 'Name', selected: true },
+    { key: 'email', label: 'Email', selected: true },
     { key: 'last_updated', label: 'Last Updated', selected: true }
   ];
 
@@ -192,7 +192,18 @@ export default function DetailsReportsPage({ adminId }) {
       case 'ticket_id':
         return ticket.ticket_id || '-';
       case 'counter_no':
-        return ticket.counter_no || '-';
+        const counterNo = ticket.counter_no;
+        // Check if it's a valid number (not null, not empty, not 0, and is actually a number)
+        if (!counterNo || 
+            counterNo === '' || 
+            counterNo === '0' || 
+            counterNo === 0 || 
+            counterNo === 'null' || 
+            counterNo === 'NULL' || 
+            isNaN(Number(counterNo))) {  // If it's not a number (includes alphabets)
+          return 'N/A';
+        }
+        return counterNo;
       case 'service_name':
         return ticket.service_name || '-';
       case 'created_at':
@@ -619,8 +630,10 @@ export default function DetailsReportsPage({ adminId }) {
                     {selectedColumns.filter(col => col.selected).map((column) => (
                       <td 
                         key={column.key}
-                        className={`px-3 py-3 text-sm whitespace-nowrap ${
-                          column.key === 'service_name' ? 'text-green-600' : 'text-gray-900'
+                        className={`px-3 py-3 whitespace-nowrap ${
+                          column.key === 'service_name' ? 'text-green-600 text-sm' : 
+                          column.key === 'created_at' || column.key === 'calling_user_time' || column.key === 'status_time' || column.key === 'transfered_time' || column.key === 'last_updated' ? 'text-gray-900 text-xs' : 
+                          'text-gray-900 text-sm'
                         }`}
                       >
                         {column.key === 'status' ? (
