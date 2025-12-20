@@ -398,7 +398,7 @@ export default function ConfigurationPage({ adminId }) {
         <div className="space-y-6">
           
           {/* AI Voice Service Status */}
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg p-6 shadow-lg">
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg p-6 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-[22px] font-bold flex items-center gap-2">
@@ -433,8 +433,8 @@ export default function ConfigurationPage({ adminId }) {
             </div>
           )}
           
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-6 space-y-6">
-            <h3 className="text-xl font-bold text-purple-800 flex items-center gap-2">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 space-y-6">
+            <h3 className="text-xl font-bold text-green-800 flex items-center gap-2">
               🎤 AI Voice Settings
             </h3>
             
@@ -452,7 +452,7 @@ export default function ConfigurationPage({ adminId }) {
                     setSelectedChatterboxVoice(e.target.value);
                   }}
                   disabled={chatterboxServiceStatus === 'offline'}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-gray-700"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-700"
                 >
                   {chatterboxVoices.length > 0 ? (
                     chatterboxVoices.map(voice => {
@@ -538,10 +538,10 @@ export default function ConfigurationPage({ adminId }) {
                   };
                   const isRTL = lang === 'ar' || lang === 'ar-ae' || lang === 'ur';
                   return (
-                    <div key={lang} className="border-2 border-purple-300 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-blue-50">
+                    <div key={lang} className="border-2 border-green-300 rounded-lg p-4 bg-gradient-to-br from-green-50 to-emerald-50">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-bold text-purple-700">{langNames[lang]}</h4>
-                        <span className="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full">Box {index + 1}</span>
+                        <h4 className="text-sm font-bold text-green-700">{langNames[lang]}</h4>
+                        <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">Box {index + 1}</span>
                       </div>
                       <div className={`bg-white border border-gray-300 rounded p-3 min-h-[80px] ${
                         isRTL ? 'text-right' : 'text-left'
@@ -626,7 +626,7 @@ export default function ConfigurationPage({ adminId }) {
               className={`flex-1 px-8 py-3 rounded-lg font-medium transition-colors ${
                 synthesizing || chatterboxServiceStatus === 'offline'
                   ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-green-600 hover:bg-green-700'
               } text-white`}
             >
               {synthesizing ? '⏳ Generating...' : '🔊 Test AI Voice'}
@@ -640,8 +640,8 @@ export default function ConfigurationPage({ adminId }) {
           </div>
 
           {/* Info Banner */}
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-4">
-            <p className="text-sm text-purple-800">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-800">
               <strong>ℹ️ AI Voice Information:</strong> ChatterBox uses advanced AI models for natural text-to-speech. 
               Upload voice samples to clone any voice! Settings are automatically saved and applied to all announcements.
             </p>

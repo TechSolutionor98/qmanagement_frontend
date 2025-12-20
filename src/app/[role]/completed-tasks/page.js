@@ -268,7 +268,7 @@ export default function CompletedTasks() {
                         {task.service}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {formatDateTime(task.serviceTime)}
+                        {task?.serviceTime || "00:00:00"}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                         {formatDateTime(task.statusUpdateTime)}
