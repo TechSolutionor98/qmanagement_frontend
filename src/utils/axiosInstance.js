@@ -4,10 +4,15 @@ import { getToken, verifySessionWithBackend, clearSessionData } from './sessionS
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
-  timeout: 10000,
+  timeout: 15000, // Increased timeout for slower connections
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+    'Accept-Encoding': 'gzip, deflate, br', // Enable compression
+  },
+  // Performance optimizations
+  maxContentLength: Infinity,
+  maxBodyLength: Infinity,
+  decompress: true, // Auto decompress responses
 });
 
 // Request interceptor to add auth token
