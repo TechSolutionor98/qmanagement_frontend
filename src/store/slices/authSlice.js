@@ -58,6 +58,8 @@ const authSlice = createSlice({
       
       console.log('🔐 setCredentials called')
       console.log('👤 User role:', user.role)
+      console.log('👤 User object:', user)
+      console.log('🔑 User permissions:', user.permissions)
       console.log('🎫 Token set:', !!token)
       
       // Store in localStorage for 1 week persistence
@@ -74,6 +76,7 @@ const authSlice = createSlice({
         
         console.log('🍪 Cookies set for role:', user.role)
         console.log('💾 localStorage saved with token key (1 week)')
+        console.log('💾 User saved to localStorage:', JSON.stringify(user))
       }
     },
     

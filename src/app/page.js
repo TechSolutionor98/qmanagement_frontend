@@ -29,6 +29,69 @@ export default function Home() {
   const [activeField, setActiveField] = useState('name');
   const [licenseData, setLicenseData] = useState(null);
   const [isCreatingTicket, setIsCreatingTicket] = useState(false);
+  const [permissions, setPermissions] = useState({
+    canLogout: false,
+    canViewReports: false,
+    canViewRecentTickets: false
+  });
+
+  // Auto-refresh permissions every 5 seconds
+  useEffect(() => {
+    const refreshPermissions = async () => {
+      if (!currentUser || !token) return;
+
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const userResponse = await fetch(`${API_URL}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          
+          if (userData.user && userData.user.permissions) {
+            // Update Redux state with fresh permissions
+            dispatch({ 
+              type: 'auth/updateUser', 
+              payload: { permissions: userData.user.permissions } 
+            });
+            
+            // Parse and set permissions
+            let userPermissions = userData.user.permissions;
+            if (typeof userPermissions === 'string') {
+              try {
+                userPermissions = JSON.parse(userPermissions);
+              } catch (e) {
+                userPermissions = {};
+              }
+            }
+            
+            setPermissions({
+              canLogout: userPermissions.canLogout === true || userPermissions.canLogout === 1 || userPermissions.canLogout === '1',
+              canViewReports: userPermissions.canViewReports === true || userPermissions.canViewReports === 1 || userPermissions.canViewReports === '1',
+              canViewRecentTickets: userPermissions.canViewRecentTickets === true || userPermissions.canViewRecentTickets === 1 || userPermissions.canViewRecentTickets === '1'
+            });
+            
+            console.log('🔄 Permissions auto-refreshed:', userPermissions);
+          }
+        }
+      } catch (error) {
+        console.error('Error refreshing permissions:', error);
+      }
+    };
+
+    // Initial refresh
+    refreshPermissions();
+
+    // Set interval for auto-refresh every 5 seconds
+    const intervalId = setInterval(refreshPermissions, 5000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+  }, [currentUser, token, dispatch]);
 
   // Fetch services and license data for the logged-in user's admin
   useEffect(() => {
@@ -44,6 +107,31 @@ export default function Home() {
 
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        
+        // ⭐ Fetch fresh user data with permissions if not present
+        if (!currentUser.permissions) {
+          console.log('⚠️ Permissions missing - fetching fresh user data from backend...');
+          const userResponse = await fetch(`${API_URL}/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            console.log('✅ Fresh user data fetched:', userData);
+            
+            if (userData.user && userData.user.permissions) {
+              // Update Redux state with fresh permissions
+              dispatch({ 
+                type: 'auth/updateUser', 
+                payload: { permissions: userData.user.permissions } 
+              });
+              console.log('✅ Permissions updated in Redux:', userData.user.permissions);
+            }
+          }
+        }
         
         // Fetch services
         const servicesResponse = await fetch(`${API_URL}/services/user/${currentUser.id}`, {
@@ -119,6 +207,39 @@ export default function Home() {
       // Receptionist and user can access this page
       console.log('✅ User/Receptionist access granted to home page');
       console.log('📍 Current role:', currentUser.role);
+      
+      // Load user permissions - parse if stored as JSON string
+      let userPermissions = {};
+      if (currentUser?.permissions) {
+        if (typeof currentUser.permissions === 'string') {
+          try {
+            userPermissions = JSON.parse(currentUser.permissions);
+          } catch (e) {
+            console.error('Error parsing permissions:', e);
+            userPermissions = {};
+          }
+        } else {
+          userPermissions = currentUser.permissions;
+        }
+      }
+      
+      console.log('🔐 Raw currentUser.permissions:', currentUser?.permissions);
+      console.log('🔐 Parsed userPermissions:', userPermissions);
+      console.log('🔐 canLogout value:', userPermissions.canLogout, 'Type:', typeof userPermissions.canLogout);
+      console.log('🔐 canViewReports value:', userPermissions.canViewReports, 'Type:', typeof userPermissions.canViewReports);
+      console.log('🔐 canViewRecentTickets value:', userPermissions.canViewRecentTickets, 'Type:', typeof userPermissions.canViewRecentTickets);
+      
+      setPermissions({
+        canLogout: userPermissions.canLogout === true || userPermissions.canLogout === 1 || userPermissions.canLogout === '1',
+        canViewReports: userPermissions.canViewReports === true || userPermissions.canViewReports === 1 || userPermissions.canViewReports === '1',
+        canViewRecentTickets: userPermissions.canViewRecentTickets === true || userPermissions.canViewRecentTickets === 1 || userPermissions.canViewRecentTickets === '1'
+      });
+      
+      console.log('🔐 Final permissions state:', {
+        canLogout: userPermissions.canLogout === true || userPermissions.canLogout === 1 || userPermissions.canLogout === '1',
+        canViewReports: userPermissions.canViewReports === true || userPermissions.canViewReports === 1 || userPermissions.canViewReports === '1',
+        canViewRecentTickets: userPermissions.canViewRecentTickets === true || userPermissions.canViewRecentTickets === 1 || userPermissions.canViewRecentTickets === '1'
+      });
     }, 100); // Reduced from 300ms to 100ms
 
     return () => clearTimeout(timer);
@@ -645,85 +766,93 @@ export default function Home() {
           
           {/* Action Buttons */}
           <div className="flex items-center gap-4">
-            {/* Reports Button */}
+            {/* Logout Button - Only show if user has canLogout permission */}
+            {permissions.canLogout && (
               <button
-                 onClick={handleLogout}
-            disabled={loading}
-                  className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40"
-                >
-                  <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Logout
-                </button>
-            <button
-              onClick={() => setShowReportsModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl hover:from-purple-700 hover:to-purple-800 transition-all flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="font-semibold">Reports</span>
-            </button>
+                onClick={handleLogout}
+                disabled={loading}
+                className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40"
+              >
+                <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+              </button>
+            )}
 
-            {/* Recent Tickets Dropdown */}
-            <div className="relative">
+            {/* Reports Button - Only show if user has canViewReports permission */}
+            {permissions.canViewReports && (
               <button
-                onClick={() => setShowRecentTickets(!showRecentTickets)}
-                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg shadow-lg hover:shadow-xl hover:from-green-700 hover:to-green-800 transition-all flex items-center gap-2"
+                onClick={() => setShowReportsModal(true)}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl hover:from-purple-700 hover:to-purple-800 transition-all flex items-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span className="font-semibold">Recent Tickets</span>
-                <svg className={`w-4 h-4 transition-transform ${showRecentTickets ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <span className="font-semibold">Reports</span>
               </button>
+            )}
 
-              {/* Dropdown Menu */}
-              {showRecentTickets && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
-                  <div className="p-4 border-b border-gray-200 bg-gray-50">
-                    <h3 className="font-semibold text-gray-800">Recent Tickets</h3>
-                  </div>
-                  <div className="py-2">
-                    {recentTickets.length === 0 ? (
-                      <div className="px-4 py-8 text-center text-gray-500">
-                        <p className="text-sm">No tickets created today</p>
-                      </div>
-                    ) : 
-                      recentTickets.map((ticket) => (
-                      <div
-                        key={ticket.id}
-                        className="px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-bold rounded">
-                                {ticket.ticketNumber}
-                              </span>
-                              <span className="text-xs text-gray-500">{ticket.time}</span>
-                            </div>
-                            <p className="text-sm text-gray-600">{ticket.service}</p>
-                          </div>
-                          <button
-                            onClick={() => handleReprint(ticket)}
-                            className="ml-3 px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-1.5 shadow-md hover:shadow-lg"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            Reprint
-                          </button>
+            {/* Recent Tickets Dropdown - Only show if user has canViewRecentTickets permission */}
+            {permissions.canViewRecentTickets && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowRecentTickets(!showRecentTickets)}
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg shadow-lg hover:shadow-xl hover:from-green-700 hover:to-green-800 transition-all flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-semibold">Recent Tickets</span>
+                  <svg className={`w-4 h-4 transition-transform ${showRecentTickets ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showRecentTickets && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+                    <div className="p-4 border-b border-gray-200 bg-gray-50">
+                      <h3 className="font-semibold text-gray-800">Recent Tickets</h3>
+                    </div>
+                    <div className="py-2">
+                      {recentTickets.length === 0 ? (
+                        <div className="px-4 py-8 text-center text-gray-500">
+                          <p className="text-sm">No tickets created today</p>
                         </div>
-                      </div>
-                    ))}
+                      ) : 
+                        recentTickets.map((ticket) => (
+                        <div
+                          key={ticket.id}
+                          className="px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-bold rounded">
+                                  {ticket.ticketNumber}
+                                </span>
+                                <span className="text-xs text-gray-500">{ticket.time}</span>
+                              </div>
+                              <p className="text-sm text-gray-600">{ticket.service}</p>
+                            </div>
+                            <button
+                              onClick={() => handleReprint(ticket)}
+                              className="ml-3 px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-1.5 shadow-md hover:shadow-lg"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                              </svg>
+                              Reprint
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         

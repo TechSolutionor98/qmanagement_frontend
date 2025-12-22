@@ -37,7 +37,9 @@ export default function UserManagementPage({ adminId: propAdminId }) {
       canManageTickets: false,
       canManageSettings: false,
       canManageCounters: false,
-      canManageServices: false
+      canManageServices: false,
+      canLogout: false,
+      canViewRecentTickets: false
     }
   });
 
@@ -64,7 +66,9 @@ export default function UserManagementPage({ adminId: propAdminId }) {
       canManageTickets: false,
       canManageSettings: false,
       canManageCounters: false,
-      canManageServices: false
+      canManageServices: false,
+      canLogout: false,
+      canViewRecentTickets: false
     }
   });
 
@@ -300,7 +304,9 @@ export default function UserManagementPage({ adminId: propAdminId }) {
         canManageTickets: userPermissions?.canManageTickets === true,
         canManageSettings: userPermissions?.canManageSettings === true,
         canManageCounters: userPermissions?.canManageCounters === true,
-        canManageServices: userPermissions?.canManageServices === true
+        canManageServices: userPermissions?.canManageServices === true,
+        canLogout: userPermissions?.canLogout === true,
+        canViewRecentTickets: userPermissions?.canViewRecentTickets === true
       }
     };
     
@@ -468,7 +474,9 @@ export default function UserManagementPage({ adminId: propAdminId }) {
           canManageTickets: false,
           canManageSettings: false,
           canManageCounters: false,
-          canManageServices: false
+          canManageServices: false,
+          canLogout: false,
+          canViewRecentTickets: false
         }
       }));
       setShowCreateModal(false);
@@ -663,7 +671,9 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                         canManageCounters: 'Manage Counters',
                         canManageServices: 'Manage Services',
                         canCreateTickets: 'Create Tickets',
-                        canCallTickets: 'Call Tickets'
+                        canCallTickets: 'Call Tickets',
+                        canLogout: 'Logout Access',
+                        canViewRecentTickets: 'View Recent Tickets'
                       };
                       return (
                         <div key={key} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
@@ -746,10 +756,9 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                   )}
                   {formData.role === 'receptionist' && (
                     <>
-                      <PermissionCheckbox checked={formData.permissions.canCreateTickets} onChange={() => handlePermissionChange('canCreateTickets')} title="Create Tickets" description="Allow receptionist to create new tickets" />
-                      <PermissionCheckbox checked={formData.permissions.canCallTickets} onChange={() => handlePermissionChange('canCallTickets')} title="Call Tickets" description="Allow receptionist to call next ticket" />
-                      <PermissionCheckbox checked={formData.permissions.canManageQueue} onChange={() => handlePermissionChange('canManageQueue')} title="Manage Queue" description="Manage and organize ticket queue" />
-                      <PermissionCheckbox checked={formData.permissions.canViewReports} onChange={() => handlePermissionChange('canViewReports')} title="View Reports" description="Access reports and statistics" />
+                      <PermissionCheckbox checked={formData.permissions.canLogout} onChange={() => handlePermissionChange('canLogout')} title="Logout" description="Allow receptionist to logout from system" />
+                      <PermissionCheckbox checked={formData.permissions.canViewReports} onChange={() => handlePermissionChange('canViewReports')} title="Reports" description="Access reports and statistics" />
+                      <PermissionCheckbox checked={formData.permissions.canViewRecentTickets} onChange={() => handlePermissionChange('canViewRecentTickets')} title="Recent Tickets" description="View recent tickets history" />
                     </>
                   )}
                   {formData.role === 'admin' && (
@@ -836,10 +845,9 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                   )}
                   {editForm.role === 'receptionist' && (
                     <>
-                      <PermissionCheckbox checked={editForm.permissions.canCreateTickets} onChange={() => handleEditPermissionChange('canCreateTickets')} title="Create Tickets" description="Allow receptionist to create new tickets" />
-                      <PermissionCheckbox checked={editForm.permissions.canCallTickets} onChange={() => handleEditPermissionChange('canCallTickets')} title="Call Tickets" description="Allow receptionist to call next ticket" />
-                      <PermissionCheckbox checked={editForm.permissions.canManageQueue} onChange={() => handleEditPermissionChange('canManageQueue')} title="Manage Queue" description="Manage and organize ticket queue" />
-                      <PermissionCheckbox checked={editForm.permissions.canViewReports} onChange={() => handleEditPermissionChange('canViewReports')} title="View Reports" description="Access reports and statistics" />
+                      <PermissionCheckbox checked={editForm.permissions.canLogout} onChange={() => handleEditPermissionChange('canLogout')} title="Logout" description="Allow receptionist to logout from system" />
+                      <PermissionCheckbox checked={editForm.permissions.canViewReports} onChange={() => handleEditPermissionChange('canViewReports')} title="Reports" description="Access reports and statistics" />
+                      <PermissionCheckbox checked={editForm.permissions.canViewRecentTickets} onChange={() => handleEditPermissionChange('canViewRecentTickets')} title="Recent Tickets" description="View recent tickets history" />
                     </>
                   )}
                   {editForm.role === 'admin' && (
