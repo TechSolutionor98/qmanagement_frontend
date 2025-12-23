@@ -1148,19 +1148,13 @@ function TicketInfoContent() {
               ))}
             </>
           ) : (
-            // Fallback to default slides if no config
-            <>
-              {slides.map((slide, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 transition-opacity duration-1000 ${
-                    index === currentSlide ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
-                  <img src={slide} alt={`Slide ${index + 1}`} className="w-full h-full object-contain" />
-                </div>
-              ))}
-            </>
+            // No content configured - show placeholder
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="text-center text-gray-500">
+                <p className="text-xl">No content configured</p>
+                <p className="text-sm mt-2">Please upload images or video from admin panel</p>
+              </div>
+            </div>
           )}
         </div>
 
