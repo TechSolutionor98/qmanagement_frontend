@@ -44,20 +44,25 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
   };
 
   useEffect(() => {
-    // Load settings from database first, then fallback to localStorage
-    loadSettings();
-    
-    // Check ChatterBox service status and load voices
-    checkChatterboxService();
+    // Only load settings when adminId is available
+    if (adminId) {
+      // Load settings from database first, then fallback to localStorage
+      loadSettings();
+      
+      // Check ChatterBox service status and load voices
+      checkChatterboxService();
+    }
   }, [adminId]);
   
   const loadSettings = async () => {
     try {
       // ✅ Always require adminId - user must belong to an admin
       if (!adminId) {
-        console.error('❌ No adminId provided - cannot load settings');
+        console.warn('⚠️ Waiting for adminId to load settings...');
         return;
       }
+      
+      console.log('📥 Loading voice settings for admin_id:', adminId);
       
       // Try to load from database with adminId
       const url = `${process.env.NEXT_PUBLIC_API_URL}/voices/settings?adminId=${adminId}`;
@@ -419,6 +424,18 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
     <div className="p-8">
       <h1 className="text-2xl font-semibold text-gray-700 mb-6">Notification Settings</h1>
       
+      {/* Loading state while adminId is being fetched */}
+      {!adminId && (
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 max-w-3xl">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
+            <p className="text-yellow-800 font-medium">Loading admin configuration...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Show settings only when adminId is available */}
+      {adminId && (
       <div className="bg-white rounded-lg shadow p-6 max-w-3xl">
         <div className="space-y-6">
           
@@ -674,6 +691,7 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
           </div> {/* Close AI Voice Settings div */}
         </div>
       </div>
+      )}
     </div>
   );
 }

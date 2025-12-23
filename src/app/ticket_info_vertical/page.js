@@ -34,6 +34,7 @@ function TicketInfoContent() {
   // Remove hardcoded slides - images don't exist in production
   // const slides = ['/assets/img/33.png', '/assets/img/22.png', '/assets/img/11.png'];
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const apiUrlWs = process.env.NEXT_PUBLIC_API_URL_WS || 'http://localhost:5000';
 
   // Check authentication on mount
   useEffect(() => {
@@ -1094,7 +1095,7 @@ function TicketInfoContent() {
           <div className="flex-[0_0_25%] text-center">
             {leftLogoUrl ? (
               <img
-                src={`${process.env.NEXT_PUBLIC_API_URL_WS}${leftLogoUrl}`}
+                src={`${apiUrlWs}${leftLogoUrl}`}
                 alt="Left Logo"
                 className="w-[150px] h-[100px] mx-auto object-contain"
               />
@@ -1126,7 +1127,7 @@ function TicketInfoContent() {
           <div className="flex-[0_0_25%] text-center">
             {rightLogoUrl ? (
               <img
-                src={`${process.env.NEXT_PUBLIC_API_URL_WS}${rightLogoUrl}`}
+                src={`${apiUrlWs}${rightLogoUrl}`}
                 alt="Right Logo"
                 className="w-[150px] h-[100px] mx-auto object-contain"
               />
@@ -1145,7 +1146,7 @@ function TicketInfoContent() {
           {contentType === 'video' && videoUrl ? (
             // Video Display
             <video
-              src={`${process.env.NEXT_PUBLIC_API_URL_WS}${videoUrl}`}
+              src={`${apiUrlWs}${videoUrl}`}
               className="w-full h-full object-contain"
               autoPlay
               loop
