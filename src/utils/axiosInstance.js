@@ -7,12 +7,13 @@ const axiosInstance = axios.create({
   timeout: 15000, // Increased timeout for slower connections
   headers: {
     'Content-Type': 'application/json',
-    'Accept-Encoding': 'gzip, deflate, br', // Enable compression
+    // Note: Accept-Encoding is automatically handled by the browser
+    // Setting it manually causes "Refused to set unsafe header" warnings
   },
   // Performance optimizations
   maxContentLength: Infinity,
   maxBodyLength: Infinity,
-  decompress: true, // Auto decompress responses
+  decompress: true, // Auto decompress responses - browser handles encoding automatically
 });
 
 // Request interceptor to add auth token
