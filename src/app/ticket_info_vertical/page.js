@@ -866,29 +866,56 @@ function TicketInfoContent() {
                 .catch(error => {
                   if (isResolved) return;
                   
-                  console.error(`❌ Box ${i + 1} play failed:`, error);
-                  console.error(`❌ Error type:`, error.name);
-                  console.error(`❌ Error message:`, error.message);
+                  console.warn(`⚠️ Box ${i + 1} play blocked by browser:`, error.name);
                   
                   // For NotAllowedError (autoplay blocked by browser)
                   if (error.name === 'NotAllowedError') {
-                    console.log('⚠️ AUTOPLAY BLOCKED - Retrying silently...');
+                    console.log('🔄 AUTOPLAY BLOCKED - Browser requires user interaction');
+                    console.log('💡 Solution: User must click/tap screen once to enable audio');
                     
-                    // Attempt immediate recovery and retry playback
-                    enableAudioSilently().then(() => {
-                      if (!isResolved) {
-                        audio.play().catch(e => {
-                          console.log('⚠️ Retry playback failed, continuing...');
-                          if (!isResolved) {
-                            isResolved = true;
-                            cleanup();
-                            resolve();
-                          }
-                        });
+                    // Try to resume AudioContext first
+                    const retryPlay = async () => {
+                      try {
+                        // Ensure AudioContext is running
+                        if (window.audioContext && window.audioContext.state === 'suspended') {
+                          await window.audioContext.resume();
+                          console.log('✅ AudioContext resumed');
+                        }
+                        
+                        // Retry play
+                        await audio.play();
+                        console.log(`✅ Box ${i + 1} audio playing after retry`);
+                        setAudioUnlocked(true);
+                      } catch (retryError) {
+                        console.log(`⏭️ Box ${i + 1} skipping - browser policy blocked playback`);
+                        // Still resolve to continue with next language
+                        if (!isResolved) {
+                          isResolved = true;
+                          cleanup();
+                          resolve();
+                        }
                       }
-                    });
+                    };
+                    
+                    // Setup one-time event listeners for user interaction
+                    const interactionEvents = ['click', 'touchstart', 'keydown'];
+                    const handleInteraction = () => {
+                      console.log('👆 User interaction detected, retrying audio...');
+                      interactionEvents.forEach(evt => 
+                        document.removeEventListener(evt, handleInteraction)
+                      );
+                      retryPlay();
+                    };
+                    
+                    interactionEvents.forEach(evt => 
+                      document.addEventListener(evt, handleInteraction, { once: true })
+                    );
+                    
+                    // Also try immediate retry (in case audio was already unlocked)
+                    setTimeout(() => retryPlay(), 100);
                   } else {
                     // For other errors, cleanup and continue
+                    console.error(`❌ Box ${i + 1} playback error:`, error.message);
                     if (!isResolved) {
                       isResolved = true;
                       cleanup();
