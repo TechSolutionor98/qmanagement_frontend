@@ -235,7 +235,7 @@ function TicketInfoContent() {
       console.log('⏹️ Stopping ticket polling');
       clearInterval(pollInterval);
     };
-  }, [isAnnouncing, lastAnnouncedTime]); // Add dependencies to be aware of current state
+  }, []); // Empty dependencies - poll should run continuously without restart
 
   
   // Setup BroadcastChannel for cross-tab communication
@@ -579,6 +579,7 @@ function TicketInfoContent() {
   const announceTicket = async (ticketNumber, counterNumber) => {
     if (!aiVoiceReady) {
       console.error('❌ ChatterBox AI Voice service not ready');
+      alert('⚠️ Voice service offline - announcement skipped');
       return;
     }
 
@@ -590,6 +591,11 @@ function TicketInfoContent() {
 
     setIsAnnouncing(true);
     console.log('🔒 Announcement started - locked');
+    
+    // Show visual feedback that announcement is starting (for production debugging)
+    if (typeof window !== 'undefined' && window.document) {
+      document.title = `🔊 Announcing ${ticketNumber}`;
+    }
 
     // Get admin's saved TTS settings from database first, then localStorage
     let settings = {
@@ -906,8 +912,20 @@ function TicketInfoContent() {
       }
       
       console.log('✅ All language announcements completed');
+      
+      // Restore title
+      if (typeof window !== 'undefined' && window.document) {
+        document.title = 'Ticket Info Display';
+      }
     } catch (error) {
       console.error('❌ ChatterBox AI announcement error:', error.message);
+      // Show error for debugging on production
+      if (typeof window !== 'undefined' && window.document) {
+        document.title = `❌ Error: ${error.message}`;
+        setTimeout(() => {
+          document.title = 'Ticket Info Display';
+        }, 5000);
+      }
     } finally {
       setIsAnnouncing(false);
       console.log('🔓 Announcement ended - unlocked');
