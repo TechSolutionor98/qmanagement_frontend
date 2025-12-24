@@ -677,6 +677,12 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-2xl font-semibold text-gray-700 mb-6">Counter Display Management</h1>
       
+      {/* DEBUG INFO - Remove after fixing */}
+      <div className="mb-4 p-3 bg-blue-50 border-2 border-blue-300 rounded text-xs">
+        <strong>🔍 DEBUG INFO:</strong> API_URL = {API_URL || 'NOT SET YET'} | 
+        Hostname = {typeof window !== 'undefined' ? window.location.hostname : 'SSR'}
+      </div>
+      
       {/* Success/Error/Info Message */}
       {message.text && (
         <div className={`mb-4 p-4 rounded-lg ${
