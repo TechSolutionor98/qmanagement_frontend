@@ -5,25 +5,30 @@ import axios from '@/utils/axiosInstance';
 import axiosRaw from 'axios'; // Raw axios for file uploads
 import { getToken, getUser } from '@/utils/sessionStorage';
 
-// CRITICAL: Hardcode production URL as fallback for Vercel deployment
-const getApiUrl = () => {
-  // In production/deployment, use the hardcoded URL
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return 'https://queapi.techmanagement.tech/api';
-  }
-  // In local development, use environment variable or localhost
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-};
-
-const API_URL = getApiUrl();
-
-console.log('🌐 API_URL initialized:', API_URL);
-console.log('🌐 Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
+// ❌ DON'T use getApiUrl() at module level - it runs during SSR when window is undefined
+// ✅ SOLUTION: Use state and set URL in useEffect after component mounts on client
 
 export default function CounterDisplayPage({ adminId: propAdminId }) {
   const router = useRouter();
   // Get current user from session
   const currentUser = getUser();
+  
+  // ✅ API_URL as state - will be set on client side
+  const [API_URL, setAPI_URL] = useState('');
+  
+  // Set API_URL on component mount (client side only)
+  useEffect(() => {
+    // On production (non-localhost), always use production URL
+    if (window.location.hostname !== 'localhost') {
+      setAPI_URL('https://queapi.techmanagement.tech/api');
+      console.log('🌐 Production detected - API_URL set to:', 'https://queapi.techmanagement.tech/api');
+    } else {
+      // On localhost, use environment variable or fallback
+      const localUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      setAPI_URL(localUrl);
+      console.log('🌐 Local development - API_URL set to:', localUrl);
+    }
+  }, []);
   
   // ✅ Use adminId from prop OR from logged-in user's session
   const [adminId, setAdminId] = useState(null);
@@ -81,12 +86,12 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       return;
     }
     
-    // ✅ Only fetch if adminId is available
-    if (adminId) {
+    // ✅ Only fetch if adminId AND API_URL are available
+    if (adminId && API_URL) {
       fetchConfiguration();
       fetchTicketInfoUsers();
     }
-  }, [adminId]);
+  }, [adminId, API_URL]); // Added API_URL dependency
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -102,9 +107,14 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
 
   const fetchConfiguration = async () => {
     try {
-      // ✅ Always require adminId
+      // ✅ Always require adminId and API_URL
       if (!adminId) {
         console.error('❌ No adminId available - cannot fetch configuration');
+        return;
+      }
+      
+      if (!API_URL) {
+        console.error('❌ API_URL not initialized yet');
         return;
       }
       
@@ -308,6 +318,16 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       if (!adminId) {
         showMessage('error', 'Admin ID missing hai. Dobara login karein.');
         setLoading(false);
+        return;
+      }
+      
+      // CRITICAL: Check if API_URL is initialized
+      if (!API_URL) {
+        showMessage('error', '❌ API URL not initialized. Please refresh the page.');
+        console.error('❌ API_URL is empty! Component may have loaded too fast.');
+        setLoading(false);
+        setUploadedVideo(null);
+        e.target.value = '';
         return;
       }
       
