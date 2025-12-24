@@ -481,7 +481,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       return;
     }
     
-    if (contentType === 'video' && !videoUrl) {
+    if (contentType === 'video' && !videoUrl && !uploadedVideo) {
       showMessage('error', 'Please upload a video first');
       setLoading(false);
       return;
@@ -494,12 +494,55 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
     }
     
     try {
+      let finalVideoUrl = videoUrl;
+      
+      // ✅ STEP 1: Upload video if a new one is selected
+      if (uploadedVideo) {
+        showMessage('info', '⏳ Video upload ho rahi hai... Kripya wait karein...');
+        console.log('📤 Starting video upload...');
+        
+        const formData = new FormData();
+        formData.append('video', uploadedVideo);
+        formData.append('admin_id', adminId);
+        
+        const uploadUrl = `${API_URL}/counter-display/upload-video`;
+        console.log('📤 Uploading video to:', uploadUrl);
+        
+        // Use raw axios for file upload with progress tracking
+        const uploadResponse = await axiosRaw.post(uploadUrl, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            ...getAuthHeaders()
+          },
+          timeout: 600000, // 10 minutes timeout
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            console.log(`📊 Upload progress: ${percentCompleted}%`);
+            if (percentCompleted % 10 === 0) {
+              showMessage('info', `⏳ Upload progress: ${percentCompleted}%`);
+            }
+          }
+        });
+        
+        if (uploadResponse.data.success) {
+          finalVideoUrl = uploadResponse.data.videoUrl;
+          console.log('✅ Video uploaded successfully:', finalVideoUrl);
+          showMessage('success', '✅ Video upload successful!');
+          setVideoUrl(finalVideoUrl);
+          setUploadedVideo(null); // Clear the file after upload
+        } else {
+          throw new Error(uploadResponse.data.message || 'Video upload failed');
+        }
+      }
+      
+      // ✅ STEP 2: Update configuration
+      showMessage('info', '💾 Configuration save ho rahi hai...');
       const payload = {
         leftLogoUrl,
         rightLogoUrl,
         screenType,
         contentType,
-        videoUrl,
+        videoUrl: finalVideoUrl,
         sliderTimer,
         tickerContent,
         selectedImageIds: selectedImages,
@@ -516,7 +559,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       });
       
       if (response.data.success) {
-        showMessage('success', 'Configuration updated successfully!');
+        showMessage('success', '✅ Configuration updated successfully!');
         console.log('✅ Configuration updated successfully');
       }
     } catch (error) {
