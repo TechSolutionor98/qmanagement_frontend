@@ -252,16 +252,26 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
   };
 
   const handleVideoUpload = async (e) => {
+    console.log('🎬 handleVideoUpload called');
     const file = e.target.files[0];
     if (file) {
-      console.log('📹 Video file selected:', file.name, 'Size:', (file.size / (1024 * 1024)).toFixed(2), 'MB');
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      console.log('📹 Video file selected:', file.name, 'Size:', fileSizeMB, 'MB');
       
-      // Validate file size (max 100MB for better upload reliability)
-      const maxSize = 100 * 1024 * 1024; // 100MB
+      // Validate file size (max 500MB)
+      const maxSize = 500 * 1024 * 1024; // 500MB
       if (file.size > maxSize) {
-        showMessage('error', `Video file is too large. Maximum size is 100MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+        showMessage('error', `Video file bohot bari hai. Maximum size 500MB hai. Aapki file ${fileSizeMB}MB hai. Pehle video ko compress karein.`);
         e.target.value = ''; // Reset file input
         return;
+      }
+      
+      // Warning for large files
+      if (file.size > 100 * 1024 * 1024) {
+        if (!confirm(`Video file ${fileSizeMB}MB hai. Upload mein waqt lag sakta hai (2-5 minutes). Continue karein?`)) {
+          e.target.value = '';
+          return;
+        }
       }
       
       setUploadedVideo(file);
@@ -273,7 +283,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       if (adminId) {
         formData.append('admin_id', adminId);
       } else {
-        showMessage('error', 'Admin ID is missing. Please login again.');
+        showMessage('error', 'Admin ID missing hai. Dobara login karein.');
         setLoading(false);
         return;
       }
@@ -281,7 +291,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       try {
         const uploadUrl = `${API_URL}/counter-display/upload-video`;
         console.log('📤 Uploading video to:', uploadUrl);
-        showMessage('info', 'Uploading video... Please wait');
+        showMessage('info', `Uploading ${fileSizeMB}MB video... Kripya intezar karein`);
         
         const response = await axios.post(uploadUrl, formData, {
           headers: { 
@@ -291,23 +301,29 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             console.log('📊 Upload progress:', percentCompleted + '%');
+            // Show progress updates at 25%, 50%, 75%
+            if (percentCompleted === 25 || percentCompleted === 50 || percentCompleted === 75) {
+              showMessage('info', `Upload ho raha hai... ${percentCompleted}% complete`);
+            }
           }
         });
         
         if (response.data.success) {
           setVideoUrl(response.data.videoUrl);
-          showMessage('success', 'Video uploaded successfully');
+          showMessage('success', 'Video successfully upload ho gaya! ✅');
           console.log('✅ Video uploaded:', response.data.videoUrl);
+        } else {
+          showMessage('error', response.data.message || 'Video upload fail ho gaya');
         }
       } catch (error) {
         console.error('❌ Error uploading video:', error);
         console.error('Error response:', error.response?.data);
         
-        let errorMessage = 'Failed to upload video';
+        let errorMessage = 'Video upload fail ho gaya';
         if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-          errorMessage = 'Network error. File might be too large or server limit exceeded. Try a smaller video (under 50MB)';
+          errorMessage = 'Network error. File bohot bari ho sakti hai ya server limit exceed ho gaya. Chhoti video (50MB se kam) upload karein ya compress karein.';
         } else if (error.response?.status === 413) {
-          errorMessage = 'Video file is too large for server. Please use a video under 50MB';
+          errorMessage = `File server ke liye bohot bari hai (${fileSizeMB}MB). Pehle video compress karke 50-100MB ki file upload karein.`;
         } else if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         }
@@ -868,7 +884,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         {contentType === 'video' && (
         <div className="flex-1 bg-white rounded-lg shadow p-6">
           <label className="block text-xs font-semibold text-gray-600 uppercase mb-3">
-            Upload Video
+            Upload Video (Maximum: 500MB, Recommended: 50-300MB)
           </label>
           <input
             type="file"
