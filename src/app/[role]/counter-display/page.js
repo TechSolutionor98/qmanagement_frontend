@@ -306,155 +306,10 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         }
       }
       
+      // ✅ SIRF FILE STORE KARO - Upload nahi karo
       setUploadedVideo(file);
-      setLoading(true); // Show loading during upload
-      
-      // Upload immediately
-      const formData = new FormData();
-      formData.append('video', file);
-      formData.append('admin_id', String(adminId));
-      
-      console.log('📦 FormData contents:', {
-        hasVideo: formData.has('video'),
-        hasAdminId: formData.has('admin_id'),
-        adminId: adminId,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type
-      });
-      
-      if (!adminId) {
-        showMessage('error', 'Admin ID missing hai. Dobara login karein.');
-        setLoading(false);
-        return;
-      }
-      
-      // CRITICAL: Check if API_URL is initialized
-      if (!API_URL) {
-        showMessage('error', '❌ API URL not initialized. Please refresh the page.');
-        console.error('❌ API_URL is empty! Component may have loaded too fast.');
-        setLoading(false);
-        setUploadedVideo(null);
-        e.target.value = '';
-        return;
-      }
-      
-      try {
-        // CRITICAL FIX: Always use API_URL which is already set correctly for production/dev
-        const uploadUrl = `${API_URL}/counter-display/upload-video`;
-        
-        console.log('═══════════════════════════════════════════════════');
-        console.log('🚀 VIDEO UPLOAD DEBUG INFO');
-        console.log('═══════════════════════════════════════════════════');
-        console.log('📤 Starting video upload...');
-        console.log('🌐 Current API_URL:', API_URL);
-        console.log('🎯 Full Upload endpoint:', uploadUrl);
-        console.log('📦 File size:', fileSizeMB, 'MB');
-        console.log('📁 File name:', file.name);
-        console.log('🏠 Current hostname:', window.location.hostname);
-        console.log('🌍 Full URL:', window.location.href);
-        console.log('═══════════════════════════════════════════════════');
-        
-        const token = getToken();
-        console.log('🔑 Auth Token:', token ? `Present (length: ${token.length})` : '❌ MISSING');
-        
-        if (!token) {
-          showMessage('error', '❌ Authentication token missing. Please login again.');
-          setLoading(false);
-          setUploadedVideo(null);
-          e.target.value = '';
-          return;
-        }
-        
-        showMessage('info', `🔄 Uploading ${fileSizeMB}MB video... Please wait (5-10 minutes)`);
-        
-        // Calculate timeout based on file size (3 minutes per 30MB, minimum 15 minutes for production)
-        const timeoutMs = Math.max(900000, Math.ceil(file.size / (30 * 1024 * 1024)) * 180000);
-        console.log('⏱️ Upload timeout set to:', (timeoutMs / 60000).toFixed(1), 'minutes');
-        
-        // Create axios config with all necessary settings
-        const config = {
-          timeout: timeoutMs,
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            // Let browser set Content-Type with boundary for multipart/form-data
-          },
-          maxContentLength: Infinity,
-          maxBodyLength: Infinity,
-          // Don't reject on any status, we'll handle it manually
-          validateStatus: function (status) {
-            return status >= 200 && status < 600;
-          },
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              console.log('📊 Upload progress:', percentCompleted + '%', `(${(progressEvent.loaded / (1024 * 1024)).toFixed(2)}MB / ${(progressEvent.total / (1024 * 1024)).toFixed(2)}MB)`);
-              // Show progress updates every 10%
-              if (percentCompleted % 10 === 0) {
-                showMessage('info', `⏳ Upload: ${percentCompleted}% - Browser window BAND MAT KAREIN!`);
-              }
-            }
-          }
-        };
-        
-        console.log('🚀 Axios config prepared:', {
-          url: uploadUrl,
-          timeout: `${(timeoutMs / 60000).toFixed(1)} minutes`,
-          hasToken: !!token,
-          hasAuthHeader: !!config.headers.Authorization,
-          fileSize: `${fileSizeMB}MB`
-        });
-        
-        console.log('🌐 Making POST request to:', uploadUrl);
-        const response = await axiosRaw.post(uploadUrl, formData, config);
-        
-        console.log('📥 Server response status:', response.status);
-        console.log('📥 Server response data:', response.data);
-        
-        if (response.status === 200 && response.data.success) {
-          setVideoUrl(response.data.videoUrl);
-          showMessage('success', '✅ Video successfully upload ho gaya!');
-          console.log('✅ Video uploaded:', response.data.videoUrl);
-        } else {
-          // Handle non-200 status or success: false
-          const errorMsg = response.data?.message || `Upload failed with status ${response.status}`;
-          showMessage('error', `❌ ${errorMsg}`);
-          setUploadedVideo(null);
-          e.target.value = '';
-        }
-      } catch (error) {
-        console.error('❌ Error uploading video:', error);
-        console.error('❌ Error details:', {
-          message: error.message,
-          code: error.code,
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          headers: error.response?.headers
-        });
-        
-        let errorMessage = '❌ Video upload fail ho gaya';
-        
-        if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-          errorMessage = `🔴 NETWORK ERROR\n\nVideo size: ${fileSizeMB}MB\nBackend tak request nahi pahunchi\n\n🔍 POSSIBLE CAUSES:\n1. Backend server down ho sakta hai\n2. CORS configuration issue\n3. Nginx/Server timeout\n4. Internet connection lost\n5. File size backend accept nahi kar raha\n\n✅ SOLUTIONS:\n1. Backend logs check karein (PM2)\n2. Video compress karke 50-100MB karein\n3. Stable internet connection\n4. Server restart karein\n\n📞 Tech team ko batain!`;
-        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-          errorMessage = `⏱️ TIMEOUT ERROR\n\nUpload time: ${(timeoutMs/60000).toFixed(1)} minutes\nFile size: ${fileSizeMB}MB\n\n❌ Server ne response nahi diya!\n\n✅ SOLUTIONS:\n1. Video compress karein (target: 50-100MB)\n2. Backend timeout settings check karein\n3. Nginx timeout increase karein\n4. Faster internet connection use karein`;
-        } else if (error.response?.status === 413) {
-          errorMessage = `📦 FILE TOO LARGE (413)\n\nFile: ${fileSizeMB}MB\nServer limit: Exceeded\n\n✅ SOLUTIONS:\n1. Video compress karke 100MB se kam karein\n2. Backend limit check: body-parser & multer\n3. Nginx client_max_body_size setting`;
-        } else if (error.response?.status === 401) {
-          errorMessage = `🔒 AUTHENTICATION ERROR (401)\n\nToken expired ya invalid hai.\n\n✅ SOLUTION:\nDobara login karein`;
-        } else if (error.response?.status === 500) {
-          errorMessage = `⚠️ SERVER ERROR (500)\n\nBackend me error aya.\n\n✅ SOLUTION:\n1. Backend logs check karein\n2. PM2 restart karein\n3. Tech team ko batain`;
-        } else if (error.response?.data?.message) {
-          errorMessage = `❌ ${error.response.data.message}`;
-        }
-        
-        showMessage('error', errorMessage);
-        setUploadedVideo(null);
-        e.target.value = ''; // Reset file input
-      } finally {
-        setLoading(false);
-      }
+      showMessage('success', `✅ Video selected: ${file.name} (${fileSizeMB}MB)\n\n"Update Content" button dabao to upload karein.`);
+      console.log('✅ Video file ready for upload on "Update Content" click');
     }
   };
 
@@ -626,7 +481,120 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       return;
     }
     
-    if (contentType === 'video' && !videoUrl) {
+    // ✅ CHECK: Agar video content type hai AUR uploadedVideo file hai (videoUrl nahi)
+    if (contentType === 'video' && uploadedVideo && !videoUrl) {
+      console.log('🎬 Video file detected, uploading first...');
+      
+      // UPLOAD VIDEO FIRST
+      const fileSizeMB = (uploadedVideo.size / (1024 * 1024)).toFixed(2);
+      const formData = new FormData();
+      formData.append('video', uploadedVideo);
+      formData.append('admin_id', String(adminId));
+      
+      if (!API_URL) {
+        showMessage('error', '❌ API URL not initialized. Please refresh the page.');
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const uploadUrl = `${API_URL}/counter-display/upload-video`;
+        console.log('📤 Uploading video to:', uploadUrl);
+        
+        const token = getToken();
+        if (!token) {
+          showMessage('error', '❌ Authentication token missing. Please login again.');
+          setLoading(false);
+          return;
+        }
+        
+        showMessage('info', `🔄 Uploading ${fileSizeMB}MB video... Please wait (5-10 minutes)`);
+        
+        const timeoutMs = Math.max(900000, Math.ceil(uploadedVideo.size / (30 * 1024 * 1024)) * 180000);
+        
+        const config = {
+          timeout: timeoutMs,
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+          },
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
+          validateStatus: function (status) {
+            return status >= 200 && status < 600;
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              if (percentCompleted % 10 === 0) {
+                showMessage('info', `⏳ Upload: ${percentCompleted}% - Browser window BAND MAT KAREIN!`);
+              }
+            }
+          }
+        };
+        
+        const uploadResponse = await axiosRaw.post(uploadUrl, formData, config);
+        
+        if (uploadResponse.status === 200 && uploadResponse.data.success) {
+          setVideoUrl(uploadResponse.data.videoUrl);
+          showMessage('success', '✅ Video uploaded! Now saving configuration...');
+          console.log('✅ Video uploaded:', uploadResponse.data.videoUrl);
+          
+          // NOW UPDATE CONFIG WITH NEW VIDEO URL
+          const payload = {
+            leftLogoUrl,
+            rightLogoUrl,
+            screenType,
+            contentType,
+            videoUrl: uploadResponse.data.videoUrl, // Use new video URL
+            sliderTimer,
+            tickerContent,
+            selectedImageIds: selectedImages,
+            admin_id: adminId
+          };
+
+          const updateUrl = `${API_URL}/counter-display/config`;
+          console.log('💾 Updating config with new video');
+          const configResponse = await axios.post(updateUrl, payload, {
+            headers: {
+              'Content-Type': 'application/json',
+              ...getAuthHeaders()
+            }
+          });
+          
+          if (configResponse.data.success) {
+            showMessage('success', '✅ Video uploaded aur configuration saved successfully!');
+            console.log('✅ Configuration updated successfully');
+          }
+        } else {
+          const errorMsg = uploadResponse.data?.message || `Upload failed with status ${uploadResponse.status}`;
+          showMessage('error', `❌ ${errorMsg}`);
+          setUploadedVideo(null);
+        }
+      } catch (error) {
+        console.error('❌ Error uploading video:', error);
+        
+        let errorMessage = '❌ Video upload fail ho gaya';
+        
+        if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+          errorMessage = `🔴 NETWORK ERROR - Backend tak request nahi pahunchi\n\n✅ SOLUTIONS:\n1. Backend logs check karein\n2. Video compress karein (50-100MB)\n3. Stable internet\n4. Server restart`;
+        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+          errorMessage = `⏱️ TIMEOUT ERROR - Server ne response nahi diya`;
+        } else if (error.response?.status === 413) {
+          errorMessage = `📦 FILE TOO LARGE (413) - Video compress karein`;
+        } else if (error.response?.data?.message) {
+          errorMessage = `❌ ${error.response.data.message}`;
+        }
+        
+        showMessage('error', errorMessage);
+        setUploadedVideo(null);
+      } finally {
+        setLoading(false);
+      }
+      return; // EXIT early after video upload
+    }
+    
+    // ✅ VALIDATION: Video content type but no video
+    if (contentType === 'video' && !videoUrl && !uploadedVideo) {
       showMessage('error', 'Please upload a video first');
       setLoading(false);
       return;
@@ -638,6 +606,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       return;
     }
     
+    // ✅ NORMAL CONFIG UPDATE (no new video to upload)
     try {
       const payload = {
         leftLogoUrl,
