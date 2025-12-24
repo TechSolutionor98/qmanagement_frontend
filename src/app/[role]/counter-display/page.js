@@ -281,34 +281,35 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       // Upload immediately
       const formData = new FormData();
       formData.append('video', file);
-      if (adminId) {
-        formData.append('admin_id', adminId);
-      } else {
+      formData.append('admin_id', String(adminId));
+      
+      console.log('📦 FormData contents:', {
+        hasVideo: formData.has('video'),
+        hasAdminId: formData.has('admin_id'),
+        adminId: adminId,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type
+      });
+      
+      if (!adminId) {
         showMessage('error', 'Admin ID missing hai. Dobara login karein.');
         setLoading(false);
         return;
       }
       
       try {
-        const uploadUrl = `${API_URL}/counter-display/upload-video`;
-        console.log('📤 Uploading video to:', uploadUrl);
-        console.log('📦 File size:', fileSizeMB, 'MB');
-        console.log('🔑 Token:', getToken() ? 'Present' : 'Missing');
-        console.log('🌐 API_URL from env:', process.env.NEXT_PUBLIC_API_URL);
-        showMessage('info', `🔄 Uploading ${fileSizeMB}MB video... Please wait (5-10 minutes)`);
-        
-        // Calculate timeout based on file size (3 minutes per 30MB, minimum 15 minutes for production)
-        const timeoutMs = Math.max(900000, Math.ceil(file.size / (30 * 1024 * 1024)) * 180000);
-        console.log('⏱️ Upload timeout set to:', (timeoutMs / 60000).toFixed(1), 'minutes');
-        
         // IMPORTANT: Use environment variable directly to ensure production URL
         const productionApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://queapi.techmanagement.tech/api';
         const finalUploadUrl = `${productionApiUrl}/counter-display/upload-video`;
         
+        console.log('📤 Uploading video to:', finalUploadUrl);
+        console.log('📦 File size:', fileSizeMB, 'MB');
+        console.log('🌐 API_URL from env:', process.env.NEXT_PUBLIC_API_URL);
         console.log('🎯 Final upload URL:', finalUploadUrl);
         
-        // Use raw axios to avoid interceptor issues with large files
         const token = getToken();
+        console.log('🔑 Token:', token ? `Present (${token.substring(0, 20)}...)` : 'Missing');
         
         if (!token) {
           showMessage('error', '❌ Authentication token missing. Please login again.');
@@ -318,26 +319,45 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
           return;
         }
         
-        const response = await axiosRaw.post(finalUploadUrl, formData, {
+        showMessage('info', `🔄 Uploading ${fileSizeMB}MB video... Please wait (5-10 minutes)`);
+        
+        // Calculate timeout based on file size (3 minutes per 30MB, minimum 15 minutes for production)
+        const timeoutMs = Math.max(900000, Math.ceil(file.size / (30 * 1024 * 1024)) * 180000);
+        console.log('⏱️ Upload timeout set to:', (timeoutMs / 60000).toFixed(1), 'minutes');
+        
+        // Create axios config with all necessary settings
+        const config = {
           timeout: timeoutMs,
           headers: { 
-            'Authorization': `Bearer ${token}`
-            // Don't set Content-Type, let browser set it with boundary
+            'Authorization': `Bearer ${token}`,
+            // Let browser set Content-Type with boundary for multipart/form-data
           },
           maxContentLength: Infinity,
           maxBodyLength: Infinity,
+          // Don't reject on any status, we'll handle it manually
           validateStatus: function (status) {
-            return status >= 200 && status < 500; // Don't throw for 4xx errors
+            return status >= 200 && status < 600;
           },
           onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            console.log('📊 Upload progress:', percentCompleted + '%');
-            // Show progress updates every 10%
-            if (percentCompleted % 10 === 0) {
-              showMessage('info', `⏳ Upload: ${percentCompleted}% - Browser window BAND MAT KAREIN!`);
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              console.log('📊 Upload progress:', percentCompleted + '%', `(${(progressEvent.loaded / (1024 * 1024)).toFixed(2)}MB / ${(progressEvent.total / (1024 * 1024)).toFixed(2)}MB)`);
+              // Show progress updates every 10%
+              if (percentCompleted % 10 === 0) {
+                showMessage('info', `⏳ Upload: ${percentCompleted}% - Browser window BAND MAT KAREIN!`);
+              }
             }
           }
+        };
+        
+        console.log('🚀 Starting upload with config:', {
+          url: finalUploadUrl,
+          timeout: `${(timeoutMs / 60000).toFixed(1)} minutes`,
+          hasToken: !!token,
+          fileSize: `${fileSizeMB}MB`
         });
+        
+        const response = await axiosRaw.post(finalUploadUrl, formData, config);
         
         console.log('📥 Server response status:', response.status);
         console.log('📥 Server response data:', response.data);
