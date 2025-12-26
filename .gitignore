@@ -5,6 +5,9 @@
 /backend
 /python-tts-service
 /.pnp
+/dist
+/dist-electron
+/release
 .pnp.*
 .yarn/*
 !.yarn/patches
