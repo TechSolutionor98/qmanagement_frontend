@@ -248,14 +248,15 @@ export default function AssignServicesPage({ adminId }) {
                   </td>
                 </tr>
               ) : (
-                assignedServices.map((item) => (
-                  <tr key={item.user_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm">
-                      <div className="font-medium text-gray-900">{item.username}</div>
-                      {/* <div className="text-gray-500 text-xs">{item.email}</div> */}
-                    </td>
-                    <td className="px-6 py-4">
-                      {item.services ? (
+                assignedServices
+                  .filter((item) => item.services && item.services.trim() !== '')
+                  .map((item) => (
+                    <tr key={item.user_id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm">
+                        <div className="font-medium text-gray-900">{item.username}</div>
+                        {/* <div className="text-gray-500 text-xs">{item.email}</div> */}
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1">
                           {item.services.split(', ').map((service, index) => (
                             <span
@@ -266,20 +267,17 @@ export default function AssignServicesPage({ adminId }) {
                             </span>
                           ))}
                         </div>
-                      ) : (
-                        <span className="text-sm text-gray-500 italic">No services assigned</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <button
-                        onClick={() => handleDeleteAll(item.user_id)}
-                        className="px-4 py-1.5 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-                      >
-                        Delete All
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <button
+                          onClick={() => handleDeleteAll(item.user_id)}
+                          className="px-4 py-1.5 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                        >
+                          Delete All
+                        </button>
+                      </td>
+                    </tr>
+                  ))
               )}
             </tbody>
           </table>
