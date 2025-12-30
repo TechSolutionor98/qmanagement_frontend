@@ -35,6 +35,16 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'react-icons'],
   },
 
+  // Webpack configuration to handle jsPDF
+  webpack: (config, { isServer }) => {
+    // Don't bundle jsPDF on the server side
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('jspdf', 'jspdf-autotable');
+    }
+    return config;
+  },
+
   // Headers for caching and security
   async headers() {
     return [
