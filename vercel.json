@@ -1,4 +1,5 @@
 {
   "buildCommand": "yarn install --ignore-optional && yarn build",
-  "installCommand": "yarn install --ignore-optional"
+  "installCommand": "yarn install --ignore-optional",
+  "framework": "nextjs"
 }
