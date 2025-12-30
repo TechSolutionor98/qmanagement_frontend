@@ -1,8 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { FaDownload } from 'react-icons/fa';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, BorderStyle } from 'docx';
 import { saveAs } from 'file-saver';
 import { getUser } from '@/utils/sessionStorage';
@@ -153,7 +151,11 @@ export default function ShortReportsPage({ adminId: propAdminId }) {
     fetchReports();
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    // Dynamic import to avoid SSR issues
+    const jsPDF = (await import('jspdf')).default;
+    const autoTable = (await import('jspdf-autotable')).default;
+    
     const doc = new jsPDF();
     
     // Add title
