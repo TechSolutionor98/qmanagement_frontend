@@ -25,10 +25,9 @@ export default function CreateLicensePage() {
     expiry_date: '',
     max_users: 10,
     max_counters: 10,
-    max_receptionists: 5,
-    max_ticket_info_users: 3,
-    max_sessions_per_receptionist: 1,
-    max_sessions_per_ticket_info: 1,
+    max_receptionist_sessions: 1,
+    max_ticket_info_sessions: 1,
+    both_user: 1,  // Always 1 by default
     status: 'active',
     admin_username: '',
     admin_password: ''
@@ -128,7 +127,24 @@ export default function CreateLicensePage() {
 
       if (data.success) {
         dispatch(addLicense(data.data));
-        const message = `License created successfully!\n\nAdmin Login Credentials:\nEmail: ${data.data.admin_email}\nPassword: (as set)\n\nAdmin will login using Email and Password.`;
+        
+        // Build success message with all credentials
+        let message = `✅ License created successfully!\n\n`;
+        message += `👤 Admin Login Credentials:\n`;
+        message += `   Email: ${data.data.admin_email}\n`;
+        message += `   Password: (as set)\n\n`;
+        
+        if (data.data.default_user) {
+          message += `👥 Default User Created:\n`;
+          message += `   Email: ${data.data.default_user.email}\n`;
+          message += `   Password: ${data.data.default_user.password}\n`;
+          message += `   Roles: ${data.data.default_user.roles}\n`;
+          message += `   Note: ${data.data.default_user.note}\n\n`;
+          message += `📊 Session Limits:\n`;
+          message += `   Receptionist Sessions: ${data.data.max_receptionist_sessions}\n`;
+          message += `   Ticket Info Sessions: ${data.data.max_ticket_info_sessions}`;
+        }
+        
         alert(message);
         router.push(`/${currentUser?.role}/license/list-of-license`);
       } else {
@@ -398,7 +414,7 @@ export default function CreateLicensePage() {
         {/* License Limits Section */}
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-            <FaChartBar className="text-purple-600" /> License Limits & Restrictions
+            <FaChartBar className="text-purple-600" /> License Limits & Sessions
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -434,77 +450,47 @@ export default function CreateLicensePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Receptionists
+                Max Receptionist Sessions
               </label>
               <input
                 type="number"
-                name="max_receptionists"
-                value={formData.max_receptionists}
+                name="max_receptionist_sessions"
+                value={formData.max_receptionist_sessions}
                 onChange={handleChange}
                 min="1"
+                max="10"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
-              <p className="text-xs text-gray-500 mt-1">Maximum reception role users allowed</p>
-            </div>
-
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Ticket Info Users
-              </label>
-              <input
-                type="number"
-                name="max_ticket_info_users"
-                value={formData.max_ticket_info_users}
-                onChange={handleChange}
-                min="1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 mt-1">Maximum ticket_info screen users</p>
+              <p className="text-xs text-gray-500 mt-1">Total receptionist sessions allowed (1-10)</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Sessions Per Receptionist
+                Max Ticket Info Sessions
               </label>
               <input
                 type="number"
-                name="max_sessions_per_receptionist"
-                value={formData.max_sessions_per_receptionist}
+                name="max_ticket_info_sessions"
+                value={formData.max_ticket_info_sessions}
                 onChange={handleChange}
                 min="1"
-                max="5"
+                max="10"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
-              <p className="text-xs text-gray-500 mt-1">Sessions for reception role (1-5)</p>
-            </div> */}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Sessions Per Ticket Info User
-              </label>
-              <input
-                type="number"
-                name="max_sessions_per_ticket_info"
-                value={formData.max_sessions_per_ticket_info}
-                onChange={handleChange}
-                min="1"
-                max="5"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 mt-1">Sessions for ticket_info screen (1-5)</p>
+              <p className="text-xs text-gray-500 mt-1">Total ticket info screen sessions (1-10)</p>
             </div>
           </div>
-{/* 
-          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
-            <p className="text-xs text-yellow-900 flex items-start gap-2">
-              <FaExclamationTriangle className="text-yellow-600 mt-0.5 flex-shrink-0" /> 
+
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-300 rounded-lg">
+            <p className="text-xs text-blue-900 flex items-start gap-2">
+              <FaInfoCircle className="text-blue-600 mt-0.5 flex-shrink-0" /> 
               <span>
-                <strong>Session Limit Warning:</strong> If a user exceeds session limit, they must either:
-                <br/>• Contact tech support to increase session limit
-                <br/>• Delete previous sessions to free up space
+                <strong>Session Model:</strong> By default, one user will be created who can login to both receptionist and ticket_info roles.
+                <br/>• <strong>Receptionist Sessions:</strong> Number of devices/browsers that can run receptionist simultaneously
+                <br/>• <strong>Ticket Info Sessions:</strong> Number of display screens that can show ticket information
               </span>
             </p>
-          </div> */}
+          </div>
         </div>
 
         {/* License Key */}

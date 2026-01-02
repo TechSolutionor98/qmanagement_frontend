@@ -44,14 +44,22 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
   const [adminId, setAdminId] = useState(null);
   
   useEffect(() => {
+    console.log('🔍 ADMIN ID DETECTION:');
+    console.log('   - propAdminId:', propAdminId);
+    console.log('   - currentUser:', JSON.stringify(currentUser, null, 2));
+    
     if (propAdminId) {
       setAdminId(propAdminId);
       console.log('✅ Using admin_id from prop:', propAdminId);
     } else if (currentUser && currentUser.admin_id) {
       setAdminId(currentUser.admin_id);
       console.log('✅ Using admin_id from logged-in user:', currentUser.admin_id);
+    } else if (currentUser && currentUser.id && currentUser.role === 'admin') {
+      // If logged in user is admin, use their ID as admin_id
+      setAdminId(currentUser.id);
+      console.log('✅ Logged in user IS the admin, using user.id as admin_id:', currentUser.id);
     } else {
-      console.error('❌ No admin_id found');
+      console.error('❌ No admin_id found - currentUser:', currentUser);
     }
   }, [propAdminId, currentUser]);
   
@@ -70,10 +78,11 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   
-  // Ticket Info User Management
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  // Both User Display (automatically created with license)
   const [ticketInfoUsers, setTicketInfoUsers] = useState([]);
-  const [newUserData, setNewUserData] = useState({
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editUserData, setEditUserData] = useState({
     username: '',
     email: '',
     password: ''
@@ -102,18 +111,6 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       fetchTicketInfoUsers();
     }
   }, [adminId, API_URL]); // Added API_URL dependency
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (showCreateUserModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showCreateUserModal]);
 
   const fetchConfiguration = async () => {
     try {
@@ -170,59 +167,93 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
     setTimeout(() => setMessage({ type: '', text: '' }), 5000);
   };
 
-  // Fetch Ticket Info Users
+  // Fetch Both User (automatically created with license)
   const fetchTicketInfoUsers = async () => {
     try {
       // ✅ Always require adminId
       if (!adminId) {
-        console.warn('⚠️ Admin ID not available for fetching ticket info users');
+        console.warn('⚠️ Admin ID not available for fetching both user');
+        return;
+      }
+      
+      if (!API_URL) {
+        console.warn('⚠️ API_URL not initialized yet');
         return;
       }
       
       const url = `${API_URL}/user/ticket-info-users?adminId=${adminId}`;
-      console.log('📡 Fetching ticket info users from:', url);
+      console.log('📡 Fetching both user from:', url);
+      console.log('📋 Current adminId:', adminId);
+      console.log('📋 Current API_URL:', API_URL);
+      
       const response = await axios.get(url, {
         headers: getAuthHeaders()
       });
+      
+      console.log('📦 Full Response:', response.data);
+      
       if (response.data.success) {
-        setTicketInfoUsers(response.data.users || []);
-        console.log('✅ Fetched', response.data.users?.length || 0, 'ticket info users');
+        // Show ALL users - backend already filters correctly
+        const allUsers = response.data.users || [];
+        setTicketInfoUsers(allUsers);
+        console.log('✅ Fetched', allUsers.length, 'user(s)');
+        console.log('👥 Users data:', JSON.stringify(allUsers, null, 2));
+        
+        // Filter both_user specifically for display
+        const bothUsers = allUsers.filter(user => 
+          user.role && (
+            user.role.includes('receptionist,ticket_info') || 
+            user.role.includes('ticket_info,receptionist')
+          )
+        );
+        console.log('🎯 Both users found:', bothUsers.length);
+        console.log('🎯 Both users details:', JSON.stringify(bothUsers, null, 2));
+      } else {
+        console.error('❌ Response not successful:', response.data.message);
       }
     } catch (error) {
-      console.error('❌ Error fetching ticket info users:', error);
-      console.error('Error response:', error.response?.data);
+      console.error('❌ Error fetching both user:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error message:', error.message);
     }
   };
 
-  // Create Ticket Info User
-  const handleCreateTicketInfoUser = async (e) => {
+
+
+  // Open Edit Modal
+  const handleEditUser = (user) => {
+    setEditingUser(user);
+    setEditUserData({
+      username: user.username,
+      email: user.email,
+      password: '' // Empty for security
+    });
+    setShowEditUserModal(true);
+  };
+
+  // Update User
+  const handleUpdateUser = async (e) => {
     e.preventDefault();
     
-    if (!newUserData.username || !newUserData.email || !newUserData.password) {
-      showMessage('error', 'Please fill all fields');
+    if (!editUserData.username || !editUserData.email) {
+      showMessage('error', 'Username and email are required');
       return;
     }
-
-    // ✅ Always require adminId
-    if (!adminId) {
-      showMessage('error', 'Admin ID not found. Please login again.');
-      return;
-    }
-
-    console.log('📝 Creating Ticket Info User:', {
-      username: newUserData.username,
-      email: newUserData.email,
-      admin_id: adminId
-    });
 
     try {
-      const url = `${API_URL}/user/create-ticket-info`;
-      console.log('📤 Creating user at:', url);
-      const response = await axios.post(url, {
-        ...newUserData,
-        admin_id: adminId,
-        role: 'ticket_info'
-      }, {
+      const updateData = {
+        username: editUserData.username,
+        email: editUserData.email
+      };
+      
+      // Only include password if it's been changed
+      if (editUserData.password && editUserData.password.trim() !== '') {
+        updateData.password = editUserData.password;
+      }
+
+      const url = `${API_URL}/user/${editingUser.id}`;
+      console.log('📝 Updating user at:', url);
+      const response = await axios.put(url, updateData, {
         headers: {
           'Content-Type': 'application/json',
           ...getAuthHeaders()
@@ -230,41 +261,17 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       });
 
       if (response.data.success) {
-        showMessage('success', 'Ticket Info user created successfully!');
-        setShowCreateUserModal(false);
-        setNewUserData({ username: '', email: '', password: '' });
+        showMessage('success', 'Both user updated successfully!');
+        setShowEditUserModal(false);
+        setEditingUser(null);
+        setEditUserData({ username: '', email: '', password: '' });
         fetchTicketInfoUsers();
-        console.log('✅ User created successfully');
-      } else {
-        showMessage('error', response.data.message || 'Failed to create user');
+        console.log('✅ User updated successfully');
       }
     } catch (error) {
-      console.error('❌ Error creating ticket info user:', error);
+      console.error('❌ Error updating user:', error);
       console.error('Error response:', error.response?.data);
-      showMessage('error', error.response?.data?.message || 'Failed to create user');
-    }
-  };
-
-  // Delete Ticket Info User
-  const handleDeleteTicketInfoUser = async (userId) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-
-    try {
-      const url = `${API_URL}/user/${userId}`;
-      console.log('🗑️ Deleting user at:', url);
-      const response = await axios.delete(url, {
-        headers: getAuthHeaders()
-      });
-
-      if (response.data.success) {
-        showMessage('success', 'User deleted successfully');
-        fetchTicketInfoUsers();
-        console.log('✅ User deleted successfully');
-      }
-    } catch (error) {
-      console.error('❌ Error deleting user:', error);
-      console.error('Error response:', error.response?.data);
-      showMessage('error', error.response?.data?.message || 'Failed to delete user');
+      showMessage('error', error.response?.data?.message || 'Failed to update user');
     }
   };
 
@@ -612,23 +619,23 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       )}
       
   
-
-      {/* Create User Modal */}
-      {showCreateUserModal && (
-        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full my-8">
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 rounded-t-lg">
+      {/* Edit User Modal */}
+      {showEditUserModal && (
+        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full">
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-lg">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold flex items-center gap-2">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  Create Ticket Info User
+                  Edit Both User
                 </h3>
                 <button
                   onClick={() => {
-                    setShowCreateUserModal(false);
-                    setNewUserData({ username: '', email: '', password: '' });
+                    setShowEditUserModal(false);
+                    setEditingUser(null);
+                    setEditUserData({ username: '', email: '', password: '' });
                   }}
                   className="text-white hover:text-gray-200 transition-colors"
                 >
@@ -639,14 +646,14 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
               </div>
             </div>
 
-            <form onSubmit={handleCreateTicketInfoUser} className="p-6 space-y-4">
+            <form onSubmit={handleUpdateUser} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Username *</label>
                 <input
                   type="text"
-                  value={newUserData.username}
-                  onChange={(e) => setNewUserData({...newUserData, username: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  value={editUserData.username}
+                  onChange={(e) => setEditUserData({...editUserData, username: e.target.value})}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                   placeholder="Enter username"
                   required
                 />
@@ -656,40 +663,46 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
                 <input
                   type="email"
-                  value={newUserData.email}
-                  onChange={(e) => setNewUserData({...newUserData, email: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  value={editUserData.email}
+                  onChange={(e) => setEditUserData({...editUserData, email: e.target.value})}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                   placeholder="user@example.com"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Password *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">New Password (Optional)</label>
                 <input
                   type="password"
-                  value={newUserData.password}
-                  onChange={(e) => setNewUserData({...newUserData, password: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                  placeholder="Enter password"
-                  required
+                  value={editUserData.password}
+                  onChange={(e) => setEditUserData({...editUserData, password: e.target.value})}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  placeholder="Leave empty to keep current password"
                   minLength="6"
                 />
-                <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+                <p className="text-xs text-gray-500 mt-1">Leave empty to keep current password. Minimum 6 characters if changing.</p>
+              </div>
+
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3">
+                <p className="text-xs text-gray-700">
+                  <span className="font-semibold">⚠️ Note:</span> This user can login to both Receptionist and Ticket Info screens with updated credentials.
+                </p>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-green-600 text-white py-2.5 rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-md"
+                  className="flex-1 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 transition-colors font-semibold shadow-md"
                 >
-                  Create User
+                  Update User
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setShowCreateUserModal(false);
-                    setNewUserData({ username: '', email: '', password: '' });
+                    setShowEditUserModal(false);
+                    setEditingUser(null);
+                    setEditUserData({ username: '', email: '', password: '' });
                   }}
                   className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
                 >
@@ -701,7 +714,8 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         </div>
       )}
 
-      {/* Top Row: Left Logo, Right Logo, Screen Type */}
+
+      {/* Top Row: Left Logo, Right Logo, Screen Type */
       <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="bg-white rounded-lg shadow p-4">
           <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">
@@ -773,67 +787,74 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
           </div>
         </div>
       </div>
-          {/* Ticket Info Users Management Section */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-md p-5 mb-6 border-2 border-green-200">
+
+      /* Both User Display Section */}
+      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-md p-5 mb-6 border-2 border-purple-200">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold text-green-900 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-purple-900 flex items-center gap-2">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Ticket Info Users Management
+              Both User (Dual Role Access)
             </h2>
-            <p className="text-sm text-green-600 mt-1">Create and manage ticket_info screen users</p>
+            <p className="text-sm text-purple-600 mt-1">Automatically created user with receptionist & ticket_info access</p>
           </div>
-          <button
-            onClick={() => setShowCreateUserModal(true)}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-md flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Create New User
-          </button>
+          <div className="bg-purple-100 px-4 py-2 rounded-lg border-2 border-purple-300">
+            <p className="text-xs text-purple-700 font-semibold">Auto-Generated with License</p>
+          </div>
         </div>
 
-        {/* Users List */}
+        {/* Both User Display */}
         <div className="bg-white rounded-lg p-4">
           {ticketInfoUsers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <svg className="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg className="w-16 h-16 mx-auto mb-3 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <p className="text-lg font-medium">No ticket_info users created yet</p>
-              <p className="text-sm">Click "Create New User" to add your first user</p>
+              <p className="text-lg font-medium">No both_user found</p>
+              <p className="text-sm">Both user is automatically created when license is created</p>
+              <p className="text-xs text-gray-400 mt-2">Default password: QueUser123!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {ticketInfoUsers.map((user) => (
-                <div key={user.id} className="border-2 border-green-200 rounded-lg p-4 bg-green-50 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between">
+                <div key={user.id} className="border-2 border-purple-300 rounded-lg p-5 bg-gradient-to-br from-purple-50 to-indigo-50 hover:shadow-lg transition-all">
+                  <div className="flex items-start gap-3">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
                           {user.username?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-800">{user.username}</h3>
+                          <h3 className="font-bold text-gray-800 text-lg">{user.username}</h3>
                           <p className="text-xs text-gray-600">{user.email}</p>
                         </div>
                       </div>
-                      <div className="mt-2">
-                        <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-semibold">
-                          ticket_info
-                        </span>
+                      <div className="mt-3 space-y-2">
+                        <div className="flex gap-2 flex-wrap">
+                          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-semibold border border-blue-300">
+                            📋 receptionist
+                          </span>
+                          <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-semibold border border-green-300">
+                            📺 ticket_info
+                          </span>
+                        </div>
+                        <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-xs text-gray-700">
+                            <span className="font-semibold">🔑 Default Password:</span>
+                            <code className="ml-1 px-2 py-0.5 bg-yellow-100 rounded text-yellow-800 font-mono">QueUser123!</code>
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <button
-                      onClick={() => handleDeleteTicketInfoUser(user.id)}
-                      className="text-red-500 hover:text-red-700 transition-colors p-1"
-                      title="Delete User"
+                      onClick={() => handleEditUser(user)}
+                      className="flex-shrink-0 p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                      title="Edit User"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </button>
                   </div>
@@ -842,8 +863,29 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
             </div>
           )}
         </div>
+
+        {/* Info Box */}
+        <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-sm text-blue-800">
+              <p className="font-semibold mb-1">ℹ️ About Both User:</p>
+              <ul className="list-disc list-inside space-y-1 text-xs">
+                <li>Automatically created when license is created</li>
+                <li>Can login to both Receptionist and Ticket Info screens</li>
+                <li>Email format: <code className="bg-blue-100 px-1 rounded">{'{admin}.user@{company}.com'}</code></li>
+                <li>Default password: <code className="bg-blue-100 px-1 rounded font-semibold">QueUser123!</code></li>
+                <li>Cannot be deleted (system user)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-md p-5 mb-6 border-2 border-green-200">
+
+      {/* Content Type Selection Section */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-md p-5 mb-6 border-2 border-green-200">
         <label className="block text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

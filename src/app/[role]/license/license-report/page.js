@@ -96,10 +96,11 @@ export default function LicenseReportPage() {
         status: license.status,
         max_users: license.max_users || 10,
         max_counters: license.max_counters || 5,
-        max_receptionists: license.max_receptionists || 5,
-        max_ticket_info_users: license.max_ticket_info_users || 3,
-        max_sessions_per_receptionist: license.max_sessions_per_receptionist || 1,
-        max_sessions_per_ticket_info: license.max_sessions_per_ticket_info || 1,
+        max_receptionist_sessions: license.max_sessions_per_receptionist || license.max_receptionist_sessions || 1,
+        max_ticket_info_sessions: license.max_sessions_per_ticket_info || license.max_ticket_info_sessions || 1,
+        both_user: license.both_user || 1,
+        both_user_receptionist_sessions: license.both_user_receptionist_sessions || 1,
+        both_user_ticket_info_sessions: license.both_user_ticket_info_sessions || 1,
         company_name: license.company_name,
         company_logo: license.company_logo || '',
         email: license.email || '',
@@ -490,32 +491,60 @@ export default function LicenseReportPage() {
               {/* License Limits & Session Controls */}
               <div className="bg-purple-50 rounded-lg p-5">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <FaChartBar className="text-purple-600" /> License Limits & Session Controls
+                  <FaChartBar className="text-purple-600" /> License Limits & Sessions
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Receptionists</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Receptionist Sessions</label>
                     <input
                       type="number"
-                      name="max_receptionists"
-                      value={editFormData.max_receptionists}
+                      name="max_receptionist_sessions"
+                      value={editFormData.max_receptionist_sessions}
                       onChange={handleEditFormChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       min="1"
+                      max="10"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Maximum reception role users</p>
+                    <p className="text-xs text-gray-500 mt-1">Total receptionist sessions (1-10)</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Ticket Info Users</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Ticket Info Sessions</label>
                     <input
                       type="number"
-                      name="max_ticket_info_users"
-                      value={editFormData.max_ticket_info_users}
+                      name="max_ticket_info_sessions"
+                      value={editFormData.max_ticket_info_sessions}
                       onChange={handleEditFormChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       min="1"
+                      max="10"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Maximum ticket_info screen users</p>
+                    <p className="text-xs text-gray-500 mt-1">Total ticket info sessions (1-10)</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Both User - Receptionist Sessions</label>
+                    <input
+                      type="number"
+                      name="both_user_receptionist_sessions"
+                      value={editFormData.both_user_receptionist_sessions}
+                      onChange={handleEditFormChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      min="1"
+                      max="10"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Sessions for both_user on receptionist screen (1-10)</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Both User - Ticket Info Sessions</label>
+                    <input
+                      type="number"
+                      name="both_user_ticket_info_sessions"
+                      value={editFormData.both_user_ticket_info_sessions}
+                      onChange={handleEditFormChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      min="1"
+                      max="10"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Sessions for both_user on ticket info screen (1-10)</p>
                   </div>
                   {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Sessions Per Receptionist</label>
@@ -708,36 +737,52 @@ export default function LicenseReportPage() {
               </div>
 
               {/* Session Limits */}
-              {(selectedLicense.max_receptionists || selectedLicense.max_ticket_info_users) && (
+              {(selectedLicense.max_sessions_per_receptionist || selectedLicense.max_sessions_per_ticket_info || selectedLicense.max_receptionist_sessions || selectedLicense.max_ticket_info_sessions) && (
                 <div className="bg-purple-50 rounded-lg p-5">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <span>📊</span> License Limits & Sessions
+                    <span>📊</span> Session Limits
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedLicense.max_receptionists && (
+                    {(selectedLicense.max_receptionist_sessions || selectedLicense.max_sessions_per_receptionist) && (
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Max Receptionists</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_receptionists}</p>
+                        <p className="text-xs text-gray-500 mb-1">Receptionist Sessions</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_receptionist_sessions || selectedLicense.max_sessions_per_receptionist}</p>
+                        <p className="text-xs text-gray-400 mt-1">Total concurrent sessions</p>
                       </div>
                     )}
-                    {selectedLicense.max_ticket_info_users && (
+                    {(selectedLicense.max_ticket_info_sessions || selectedLicense.max_sessions_per_ticket_info) && (
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Max Ticket Info Users</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_ticket_info_users}</p>
+                        <p className="text-xs text-gray-500 mb-1">Ticket Info Sessions</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_ticket_info_sessions || selectedLicense.max_sessions_per_ticket_info}</p>
+                        <p className="text-xs text-gray-400 mt-1">Total display screens</p>
                       </div>
                     )}
-                    {selectedLicense.max_sessions_per_receptionist && (
+                    {selectedLicense.both_user && (
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Sessions Per Receptionist</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_sessions_per_receptionist}</p>
+                        <p className="text-xs text-gray-500 mb-1">Default Users</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.both_user}</p>
+                        <p className="text-xs text-gray-400 mt-1">Users with both roles</p>
                       </div>
                     )}
-                    {selectedLicense.max_sessions_per_ticket_info && (
+                    {selectedLicense.both_user_receptionist_sessions && (
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Sessions Per Ticket Info</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedLicense.max_sessions_per_ticket_info}</p>
+                        <p className="text-xs text-gray-500 mb-1">Both User - Receptionist Sessions</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.both_user_receptionist_sessions}</p>
+                        <p className="text-xs text-gray-400 mt-1">Sessions for both_user on receptionist</p>
                       </div>
                     )}
+                    {selectedLicense.both_user_ticket_info_sessions && (
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Both User - Ticket Info Sessions</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedLicense.both_user_ticket_info_sessions}</p>
+                        <p className="text-xs text-gray-400 mt-1">Sessions for both_user on ticket info</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-800">
+                      ℹ️ <strong>Session Model:</strong> One user can login to both receptionist and ticket_info with session limits applied.
+                    </p>
                   </div>
                 </div>
               )}

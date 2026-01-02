@@ -168,7 +168,13 @@ export default function LoginPage() {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          const errorMsg = data.message || 'Invalid credentials';
+          let errorMsg = data.message || 'Invalid credentials';
+          
+          // Handle session limit error
+          if (data.session_limit_reached) {
+            errorMsg = `🚫 ${data.message}\n\nActive Sessions: ${data.active_sessions}/${data.max_sessions}\n\nPlease close an existing session first.`;
+          }
+          
           dispatch(setError(errorMsg));
           showToast(errorMsg, 'error');
           dispatch(setLoading(false));
@@ -210,7 +216,13 @@ export default function LoginPage() {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          const errorMsg = data.message || 'Invalid credentials';
+          let errorMsg = data.message || 'Invalid credentials';
+          
+          // Handle session limit error
+          if (data.session_limit_reached) {
+            errorMsg = `🚫 ${data.message}\n\nActive Sessions: ${data.active_sessions}/${data.max_sessions}\n\nPlease close an existing session first.`;
+          }
+          
           dispatch(setError(errorMsg));
           showToast(errorMsg, 'error');
           dispatch(setLoading(false));
