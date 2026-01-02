@@ -108,25 +108,30 @@ export default function UserManagementPage({ adminId: propAdminId }) {
       const res = await axios.get(endpoint, { headers: { Authorization: `Bearer ${token}` } });
       const list = res.data.data || res.data.users || res.data;
       if (Array.isArray(list)) {
-        console.log('[Users] Fetched users with login status:', list.map(u => ({ 
+        // ✅ Filter only users with role = 'user'
+        const userRoleOnly = list.filter(u => u.role === 'user');
+        console.log('[Users] Filtered user role only:', userRoleOnly.length, 'out of', list.length);
+        console.log('[Users] Fetched users with login status:', userRoleOnly.map(u => ({ 
           id: u.id, 
           username: u.username, 
+          role: u.role,
           isLoggedIn: u.isLoggedIn 
         })));
         
         // 🔍 Debug: Log first user's full data including permissions
-        if (list.length > 0) {
+        if (userRoleOnly.length > 0) {
           console.log('📋 [fetchUsers] First user full data:', {
-            id: list[0].id,
-            username: list[0].username,
-            permissions_exists: !!list[0].permissions,
-            permissions_type: typeof list[0].permissions,
-            permissions_value: list[0].permissions
+            id: userRoleOnly[0].id,
+            username: userRoleOnly[0].username,
+            role: userRoleOnly[0].role,
+            permissions_exists: !!userRoleOnly[0].permissions,
+            permissions_type: typeof userRoleOnly[0].permissions,
+            permissions_value: userRoleOnly[0].permissions
           });
         }
         
-        setUsers(list);
-        setUserCount(list.length);
+        setUsers(userRoleOnly);
+        setUserCount(userRoleOnly.length);
       }
       
       // Fetch license info for this admin

@@ -43,7 +43,13 @@ export default function AssignServicesPage({ adminId }) {
         
       const response = await axios.get(url);
       if (response.data.success) {
-        setUsers(response.data.data);
+        // ✅ Remove duplicates by filtering unique user IDs
+        const allUsers = response.data.data || [];
+        const uniqueUsers = allUsers.filter((user, index, self) =>
+          index === self.findIndex((u) => u.id === user.id)
+        );
+        console.log('📋 Fetched users:', allUsers.length, '→ Unique users:', uniqueUsers.length);
+        setUsers(uniqueUsers);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
