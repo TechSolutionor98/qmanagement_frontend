@@ -807,26 +807,26 @@ export default function ListOfLicensePage() {
                     {panelType === 'admin' ? (
                       <>
                         {/* Admin Panel Content */}
-                        {activeTab === 'create-services' && <CreateServicesPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'assign-services' && <AssignServicesPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'reports' && <ReportsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'details-reports' && <DetailsReportsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'short-reports' && <ShortReportsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'configuration' && <ConfigurationPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'counter' && <CounterDisplayPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'users' && <CreateAdminPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'user-sessions' && <UserSessionsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'display' && <DisplayScreensSessionsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'dashboard-btns' && <UserDashboardBtnsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'activity-logs' && <ActivityLogsPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'backup' && <BackupRestorePage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'create-services' && <CreateServicesPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'assign-services' && <AssignServicesPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'reports' && <ReportsPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'details-reports' && <DetailsReportsPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'short-reports' && <ShortReportsPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'configuration' && <ConfigurationPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'counter' && <CounterDisplayPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'users' && <CreateAdminPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'user-sessions' && <UserSessionsPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'display' && <DisplayScreensSessionsPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'dashboard-btns' && <UserDashboardBtnsPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'activity-logs' && <ActivityLogsPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'backup' && <BackupRestorePage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
                       </>
                     ) : (
                       <>
                         {/* User Panel Content */}
-                        {activeTab === 'dashboard' && <DashboardPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'completed-tasks' && <CompletedTasksPage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
-                        {activeTab === 'profile' && <ProfilePage adminId={adminDetails?.id || selectedAdmin?.admin_id} />}
+                        {activeTab === 'dashboard' && <DashboardPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'completed-tasks' && <CompletedTasksPage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
+                        {activeTab === 'profile' && <ProfilePage adminId={selectedAdmin?.admin_id || adminDetails?.id} />}
                       </>
                     )}
                   </>

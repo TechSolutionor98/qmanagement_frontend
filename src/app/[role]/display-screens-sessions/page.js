@@ -5,7 +5,7 @@ import axios from '@/utils/axiosInstance';
 
 
 
-export default function DisplayScreensSessionsPage() {
+export default function DisplayScreensSessionsPage({ adminId: propAdminId }) {
   const currentUser = useSelector((state) => state.auth.user);
   const token = useSelector((state) => state.auth.token);
   
@@ -13,26 +13,48 @@ export default function DisplayScreensSessionsPage() {
   const [serviceSessions, setServiceSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  // Fetch sessions on component mount
+  
+  // ✅ Use adminId from prop OR from logged-in user
+  const [adminId, setAdminId] = useState(null);
+  
   useEffect(() => {
-    if (currentUser && token) {
+    console.log('🔍 [display-screens-sessions] ADMIN ID DETECTION:');
+    console.log('🔍 [display-screens-sessions] propAdminId:', propAdminId);
+    console.log('🔍 [display-screens-sessions] propAdminId type:', typeof propAdminId);
+    console.log('🔍 [display-screens-sessions] currentUser:', currentUser);
+    
+    if (propAdminId) {
+      setAdminId(propAdminId);
+      console.log('✅ [display-screens-sessions] Using admin_id from prop:', propAdminId);
+    } else if (currentUser && currentUser.admin_id) {
+      setAdminId(currentUser.admin_id);
+      console.log('✅ [display-screens-sessions] Using admin_id from logged-in user:', currentUser.admin_id);
+    } else if (currentUser && currentUser.role === 'admin') {
+      setAdminId(currentUser.id);
+      console.log('✅ [display-screens-sessions] Logged in user IS the admin, using user.id as admin_id:', currentUser.id);
+    } else {
+      console.error('❌ [display-screens-sessions] No admin_id found - currentUser:', currentUser);
+    }
+  }, [propAdminId, currentUser]);
+
+  // Fetch sessions when adminId is available
+  useEffect(() => {
+    if (adminId && token) {
       fetchSessions();
     }
-  }, [currentUser, token]);
+  }, [adminId, token]);
 
   const fetchSessions = async () => {
     try {
       setLoading(true);
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
       
-      console.log('🔍 Fetching sessions for admin_id:', currentUser.admin_id || currentUser.id);
-      console.log('👤 Current user:', currentUser);
-      console.log('🔑 Token available:', !!token);
+      console.log('🔍 [display-screens-sessions] Fetching sessions for admin_id:', adminId);
+      console.log('🔑 [display-screens-sessions] Token available:', !!token);
       
       // Fetch ticket_info sessions
       const ticketResponse = await axios.get(
-        `${API_URL}/sessions/ticket-info/${currentUser.admin_id || currentUser.id}`,
+        `${API_URL}/sessions/ticket-info/${adminId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -42,7 +64,7 @@ export default function DisplayScreensSessionsPage() {
       
       // Fetch receptionist sessions
       const receptionistResponse = await axios.get(
-        `${API_URL}/sessions/receptionist/${currentUser.admin_id || currentUser.id}`,
+        `${API_URL}/sessions/receptionist/${adminId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

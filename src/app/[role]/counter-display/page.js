@@ -44,22 +44,23 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
   const [adminId, setAdminId] = useState(null);
   
   useEffect(() => {
-    console.log('🔍 ADMIN ID DETECTION:');
-    console.log('   - propAdminId:', propAdminId);
-    console.log('   - currentUser:', JSON.stringify(currentUser, null, 2));
+    console.log('🔍 [counter-display] ADMIN ID DETECTION:');
+    console.log('🔍 [counter-display] propAdminId:', propAdminId);
+    console.log('🔍 [counter-display] propAdminId type:', typeof propAdminId);
+    console.log('🔍 [counter-display] currentUser:', JSON.stringify(currentUser, null, 2));
     
     if (propAdminId) {
       setAdminId(propAdminId);
-      console.log('✅ Using admin_id from prop:', propAdminId);
+      console.log('✅ [counter-display] Using admin_id from prop:', propAdminId);
     } else if (currentUser && currentUser.admin_id) {
       setAdminId(currentUser.admin_id);
-      console.log('✅ Using admin_id from logged-in user:', currentUser.admin_id);
+      console.log('✅ [counter-display] Using admin_id from logged-in user:', currentUser.admin_id);
     } else if (currentUser && currentUser.id && currentUser.role === 'admin') {
       // If logged in user is admin, use their ID as admin_id
       setAdminId(currentUser.id);
-      console.log('✅ Logged in user IS the admin, using user.id as admin_id:', currentUser.id);
+      console.log('✅ [counter-display] Logged in user IS the admin, using user.id as admin_id:', currentUser.id);
     } else {
-      console.error('❌ No admin_id found - currentUser:', currentUser);
+      console.error('❌ [counter-display] No admin_id found - currentUser:', currentUser);
     }
   }, [propAdminId, currentUser]);
   

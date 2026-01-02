@@ -27,7 +27,9 @@ export default function CreateLicensePage() {
     max_counters: 10,
     max_receptionist_sessions: 1,
     max_ticket_info_sessions: 1,
-    both_user: 1,  // Always 1 by default
+    both_user: 1,  // Number of both users
+    both_user_receptionist_sessions: 1,  // Receptionist sessions per both_user
+    both_user_ticket_info_sessions: 1,   // Ticket info sessions per both_user
     status: 'active',
     admin_username: '',
     admin_password: ''
@@ -135,14 +137,17 @@ export default function CreateLicensePage() {
         message += `   Password: (as set)\n\n`;
         
         if (data.data.default_user) {
-          message += `👥 Default User Created:\n`;
+          message += `👥 Default Both User Created:\n`;
           message += `   Email: ${data.data.default_user.email}\n`;
           message += `   Password: ${data.data.default_user.password}\n`;
           message += `   Roles: ${data.data.default_user.roles}\n`;
           message += `   Note: ${data.data.default_user.note}\n\n`;
-          message += `📊 Session Limits:\n`;
-          message += `   Receptionist Sessions: ${data.data.max_receptionist_sessions}\n`;
-          message += `   Ticket Info Sessions: ${data.data.max_ticket_info_sessions}`;
+          message += `📊 Both User Session Limits:\n`;
+          message += `   Receptionist Sessions: ${data.data.both_user_receptionist_sessions || 1}\n`;
+          message += `   Ticket Info Sessions: ${data.data.both_user_ticket_info_sessions || 1}\n\n`;
+          message += `📈 Total Session Limits:\n`;
+          message += `   Total Receptionist Sessions: ${data.data.max_receptionist_sessions}\n`;
+          message += `   Total Ticket Info Sessions: ${data.data.max_ticket_info_sessions}`;
         }
         
         alert(message);
@@ -447,49 +452,47 @@ export default function CreateLicensePage() {
               />
               <p className="text-xs text-gray-500 mt-1">Maximum counters for queue management</p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Receptionist Sessions
-              </label>
-              <input
-                type="number"
-                name="max_receptionist_sessions"
-                value={formData.max_receptionist_sessions}
-                onChange={handleChange}
-                min="1"
-                max="10"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 mt-1">Total receptionist sessions allowed (1-10)</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Ticket Info Sessions
-              </label>
-              <input
-                type="number"
-                name="max_ticket_info_sessions"
-                value={formData.max_ticket_info_sessions}
-                onChange={handleChange}
-                min="1"
-                max="10"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 mt-1">Total ticket info screen sessions (1-10)</p>
-            </div>
           </div>
 
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-300 rounded-lg">
-            <p className="text-xs text-blue-900 flex items-start gap-2">
-              <FaInfoCircle className="text-blue-600 mt-0.5 flex-shrink-0" /> 
-              <span>
-                <strong>Session Model:</strong> By default, one user will be created who can login to both receptionist and ticket_info roles.
-                <br/>• <strong>Receptionist Sessions:</strong> Number of devices/browsers that can run receptionist simultaneously
-                <br/>• <strong>Ticket Info Sessions:</strong> Number of display screens that can show ticket information
-              </span>
-            </p>
+          {/* Both User Sessions Section */}
+          <div className="mt-6 pt-6 border-t border-purple-200">
+            <h4 className="text-md font-semibold text-purple-800 mb-3 flex items-center gap-2">
+              <FaUser className="text-purple-600" /> Both User (Receptionist + Ticket Info)
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Receptionist Sessions Each
+                </label>
+                <input
+                  type="number"
+                  name="both_user_receptionist_sessions"
+                  value={formData.both_user_receptionist_sessions}
+                  onChange={handleChange}
+                  min="1"
+                  max="5"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">Per both_user (1-5)</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ticket Info Sessions Each
+                </label>
+                <input
+                  type="number"
+                  name="both_user_ticket_info_sessions"
+                  value={formData.both_user_ticket_info_sessions}
+                  onChange={handleChange}
+                  min="1"
+                  max="5"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">Per both_user (1-5)</p>
+              </div>
+            </div>
           </div>
         </div>
 
