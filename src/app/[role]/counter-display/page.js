@@ -647,7 +647,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
                   type="text"
                   value={editUserData.username}
                   onChange={(e) => setEditUserData({...editUserData, username: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  className="w-full px-4 py-2 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                   placeholder="Enter username"
                   required
                 />
@@ -659,7 +659,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
                   type="email"
                   value={editUserData.email}
                   onChange={(e) => setEditUserData({...editUserData, email: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  className="w-full px-4 py-2 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                   placeholder="user@example.com"
                   required
                 />
@@ -671,7 +671,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
                   type="password"
                   value={editUserData.password}
                   onChange={(e) => setEditUserData({...editUserData, password: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  className="w-full px-4 py-2 bg-white border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                   placeholder="Leave empty to keep current password"
                   minLength="6"
                 />

@@ -108,7 +108,7 @@ export default function CounterSelectionModal({ isOpen, onClose, adminId, token,
                 <select
                   value={selectedCounter || ''}
                   onChange={(e) => setSelectedCounter(Number(e.target.value))}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none text-base"
+                  className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none text-base"
                 >
                   <option value="">-- Select Counter --</option>
                   {counters.map((counter) => (
