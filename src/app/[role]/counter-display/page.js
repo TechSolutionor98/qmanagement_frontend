@@ -784,19 +784,19 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       </div>
 
       /* Both User Display Section */}
-      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-md p-5 mb-6 border-2 border-purple-200">
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-md p-5 mb-6 border-2 border-green-200">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold text-purple-900 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-green-900 flex items-center gap-2">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               Both User (Dual Role Access)
             </h2>
-            <p className="text-sm text-purple-600 mt-1">Automatically created user with receptionist & ticket_info access</p>
+            <p className="text-sm text-green-600 mt-1">Automatically created user with receptionist & ticket_info access</p>
           </div>
-          <div className="bg-purple-100 px-4 py-2 rounded-lg border-2 border-purple-300">
-            <p className="text-xs text-purple-700 font-semibold">Auto-Generated with License</p>
+          <div className="bg-green-100 px-4 py-2 rounded-lg border-2 border-green-300">
+            <p className="text-xs text-green-700 font-semibold">Auto-Generated with License</p>
           </div>
         </div>
 
@@ -804,7 +804,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         <div className="bg-white rounded-lg p-4">
           {ticketInfoUsers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <svg className="w-16 h-16 mx-auto mb-3 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-16 h-16 mx-auto mb-3 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <p className="text-lg font-medium">No both_user found</p>
@@ -814,10 +814,10 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {ticketInfoUsers.map((user) => (
-                <div key={user.id} className="relative border-2 border-purple-300 rounded-lg p-5 bg-gradient-to-br from-purple-50 to-indigo-50 hover:shadow-lg transition-all">
+                <div key={user.id} className="relative border-2 border-green-300 rounded-lg p-5 bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-lg transition-all">
                   <button
                     onClick={() => handleEditUser(user)}
-                    className="absolute top-3 right-3 p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                    className="absolute top-3 right-3 p-2 text-green-600 hover:text-green-800 hover:bg-green-100 rounded-lg transition-colors"
                     title="Edit User"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
