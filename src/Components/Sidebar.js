@@ -394,7 +394,7 @@ export default function Sidebar() {
             >
               <div className="flex items-center gap-3">
                 <MdSettings className="text-lg" />
-                <span className="text-sm font-medium">Admin Settings</span>
+                <span className="text-sm font-medium">Time Zone Setting</span>
               </div>
               <IoChevronForward className={`text-sm transition-transform duration-200 ${isAdminSettingsOpen ? 'rotate-90' : ''}`} />
             </button>

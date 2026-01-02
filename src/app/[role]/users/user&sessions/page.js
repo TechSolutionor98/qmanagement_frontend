@@ -661,7 +661,7 @@ export default function UserManagementPage({ adminId: propAdminId }) {
               <DetailRow label="Account Status" value={selectedUser.status === 'active' ? 'Active' : 'Inactive'} badge={selectedUser.status === 'active' ? 'green' : 'gray'} />
               
               {/* Permissions Section */}
-              {selectedUser.permissions && (
+              {/* {selectedUser.permissions && (
                 <div className="pt-4 border-t border-gray-200">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">Permissions</h3>
                   <div className="grid grid-cols-1 gap-2">
@@ -691,7 +691,7 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                     })}
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
             {/* <div className="px-8 py-4 border-t border-gray-100 flex justify-end">
               <button onClick={() => setShowViewModal(false)} className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 active:scale-95">Close</button>
