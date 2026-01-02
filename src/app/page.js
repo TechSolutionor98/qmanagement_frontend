@@ -35,6 +35,89 @@ export default function Home() {
     canViewRecentTickets: false
   });
 
+  // Session validation - check every 10 seconds
+  useEffect(() => {
+    const validateSessionStatus = async () => {
+      if (!token) {
+        // Don't redirect on missing token - auth guard handles this
+        return;
+      }
+
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const response = await fetch(`${API_URL}/sessions/validate`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // Only logout on 401 Unauthorized (session terminated by admin)
+        if (response.status === 401) {
+          const data = await response.json().catch(() => ({}));
+          console.log('❌ Session terminated by administrator');
+          alert('Your session has been terminated by the administrator. You will be logged out.');
+          dispatch(logout());
+          deleteCookie('token');
+          deleteCookie('user');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('user');
+          router.push('/login');
+          return;
+        }
+
+        // For other errors (500, network issues), just log but don't logout
+        if (!response.ok) {
+          console.warn('⚠️ Session validation failed (HTTP ' + response.status + ') - will retry');
+          return;
+        }
+
+        const data = await response.json();
+
+        // Check if session is marked as invalid
+        if (data.valid === false) {
+          console.log('❌ Session invalidated by administrator');
+          alert('Your session has been terminated by the administrator. You will be logged out.');
+          dispatch(logout());
+          deleteCookie('token');
+          deleteCookie('user');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('user');
+          router.push('/login');
+        } else {
+          console.log('✅ Session valid');
+        }
+      } catch (error) {
+        // Network error - don't logout, just log and retry later
+        console.warn('⚠️ Session validation network error:', error.message, '- will retry');
+      }
+    };
+
+    // Check after 2 seconds (page load time), then every 10 seconds
+    const initialTimeout = setTimeout(validateSessionStatus, 2000);
+    const interval = setInterval(validateSessionStatus, 10000);
+
+    // Also check when page becomes visible (user switches back to tab)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('👁️ Page visible - checking session');
+        validateSessionStatus();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [token, dispatch, router]);
+
   // Load permissions once on mount - no auto-refresh for speed
   useEffect(() => {
     const loadPermissions = async () => {
