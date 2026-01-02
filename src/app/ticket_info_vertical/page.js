@@ -1223,24 +1223,24 @@ function TicketInfoContent() {
         {/* Header Section */}
         <div className="w-full flex justify-around items-center bg-white/95 shadow-lg h-[200px] border-b border-gray-300">
           {/* Left Logo - Dynamic from database */}
-          <div className="flex-[0_0_25%] text-center">
+          <div className="flex-[0_0_30%] text-center">
             {leftLogoUrl ? (
               <img
                 src={`${apiUrlWs}${leftLogoUrl}`}
                 alt="Left Logo"
-                className="w-[150px] h-[100px] mx-auto object-contain"
+                className="w-full h-[150px] mx-auto object-contain"
               />
             ) : (
               <img
                 src="https://ded.techsolutionor.com/assets/img/logo/DEDpreview.png"
                 alt="Logo"
-                className="w-[150px] h-[100px] mx-auto object-contain"
+                className="w-full h-[150px] mx-auto object-contain"
               />
             )}
           </div>
           
           {/* Now Calling Section */}
-          <div className="flex-[0_0_50%] text-center border-l-[5px] border-r-[5px] border-gray-300">
+          <div className="flex-[0_0_40%] text-center border-l-[5px] border-r-[5px] border-gray-300">
             <div className="text-black font-bold text-[40px]">
               <b className="text-red-600 text-[50px]">Now Calling</b>
               <br />
@@ -1255,18 +1255,18 @@ function TicketInfoContent() {
           </div>
           
           {/* Right Logo - Dynamic from database */}
-          <div className="flex-[0_0_25%] text-center">
+          <div className="flex-[0_0_30%] text-center">
             {rightLogoUrl ? (
               <img
                 src={`${apiUrlWs}${rightLogoUrl}`}
                 alt="Right Logo"
-                className="w-[150px] h-[100px] mx-auto object-contain"
+                className="w-full h-[150px] mx-auto object-contain"
               />
             ) : (
               <img
                 src="https://epbc.techsolutionor.com/assets/img/logo/image-removebg-preview.png"
                 alt="Logo"
-                className="w-[150px] h-[100px] mx-auto object-contain"
+                className="w-full h-[150px] mx-auto object-contain"
               />
             )}
           </div>

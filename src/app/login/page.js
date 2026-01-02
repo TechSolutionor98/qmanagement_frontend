@@ -33,7 +33,9 @@ export default function LoginPage() {
   const [showReceptionistPassword, setShowReceptionistPassword] = useState(false);
   const [showTicketInfoPassword, setShowTicketInfoPassword] = useState(false);
   const [showCounterModal, setShowCounterModal] = useState(false);
+  const [showScreenSelectionModal, setShowScreenSelectionModal] = useState(false);
   const [pendingUserData, setPendingUserData] = useState(null);
+  const [pendingTicketInfoData, setPendingTicketInfoData] = useState(null);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -181,8 +183,8 @@ export default function LoginPage() {
           return;
         }
 
-        // Check role
-        if (data.user.role !== 'receptionist') {
+        // Check role - allow receptionist or both_user (receptionist,ticket_info)
+        if (!data.user.role.includes('receptionist')) {
           const errorMsg = 'Access denied. Only Receptionist users can login here.';
           dispatch(setError(errorMsg));
           showToast(errorMsg, 'error');
@@ -229,8 +231,8 @@ export default function LoginPage() {
           return;
         }
 
-        // Check role
-        if (data.user.role !== 'ticket_info') {
+        // Check role - allow ticket_info or both_user (receptionist,ticket_info)
+        if (!data.user.role.includes('ticket_info')) {
           const errorMsg = 'Access denied. Only Ticket Info users can login here.';
           dispatch(setError(errorMsg));
           showToast(errorMsg, 'error');
@@ -238,39 +240,12 @@ export default function LoginPage() {
           return;
         }
 
-        // Store credentials
-        dispatch(setCredentials({
+        // Store pending ticket info data and show screen selection modal
+        setPendingTicketInfoData({
           user: data.user,
           token: data.token,
-        }));
-
-        // Fetch screen configuration
-        try {
-          const configResponse = await fetch(`${API_URL}/counter-display/config`, {
-            headers: { Authorization: `Bearer ${data.token}` }
-          });
-          
-          const configData = await configResponse.json();
-          
-          if (configData.success && configData.config) {
-            const screenType = configData.config.screen_type;
-            showToast('Login successful!', 'success');
-            
-            if (screenType === 'horizontal') {
-              window.location.href = '/ticket_info_horizontal';
-            } else {
-              window.location.href = '/ticket_info_vertical';
-            }
-          } else {
-            showToast('Login successful!', 'success');
-            window.location.href = '/ticket_info_vertical';
-          }
-        } catch (configError) {
-          console.error('Config fetch error:', configError);
-          showToast('Login successful!', 'success');
-          window.location.href = '/ticket_info_vertical';
-        }
-        
+        });
+        setShowScreenSelectionModal(true);
         dispatch(setLoading(false));
         return;
       }
@@ -912,6 +887,110 @@ export default function LoginPage() {
         token={pendingUserData?.token}
         onCounterSelect={handleCounterSelect}
       />
+
+      {/* Screen Selection Modal for Ticket Info */}
+      {showScreenSelectionModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-8 py-6">
+              <h2 className="text-2xl font-bold text-white text-center">Select Display Screen</h2>
+              <p className="text-green-100 text-center mt-2">Choose your preferred screen orientation</p>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Horizontal Screen Option */}
+                <button
+                  onClick={() => {
+                    if (pendingTicketInfoData) {
+                      dispatch(setCredentials({
+                        user: pendingTicketInfoData.user,
+                        token: pendingTicketInfoData.token,
+                      }));
+                      showToast('Login successful! Redirecting to Horizontal Screen...', 'success');
+                      setTimeout(() => {
+                        window.location.href = '/ticket_info_horizontal';
+                      }, 500);
+                    }
+                  }}
+                  className="group relative bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-300 hover:border-blue-500 rounded-xl p-8 transition-all duration-300 hover:shadow-xl hover:scale-105"
+                >
+                  <div className="flex flex-col items-center space-y-4">
+                    {/* Horizontal Screen Icon */}
+                    <div className="w-24 h-16 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                      <svg className="w-16 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="2" y="6" width="20" height="12" rx="2" strokeWidth="2" />
+                        <line x1="2" y1="12" x2="22" y2="12" strokeWidth="2" />
+                      </svg>
+                    </div>
+                    
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">Horizontal Screen</h3>
+                      <p className="text-sm text-gray-600">Landscape orientation display</p>
+                      <p className="text-xs text-gray-500 mt-1">Wide format • Best for TVs</p>
+                    </div>
+
+                    {/* Hover Effect */}
+                    <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-5 rounded-xl transition-opacity"></div>
+                  </div>
+                </button>
+
+                {/* Vertical Screen Option */}
+                <button
+                  onClick={() => {
+                    if (pendingTicketInfoData) {
+                      dispatch(setCredentials({
+                        user: pendingTicketInfoData.user,
+                        token: pendingTicketInfoData.token,
+                      }));
+                      showToast('Login successful! Redirecting to Vertical Screen...', 'success');
+                      setTimeout(() => {
+                        window.location.href = '/ticket_info_vertical';
+                      }, 500);
+                    }
+                  }}
+                  className="group relative bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-2 border-green-300 hover:border-green-500 rounded-xl p-8 transition-all duration-300 hover:shadow-xl hover:scale-105"
+                >
+                  <div className="flex flex-col items-center space-y-4">
+                    {/* Vertical Screen Icon */}
+                    <div className="w-16 h-24 bg-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                      <svg className="w-10 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="6" y="2" width="12" height="20" rx="2" strokeWidth="2" />
+                        <line x1="12" y1="2" x2="12" y2="22" strokeWidth="2" />
+                      </svg>
+                    </div>
+                    
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">Vertical Screen</h3>
+                      <p className="text-sm text-gray-600">Portrait orientation display</p>
+                      <p className="text-xs text-gray-500 mt-1">Tall format • Best for Monitors</p>
+                    </div>
+
+                    {/* Hover Effect */}
+                    <div className="absolute inset-0 bg-green-600 opacity-0 group-hover:opacity-5 rounded-xl transition-opacity"></div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Cancel Button */}
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => {
+                    setShowScreenSelectionModal(false);
+                    setPendingTicketInfoData(null);
+                    dispatch(setLoading(false));
+                  }}
+                  className="px-6 py-2 text-gray-600 hover:text-gray-800 font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
