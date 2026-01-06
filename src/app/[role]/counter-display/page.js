@@ -214,15 +214,26 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       if (error.response?.status === 403) {
         console.error('❌ 403 Forbidden - Session expired or invalid');
         console.error('   - Error message:', error.response?.data?.message);
-        toast.error('🔒 Session expired! Redirecting to login...', {
+        
+        toast.error('🔒 Session expired or invalid!\n\n⚠️ Please logout and login again to fix this issue.\n\nRedirecting to login...', {
           position: "top-right",
-          autoClose: 3000
+          autoClose: 5000,
+          style: {
+            whiteSpace: 'pre-line',
+            fontSize: '15px',
+            fontWeight: '600'
+          }
         });
+        
         setTimeout(() => {
-          localStorage.removeItem('token');
-          sessionStorage.removeItem('token');
+          localStorage.clear();
+          sessionStorage.clear();
+          // Clear all cookies
+          document.cookie.split(";").forEach(c => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
           router.push('/login');
-        }, 2000);
+        }, 3000);
         return;
       }
       
@@ -304,15 +315,26 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         console.error('❌ 403 Forbidden - Session expired or invalid');
         console.error('   - Backend message:', error.response?.data?.message);
         console.error('   - Session expired flag:', error.response?.data?.session_expired);
-        toast.error('🔒 Session expired! Redirecting to login...', {
+        
+        toast.error('🔒 Session expired or invalid!\n\n⚠️ Please logout and login again to fix this issue.\n\nRedirecting to login...', {
           position: "top-right",
-          autoClose: 3000
+          autoClose: 5000,
+          style: {
+            whiteSpace: 'pre-line',
+            fontSize: '15px',
+            fontWeight: '600'
+          }
         });
+        
         setTimeout(() => {
-          localStorage.removeItem('token');
-          sessionStorage.removeItem('token');
+          localStorage.clear();
+          sessionStorage.clear();
+          // Clear all cookies
+          document.cookie.split(";").forEach(c => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
           router.push('/login');
-        }, 2000);
+        }, 3000);
       }
     }
   };
