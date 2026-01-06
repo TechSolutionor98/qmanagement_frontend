@@ -29,7 +29,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
     
     // On production (non-localhost), always use production URL
     if (window.location.hostname !== 'localhost') {
-      const productionUrl = 'https://queapi.techmanagement.tech/api';
+      const productionUrl = 'https://api.techsolutionor.com/api';
       setAPI_URL(productionUrl);
       console.log('✅ PRODUCTION MODE - API_URL set to:', productionUrl);
       console.log('   - Upload URL will be:', productionUrl + '/counter-display/upload-video');
