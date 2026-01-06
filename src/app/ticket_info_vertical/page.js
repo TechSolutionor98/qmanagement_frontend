@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Image from 'next/image';
 import axios from '@/utils/axiosInstance';
 import { useRouter } from 'next/navigation';
@@ -17,8 +17,10 @@ function TicketInfoContent() {
   const [lastVoiceTime, setLastVoiceTime] = useState(null);
   const [aiVoiceReady, setAiVoiceReady] = useState(false);
   const [isAnnouncing, setIsAnnouncing] = useState(false); // Prevent overlapping announcements
+  const isAnnouncingRef = useRef(false); // Ref to avoid stale closure
   const [announcementQueue, setAnnouncementQueue] = useState([]); // Queue for pending tickets
-  // Separate state for displayed ticket (only updates after announcement completes)
+  const [announcedTickets, setAnnouncedTickets] = useState(new Set()); // Track announced tickets to prevent re-announcement
+  // Separate state for displayed ticket (only updates after announcement completesa
   const [displayedTicket, setDisplayedTicket] = useState('');
   const [displayedCounter, setDisplayedCounter] = useState('');
   const [broadcastChannel, setBroadcastChannel] = useState(null);
@@ -201,35 +203,48 @@ function TicketInfoContent() {
               timestamp: latestTimestamp
             });
             
-            // Check if this is a NEW ticket (different timestamp or ticket number)
-            if (!lastAnnouncedTime || latestTimestamp > lastAnnouncedTime) {
-              console.log('🆕 NEW TICKET DETECTED!');
+            // Check if this ticket has NEVER been announced before
+            setAnnouncedTickets(prev => {
+              const ticketNumber = latestTicket.ticket_number;
+              
+              // If ticket has already been announced, skip it
+              if (prev.has(ticketNumber)) {
+                console.log('ℹ️ Ticket already announced before, skipping:', ticketNumber);
+                return prev;
+              }
+              
+              // This is a truly NEW ticket that hasn't been announced
+              console.log('🆕 NEW TICKET DETECTED (never announced):', ticketNumber);
               
               // If announcement is in progress, add to queue
-              if (isAnnouncing) {
+              if (isAnnouncingRef.current) {
                 console.log('⏳ Announcement in progress, adding to queue');
-                setAnnouncementQueue(prev => {
+                setAnnouncementQueue(queue => {
                   // Check if ticket already in queue
-                  const exists = prev.some(t => t.ticket === latestTicket.ticket_number);
+                  const exists = queue.some(t => t.ticket === ticketNumber);
                   if (!exists) {
-                    return [...prev, {
-                      ticket: latestTicket.ticket_number,
+                    return [...queue, {
+                      ticket: ticketNumber,
                       counter: latestTicket.counter_no || 'N/A',
                       timestamp: latestTimestamp
                     }];
                   }
-                  return prev;
+                  return queue;
                 });
               } else {
                 // Update display immediately if no announcement in progress
                 console.log('🔄 Updating display and triggering voice');
-                setCalledTicket(latestTicket.ticket_number);
+                setCalledTicket(ticketNumber);
                 setCurrentCounter(latestTicket.counter_no || 'N/A');
                 setLastAnnouncedTime(latestTimestamp);
               }
-            } else {
-              console.log('ℹ️ Same ticket, no update needed');
-            }
+              
+              // Mark this ticket as announced
+              const newSet = new Set(prev);
+              newSet.add(ticketNumber);
+              console.log('✅ Added to announced tickets list:', ticketNumber);
+              return newSet;
+            });
           } else {
             console.log('ℹ️ No called tickets available');
           }
@@ -372,28 +387,41 @@ function TicketInfoContent() {
         
         console.log('🔄 Updating display with:', { ticket, counter, timestamp });
         
-        // Check if announcement is in progress
-        if (isAnnouncing) {
-          console.log('⏳ Announcement in progress, adding BroadcastChannel ticket to queue');
-          setAnnouncementQueue(prev => {
-            const exists = prev.some(t => t.ticket === ticket);
-            if (!exists) {
-              return [...prev, {
-                ticket: ticket,
-                counter: counter || 'N/A',
-                timestamp: timestamp
-              }];
-            }
+        // Check if ticket has already been announced
+        setAnnouncedTickets(prev => {
+          if (prev.has(ticket)) {
+            console.log('ℹ️ BroadcastChannel ticket already announced, skipping:', ticket);
             return prev;
-          });
-        } else {
-          // Update display immediately if no announcement in progress
-          setCalledTicket(ticket);
-          setCurrentCounter(counter || 'N/A');
-          setLastAnnouncedTime(timestamp);
+          }
+          
+          // Check if announcement is in progress
+          if (isAnnouncingRef.current) {
+            console.log('⏳ Announcement in progress, adding BroadcastChannel ticket to queue');
+            setAnnouncementQueue(queue => {
+              const exists = queue.some(t => t.ticket === ticket);
+              if (!exists) {
+                return [...queue, {
+                  ticket: ticket,
+                  counter: counter || 'N/A',
+                  timestamp: timestamp
+                }];
+              }
+              return queue;
+            });
+          } else {
+            // Update display immediately if no announcement in progress
+            setCalledTicket(ticket);
+            setCurrentCounter(counter || 'N/A');
+            setLastAnnouncedTime(timestamp);
+          }
           
           console.log('✅ State updated successfully - announcement will trigger automatically');
-        }
+          
+          // Mark as announced
+          const newSet = new Set(prev);
+          newSet.add(ticket);
+          return newSet;
+        });
         
         // Refresh table from backend
         fetchCalledTickets();
@@ -705,6 +733,7 @@ function TicketInfoContent() {
     }
 
     setIsAnnouncing(true);
+    isAnnouncingRef.current = true;
     console.log('🔒 Announcement started - locked');
     
     // ✅ UPDATE DISPLAY IMMEDIATELY when announcement starts (not at the end)
@@ -1082,6 +1111,7 @@ function TicketInfoContent() {
       }
     } finally {
       setIsAnnouncing(false);
+      isAnnouncingRef.current = false;
       console.log('🔓 Announcement ended - unlocked');
       
       // Check if there are pending tickets in queue
@@ -1089,6 +1119,13 @@ function TicketInfoContent() {
         if (prev.length > 0) {
           const nextTicket = prev[0];
           console.log('📢 Processing next ticket from queue:', nextTicket);
+          
+          // Mark as announced before processing
+          setAnnouncedTickets(announced => {
+            const newSet = new Set(announced);
+            newSet.add(nextTicket.ticket);
+            return newSet;
+          });
           
           // Update display with next ticket
           setTimeout(() => {
