@@ -14,12 +14,28 @@ function TicketInfoContent() {
   const [calledTickets, setCalledTickets] = useState([]);
   const [currentCounter, setCurrentCounter] = useState('');
   const [lastAnnouncedTime, setLastAnnouncedTime] = useState(null);
+  // Load announced timestamps from localStorage on mount
+  const [announcedTimestamps, setAnnouncedTimestamps] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('announced_timestamps');
+      if (saved) {
+        try {
+          const loadedSet = new Set(JSON.parse(saved));
+          announcedTimestampsRef.current = loadedSet; // Sync ref immediately
+          return loadedSet;
+        } catch (e) {
+          console.error('Error loading announced timestamps:', e);
+        }
+      }
+    }
+    return new Set();
+  });
   const [lastVoiceTime, setLastVoiceTime] = useState(null);
   const [aiVoiceReady, setAiVoiceReady] = useState(false);
   const [isAnnouncing, setIsAnnouncing] = useState(false); // Prevent overlapping announcements
   const isAnnouncingRef = useRef(false); // Ref to avoid stale closure
+  const announcedTimestampsRef = useRef(new Set()); // Ref to always get current Set
   const [announcementQueue, setAnnouncementQueue] = useState([]); // Queue for pending tickets
-  const [announcedTickets, setAnnouncedTickets] = useState(new Set()); // Track announced tickets to prevent re-announcement
   // Separate state for displayed ticket (only updates after announcement completesa
   const [displayedTicket, setDisplayedTicket] = useState('');
   const [displayedCounter, setDisplayedCounter] = useState('');
@@ -203,48 +219,52 @@ function TicketInfoContent() {
               timestamp: latestTimestamp
             });
             
-            // Check if this ticket has NEVER been announced before
-            setAnnouncedTickets(prev => {
-              const ticketNumber = latestTicket.ticket_number;
-              
-              // If ticket has already been announced, skip it
-              if (prev.has(ticketNumber)) {
-                console.log('ℹ️ Ticket already announced before, skipping:', ticketNumber);
-                return prev;
-              }
-              
-              // This is a truly NEW ticket that hasn't been announced
-              console.log('🆕 NEW TICKET DETECTED (never announced):', ticketNumber);
-              
-              // If announcement is in progress, add to queue
-              if (isAnnouncingRef.current) {
-                console.log('⏳ Announcement in progress, adding to queue');
-                setAnnouncementQueue(queue => {
-                  // Check if ticket already in queue
-                  const exists = queue.some(t => t.ticket === ticketNumber);
-                  if (!exists) {
-                    return [...queue, {
-                      ticket: ticketNumber,
-                      counter: latestTicket.counter_no || 'N/A',
-                      timestamp: latestTimestamp
-                    }];
-                  }
-                  return queue;
-                });
-              } else {
-                // Update display immediately if no announcement in progress
-                console.log('🔄 Updating display and triggering voice');
-                setCalledTicket(ticketNumber);
-                setCurrentCounter(latestTicket.counter_no || 'N/A');
-                setLastAnnouncedTime(latestTimestamp);
-              }
-              
-              // Mark this ticket as announced
-              const newSet = new Set(prev);
-              newSet.add(ticketNumber);
-              console.log('✅ Added to announced tickets list:', ticketNumber);
-              return newSet;
-            });
+            // Check if this is a NEW call (check timestamp, not just ticket number)
+            const ticketNumber = latestTicket.ticket_number;
+            
+            // ✅ Check CURRENT ref value (not stale state)
+            if (announcedTimestampsRef.current.has(latestTimestamp)) {
+              console.log('ℹ️ This call already announced previously (timestamp in history), skipping:', ticketNumber, 'timestamp:', latestTimestamp);
+              return;
+            }
+            
+            // This is a NEW call (different timestamp) - announce it!
+            console.log('🆕 NEW CALL DETECTED:', ticketNumber, 'at timestamp', latestTimestamp);
+            if (lastAnnouncedTime) {
+              console.log('📊 Previous announcement timestamp:', lastAnnouncedTime);
+            }
+            console.log('📚 Total announced timestamps so far:', announcedTimestamps.size);
+            
+            // If announcement is in progress, add to queue
+            if (isAnnouncingRef.current) {
+              console.log('⏳ Announcement in progress, adding to queue');
+              setAnnouncementQueue(queue => {
+                // Check if this exact ticket+timestamp already in queue
+                const exists = queue.some(t => t.ticket === ticketNumber && t.timestamp === latestTimestamp);
+                if (!exists) {
+                  return [...queue, {
+                    ticket: ticketNumber,
+                    counter: latestTicket.counter_no || 'N/A',
+                    timestamp: latestTimestamp
+                  }];
+                }
+                return queue;
+              });
+            } else {
+              // Update display immediately if no announcement in progress
+              console.log('🔄 Updating display and triggering voice');
+              setCalledTicket(ticketNumber);
+              setCurrentCounter(latestTicket.counter_no || 'N/A');
+              setLastAnnouncedTime(latestTimestamp);
+              // Add to announced timestamps history and save to localStorage
+              setAnnouncedTimestamps(prev => {
+                const newSet = new Set([...prev, latestTimestamp]);
+                announcedTimestampsRef.current = newSet; // ✅ Update ref immediately
+                localStorage.setItem('announced_timestamps', JSON.stringify([...newSet]));
+                return newSet;
+              });
+              console.log('✅ Added timestamp to history and saved to localStorage:', latestTimestamp);
+            }
           } else {
             console.log('ℹ️ No called tickets available');
           }
@@ -387,41 +407,44 @@ function TicketInfoContent() {
         
         console.log('🔄 Updating display with:', { ticket, counter, timestamp });
         
-        // Check if ticket has already been announced
-        setAnnouncedTickets(prev => {
-          if (prev.has(ticket)) {
-            console.log('ℹ️ BroadcastChannel ticket already announced, skipping:', ticket);
-            return prev;
-          }
-          
-          // Check if announcement is in progress
-          if (isAnnouncingRef.current) {
-            console.log('⏳ Announcement in progress, adding BroadcastChannel ticket to queue');
-            setAnnouncementQueue(queue => {
-              const exists = queue.some(t => t.ticket === ticket);
-              if (!exists) {
-                return [...queue, {
-                  ticket: ticket,
-                  counter: counter || 'N/A',
-                  timestamp: timestamp
-                }];
-              }
-              return queue;
-            });
-          } else {
-            // Update display immediately if no announcement in progress
-            setCalledTicket(ticket);
-            setCurrentCounter(counter || 'N/A');
-            setLastAnnouncedTime(timestamp);
-          }
-          
-          console.log('✅ State updated successfully - announcement will trigger automatically');
-          
-          // Mark as announced
-          const newSet = new Set(prev);
-          newSet.add(ticket);
-          return newSet;
-        });
+        // ✅ Check CURRENT ref value (not stale state)
+        if (announcedTimestampsRef.current.has(timestamp)) {
+          console.log('ℹ️ BroadcastChannel call already announced previously (timestamp in history), skipping:', ticket, 'timestamp:', timestamp);
+          return;
+        }
+        
+        console.log('🆕 NEW BroadcastChannel call detected:', ticket, 'timestamp:', timestamp);
+        
+        // Check if announcement is in progress
+        if (isAnnouncingRef.current) {
+          console.log('⏳ Announcement in progress, adding BroadcastChannel ticket to queue');
+          setAnnouncementQueue(queue => {
+            const exists = queue.some(t => t.ticket === ticket && t.timestamp === timestamp);
+            if (!exists) {
+              return [...queue, {
+                ticket: ticket,
+                counter: counter || 'N/A',
+                timestamp: timestamp
+              }];
+            }
+            return queue;
+          });
+        } else {
+          // Update display immediately if no announcement in progress
+          setCalledTicket(ticket);
+          setCurrentCounter(counter || 'N/A');
+          setLastAnnouncedTime(timestamp);
+          // Add to announced timestamps history and save to localStorage
+          setAnnouncedTimestamps(prev => {
+            const newSet = new Set([...prev, timestamp]);
+            announcedTimestampsRef.current = newSet; // ✅ Update ref immediately
+            localStorage.setItem('announced_timestamps', JSON.stringify([...newSet]));
+            return newSet;
+          });
+          console.log('✅ Added BroadcastChannel timestamp to history and saved to localStorage:', timestamp);
+        }
+        
+        console.log('✅ State updated successfully - announcement will trigger automatically');
         
         // Refresh table from backend
         fetchCalledTickets();
@@ -434,10 +457,12 @@ function TicketInfoContent() {
       try {
         const data = JSON.parse(ticketData);
         console.log('📦 Found existing ticket in localStorage:', data);
-        if (data.ticket) {
+        if (data.ticket && data.timestamp) {
           setCalledTicket(data.ticket);
           setCurrentCounter(data.counter || 'N/A');
           setLastAnnouncedTime(data.timestamp);
+          // Note: announcedTimestamps already loaded from localStorage in useState initializer
+          console.log('✅ Loaded ticket from localStorage on mount:', data.timestamp);
         }
       } catch (e) {
         console.error('❌ Error parsing localStorage data:', e);
@@ -1120,18 +1145,19 @@ function TicketInfoContent() {
           const nextTicket = prev[0];
           console.log('📢 Processing next ticket from queue:', nextTicket);
           
-          // Mark as announced before processing
-          setAnnouncedTickets(announced => {
-            const newSet = new Set(announced);
-            newSet.add(nextTicket.ticket);
-            return newSet;
-          });
-          
           // Update display with next ticket
           setTimeout(() => {
             setCalledTicket(nextTicket.ticket);
             setCurrentCounter(nextTicket.counter);
             setLastAnnouncedTime(nextTicket.timestamp);
+            // Add to announced timestamps history and save to localStorage
+            setAnnouncedTimestamps(prevSet => {
+              const newSet = new Set([...prevSet, nextTicket.timestamp]);
+              announcedTimestampsRef.current = newSet; // ✅ Update ref immediately
+              localStorage.setItem('announced_timestamps', JSON.stringify([...newSet]));
+              return newSet;
+            });
+            console.log('✅ Added queued ticket timestamp to history and saved to localStorage:', nextTicket.timestamp);
           }, 500); // Small delay before next ticket
           
           // Remove processed ticket from queue
