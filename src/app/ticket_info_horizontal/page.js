@@ -873,6 +873,21 @@ function TicketInfoContent() {
      if (typeof window !== 'undefined' && window.document) {
        document.title = `🔊 Announcing ${ticketNumber}`;
      }
+
+    // 🔔 Play notification sound BEFORE announcement
+    try {
+      console.log('🔔 Playing notification sound...');
+      const notificationSound = new Audio('/ding-dong-81717.mp3');
+      notificationSound.volume = 0.5;
+      notificationSound.playbackRate = 0.7; // Slow down the sound
+      await notificationSound.play();
+      // Wait for notification sound to finish (approx 2.5 seconds due to slower playback)
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      console.log('✅ Notification sound completed');
+    } catch (error) {
+      console.warn('⚠️ Notification sound failed, continuing with announcement:', error.message);
+      // Continue even if notification fails
+    }
  
      // Get admin's saved TTS settings from database first, then localStorage
      let settings = {
