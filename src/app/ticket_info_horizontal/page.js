@@ -881,6 +881,7 @@ function TicketInfoContent() {
       notificationSound.volume = 0.5;
       notificationSound.playbackRate = 0.7; // Slow down the sound
       await notificationSound.play();
+      setAudioEnabled(true); // Hide button after successful play
       // Wait for notification sound to finish (approx 2.5 seconds due to slower playback)
       await new Promise(resolve => setTimeout(resolve, 2500));
       console.log('✅ Notification sound completed');
