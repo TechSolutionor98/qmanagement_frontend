@@ -1289,7 +1289,7 @@ export default function UserDashboard({ adminId = null }) {
             onChange={(e) => !noPermissions && setManualTicketId(e.target.value)}
             placeholder="Enter Manual Ticket ID"
             disabled={noPermissions}
-            className={`px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-72 text-base ${noPermissions ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
+            className={`px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-72 text-base text-black placeholder-gray-500 ${noPermissions ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
           />
           <button
             onClick={handleSelectManual}
@@ -1439,7 +1439,7 @@ export default function UserDashboard({ adminId = null }) {
               value={notSolvedReason}
               onChange={(e) => setNotSolvedReason(e.target.value)}
               placeholder="Enter reason why ticket was not solved..."
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none transition-all"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none transition-all text-black placeholder-gray-500"
               rows="4"
             />
             <div className="flex gap-4 mt-6">
@@ -1477,7 +1477,7 @@ export default function UserDashboard({ adminId = null }) {
             <select
               value={transferUsername}
               onChange={(e) => setTransferUsername(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-6 transition-all bg-white text-gray-900"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-6 transition-all bg-white text-black"
             >
               <option value="">-- Select User --</option>
               {availableUsers

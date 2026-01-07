@@ -547,7 +547,7 @@ export default function Navbar() {
                       value={passwordData.currentPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                       required
-                      className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm"
+                      className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm text-black"
                       placeholder="••••••••"
                     />
                     <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -565,7 +565,7 @@ export default function Navbar() {
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                       required
-                      className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm"
+                      className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm text-black"
                       placeholder="••••••••"
                     />
                     <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -589,7 +589,7 @@ export default function Navbar() {
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                       required
-                      className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm"
+                      className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all text-sm text-black"
                       placeholder="••••••••"
                     />
                     <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
