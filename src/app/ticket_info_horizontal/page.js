@@ -14,6 +14,7 @@ function TicketInfoContent() {
    const [calledTickets, setCalledTickets] = useState([]);
    const [currentCounter, setCurrentCounter] = useState('');
    const [lastAnnouncedTime, setLastAnnouncedTime] = useState(null);
+   const announcedTimestampsRef = useRef(new Set()); // ✅ Ref BEFORE state
    // Load announced timestamps from localStorage on mount
    const [announcedTimestamps, setAnnouncedTimestamps] = useState(() => {
      if (typeof window !== 'undefined') {
@@ -34,7 +35,6 @@ function TicketInfoContent() {
    const [aiVoiceReady, setAiVoiceReady] = useState(false);
    const [isAnnouncing, setIsAnnouncing] = useState(false); // Prevent overlapping announcements
    const isAnnouncingRef = useRef(false); // Ref to avoid stale closure
-   const announcedTimestampsRef = useRef(new Set()); // Ref to always get current Set
    const [announcementQueue, setAnnouncementQueue] = useState([]); // Queue for pending tickets
    // Separate state for displayed ticket (only updates after announcement completesa
    const [displayedTicket, setDisplayedTicket] = useState('');
@@ -181,14 +181,57 @@ function TicketInfoContent() {
          console.log('📥 Backend tickets response:', data);
          
          if (data.success && data.tickets && data.tickets.length > 0) {
+           console.log('═══════════════════════════════════════════════');
+           console.log('🔍 POLLING CYCLE - Full Backend Response');
+           console.log('═══════════════════════════════════════════════');
            console.log('🔍 ALL TICKETS from backend (before filter):', data.tickets.map(t => ({
              ticket: t.ticket_number,
              status: t.status,
              counter: t.counter_no
            })));
+           console.log('🎭 Currently displayed ticket:', displayedTicket);
+           console.log('═══════════════════════════════════════════════');
+           
+           // ✅ Check if displayed ticket's status changed
+           let shouldClearDisplay = false;
+           if (displayedTicket) {
+             console.log('✅ Step 1: Checking displayed ticket status...');
+             const normalizedDisplayed = String(displayedTicket).trim().toLowerCase();
+             console.log('   Normalized displayed:', normalizedDisplayed);
+             
+             const displayedTicketData = data.tickets.find(t => {
+               const normalized = String(t.ticket_number).trim().toLowerCase();
+               console.log('   Comparing:', normalized, '===', normalizedDisplayed, '?', normalized === normalizedDisplayed);
+               return normalized === normalizedDisplayed;
+             });
+             
+             console.log('🔍 Step 2: Search result:', {
+               displayed: displayedTicket,
+               found: displayedTicketData ? 'YES' : 'NO',
+               ticketData: displayedTicketData,
+               status: displayedTicketData?.status,
+               statusLower: displayedTicketData?.status?.toLowerCase(),
+               isCalled: displayedTicketData?.status?.toLowerCase() === 'called'
+             });
+             
+             // Mark for clearing if status is not 'called'
+             if (displayedTicketData) {
+               const statusLower = displayedTicketData.status?.toLowerCase();
+               console.log('✅ Step 3: Status check - Is', statusLower, '!== called ?', statusLower !== 'called');
+               
+               if (statusLower !== 'called') {
+                 console.log('⚠️⚠️⚠️ SHOULD CLEAR - Ticket', displayedTicket, 'status:', displayedTicketData.status);
+                 shouldClearDisplay = true;
+               }
+             } else {
+               console.log('⚠️ Displayed ticket NOT FOUND in backend response - will clear');
+               shouldClearDisplay = true;
+             }
+           } else {
+             console.log('ℹ️ No ticket currently displayed, skipping check');
+           }
            
            // Filter: ONLY show tickets with 'called' status AND valid counter_no
-           // Exclude: NULL counters, unattended, solved, not_solved
            const calledOnlyTickets = data.tickets.filter(ticket => 
              ticket.status && 
              ticket.status.toLowerCase() === 'called' &&
@@ -205,6 +248,46 @@ function TicketInfoContent() {
            console.log(`📊 Total: ${data.tickets.length} tickets, Filtered: ${calledOnlyTickets.length} valid tickets`);
            
            setCalledTickets(calledOnlyTickets);
+           
+           console.log('✅ Step 4: Checking shouldClearDisplay flag:', shouldClearDisplay);
+           
+           // ✅ Clear display if marked or if displayed ticket not in called list
+           if (shouldClearDisplay) {
+             console.log('✅✅✅ CLEARING DISPLAY NOW - Status changed ✅✅✅');
+             console.log('   Setting displayedTicket to empty string');
+             console.log('   Setting displayedCounter to empty string');
+             setDisplayedTicket('');
+             setDisplayedCounter('');
+             console.log('✅ Display cleared successfully!');
+             return; // Don't announce old ticket
+           }
+           
+           console.log('ℹ️ shouldClearDisplay=false, continuing with normal flow...');
+           
+           // ✅ Check if currently displayed ticket is still in called status
+           if (displayedTicket) {
+             // Normalize for comparison (trim and lowercase)
+             const normalizedDisplayed = String(displayedTicket).trim().toLowerCase();
+             
+             const stillCalled = calledOnlyTickets.some(t => {
+               const normalizedTicket = String(t.ticket_number).trim().toLowerCase();
+               const isCalled = t.status && t.status.toLowerCase() === 'called';
+               return normalizedTicket === normalizedDisplayed && isCalled;
+             });
+             
+             if (!stillCalled) {
+               console.log('⚠️ Displayed ticket', displayedTicket, 'is no longer in called status - clearing display');
+               setDisplayedTicket('');
+               setDisplayedCounter('');
+             }
+           }
+           
+           // ✅ If no called tickets at all, clear display
+           if (calledOnlyTickets.length === 0 && displayedTicket) {
+             console.log('⚠️ No called tickets available - clearing display');
+             setDisplayedTicket('');
+             setDisplayedCounter('');
+           }
            
            // Get the latest ticket (first one - sorted by called_at DESC)
            if (calledOnlyTickets.length > 0) {
@@ -383,6 +466,24 @@ function TicketInfoContent() {
        clearInterval(pollInterval);
      };
    }, []); // Empty dependencies - poll should run continuously without restart
+
+  // ✅ Auto-clear displayedTicket if it's no longer in called status
+  useEffect(() => {
+    if (!displayedTicket) return; // No ticket displayed, nothing to check
+    
+    // Check if displayed ticket is still in the called tickets list
+    const normalizedDisplayed = String(displayedTicket).trim().toLowerCase();
+    const stillCalled = calledTickets.some(t => {
+      const normalized = String(t.ticket_number).trim().toLowerCase();
+      return normalized === normalizedDisplayed && t.status?.toLowerCase() === 'called';
+    });
+    
+    if (!stillCalled) {
+      console.log('⚠️⚠️⚠️ AUTO-CLEAR: Displayed ticket', displayedTicket, 'not in called list anymore');
+      setDisplayedTicket('');
+      setDisplayedCounter('');
+    }
+  }, [calledTickets, displayedTicket]); // Run whenever calledTickets or displayedTicket changes
  
    
    // Setup BroadcastChannel for cross-tab communication
