@@ -464,7 +464,7 @@ export default function DetailsReportsPage({ adminId: propAdminId }) {
               setFilterBy(e.target.value);
               setFilterValue('');
             }}
-            className="px-4 py-2 border border-gray-300 rounded bg-white text-gray-500 min-w-[150px]"
+            className="px-4 py-2 border border-gray-300 rounded bg-white text-black min-w-[150px]"
           >
             <option value="">Filter By (Optional)</option>
             <option value="counter">Counter</option>
@@ -476,7 +476,7 @@ export default function DetailsReportsPage({ adminId: propAdminId }) {
           <select
             value={filterValue}
             onChange={(e) => setFilterValue(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded bg-white min-w-[200px]"
+            className="px-4 py-2 border border-gray-300 rounded bg-white text-black min-w-[200px]"
           >
             <option value="">Select Counter</option>
             {counters.map((counter) => (
@@ -489,7 +489,7 @@ export default function DetailsReportsPage({ adminId: propAdminId }) {
           <select
             value={filterValue}
             onChange={(e) => setFilterValue(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded bg-white min-w-[200px]"
+            className="px-4 py-2 border border-gray-300 rounded bg-white text-black min-w-[200px]"
           >
             <option value="">Select Representative</option>
             {representatives.map((rep) => (
@@ -504,14 +504,14 @@ export default function DetailsReportsPage({ adminId: propAdminId }) {
             placeholder="Enter Value"
             value={filterValue}
             onChange={(e) => setFilterValue(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded min-w-[200px]"
+            className="px-4 py-2 border border-gray-300 rounded text-black placeholder-gray-500 min-w-[200px]"
           />
         )}
 
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded bg-white text-gray-500 min-w-[150px]"
+          className="px-4 py-2 border border-gray-300 rounded bg-white text-black min-w-[150px]"
         >
           <option value="">All Status</option>
           <option value="Pending">Pending</option>
@@ -527,7 +527,7 @@ export default function DetailsReportsPage({ adminId: propAdminId }) {
             placeholder="mm/dd/yyyy"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded"
+            className="px-4 py-2 border border-gray-300 rounded text-black"
           />
         </div>
 
@@ -552,7 +552,7 @@ export default function DetailsReportsPage({ adminId: propAdminId }) {
             placeholder="mm/dd/yyyy"
             value={startDate2}
             onChange={(e) => setStartDate2(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded"
+            className="px-4 py-2 border border-gray-300 rounded text-black"
           />
         </div>
 
@@ -642,7 +642,7 @@ export default function DetailsReportsPage({ adminId: propAdminId }) {
                 {selectedColumns.filter(col => col.selected).map((column) => (
                   <th 
                     key={column.key}
-                    className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 whitespace-nowrap"
+                    className="px-3 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-200 whitespace-nowrap"
                   >
                     {column.label}
                   </th>

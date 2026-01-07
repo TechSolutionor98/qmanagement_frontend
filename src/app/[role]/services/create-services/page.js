@@ -186,7 +186,7 @@ export default function CreateServicesPage({ adminId }) {
                 type="text"
                 value={serviceNameEnglish}
                 onChange={(e) => setServiceNameEnglish(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-black"
               />
             </div>
 
@@ -199,7 +199,7 @@ export default function CreateServicesPage({ adminId }) {
                 type="text"
                 value={serviceNameArabic}
                 onChange={(e) => setServiceNameArabic(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-black"
               />
             </div>
 
@@ -212,7 +212,7 @@ export default function CreateServicesPage({ adminId }) {
                 type="text"
                 value={initialTicket}
                 onChange={(e) => setInitialTicket(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-black"
               />
             </div>
 
@@ -368,11 +368,11 @@ export default function CreateServicesPage({ adminId }) {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Logo</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Service Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Initial Ticket</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Color</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Logo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Service Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Initial Ticket</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Color</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">

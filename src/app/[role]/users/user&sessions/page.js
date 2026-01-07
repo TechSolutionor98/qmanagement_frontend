@@ -561,7 +561,7 @@ export default function UserManagementPage({ adminId: propAdminId }) {
             <select
               value={selectedAdminId}
               onChange={(e) => setSelectedAdminId(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               {admins.map(a => <option key={a.id} value={a.id}>{a.username}</option>)}
             </select>
@@ -588,13 +588,13 @@ export default function UserManagementPage({ adminId: propAdminId }) {
           <table className="w-full">
             <thead className="bg-gray-50 border-b sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Username</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Password</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider bg-gray-50">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Username</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Password</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -719,7 +719,7 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                 {!adminId && !propAdminId && currentUser?.role === 'super_admin' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Admin <span className="text-red-500">*</span></label>
-                    <select name="adminId" value={formData.adminId} onChange={handleChange} className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${errors.adminId ? 'border-red-500' : 'border-gray-300'}`}>
+                    <select name="adminId" value={formData.adminId} onChange={handleChange} className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${errors.adminId ? 'border-red-500' : 'border-gray-300'}`}>
                       <option value="">Choose an admin...</option>
                       {admins.map(a => <option key={a.id} value={a.id}>{a.username} ({a.email})</option>)}
                     </select>
@@ -738,7 +738,7 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
-                  <select name="status" value={formData.status} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                  <select name="status" value={formData.status} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black">
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
@@ -809,7 +809,7 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                 {!adminId && currentUser?.role === 'super_admin' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Admin <span className="text-red-500">*</span></label>
-                    <select name="adminId" value={editForm.adminId} onChange={handleEditChange} className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${editErrors.adminId ? 'border-red-500' : 'border-gray-300'}`}>
+                    <select name="adminId" value={editForm.adminId} onChange={handleEditChange} className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${editErrors.adminId ? 'border-red-500' : 'border-gray-300'}`}>
                       <option value="">Choose an admin...</option>
                       {admins.map(a => <option key={a.id} value={a.id}>{a.username} ({a.email})</option>)}
                     </select>
@@ -823,13 +823,13 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                     type="text"
                     value="User"
                     disabled
-                    className="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 rounded-lg text-gray-700 cursor-not-allowed"
+                    className="w-full px-4 py-2.5 border border-gray-300 bg-gray-100 rounded-lg text-black cursor-not-allowed"
                   />
                   {/* <p className="mt-1 text-xs text-gray-500">User role is fixed</p> */}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Status <span className="text-red-500">*</span></label>
-                  <select name="status" value={editForm.status} onChange={handleEditChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                  <select name="status" value={editForm.status} onChange={handleEditChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black">
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
@@ -917,7 +917,7 @@ function FormInput({ label, name, value, onChange, icon, type = 'text', error, r
           name={name}
           value={value}
           onChange={onChange}
-          className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${error ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-black ${error ? 'border-red-500' : 'border-gray-300'}`}
           placeholder={`Enter ${label.toLowerCase()}`}
         />
       </div>
