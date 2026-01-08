@@ -46,7 +46,7 @@ export function middleware(request) {
       }
       // Admin and super_admin go to their dashboards
       const roleMapping = {
-        'super_admin': '/superadmin',
+        'super_admin': '/superadmin/license/list-of-license',
         'admin': '/admin'
       }
       const redirectPath = roleMapping[userRole]
@@ -69,7 +69,7 @@ export function middleware(request) {
     // Redirect others to their appropriate pages
     const roleMapping = {
       'user': '/user/dashboard',
-      'super_admin': '/superadmin',
+      'super_admin': '/superadmin/license/list-of-license',
       'admin': '/admin'
     }
     const redirectPath = roleMapping[userRole] || '/login'
@@ -87,7 +87,7 @@ export function middleware(request) {
   
   // Validate role-based access
   const roleRouteMapping = {
-    'super_admin': '/superadmin',
+    'super_admin': '/superadmin/license/list-of-license',
     'admin': '/admin',
     'user': '/user',
     'receptionist': '/'

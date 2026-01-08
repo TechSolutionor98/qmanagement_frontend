@@ -47,7 +47,7 @@ export default function LoginPage() {
     if (isAuthenticated && user && user.role) {
       // Admin and super_admin go to their dashboards
       const roleMapping = {
-        'super_admin': '/superadmin',
+        'super_admin': '/superadmin/license/list-of-license',
         'admin': '/admin',
         'user': '/user/dashboard',  // User with counter goes to dashboard
         'receptionist': '/',  // Receptionist goes to main page
