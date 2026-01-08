@@ -36,7 +36,7 @@ export default function SuperAdminLoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user && user.role === 'super_admin') {
-      router.push('/superadmin');
+      router.push('/superadmin/license/list-of-license');
     } else if (isAuthenticated && user && user.role !== 'super_admin') {
       // If logged in as non-super admin, redirect to their respective page
       showToast('Access denied. Super Admin only.', 'error');
@@ -135,7 +135,7 @@ export default function SuperAdminLoginPage() {
 
       // Redirect to super admin dashboard
       setTimeout(() => {
-        router.push('/superadmin');
+        router.push('/superadmin/license/list-of-license');
       }, 500);
     } catch (err) {
       console.error('Login error:', err);
