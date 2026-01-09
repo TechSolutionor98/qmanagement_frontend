@@ -261,10 +261,13 @@ export default function UserDashboard({ adminId = null }) {
     try {
       if (showLoader) setLoading(true);
       
-      // Super Admin mode - fetch tickets for specific admin
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Super Admin mode - fetch tickets for specific admin with today's date filter
       const endpoint = isSuperAdminMode 
-        ? `${apiUrl}/user/tickets/assigned?status=Pending&adminId=${adminId}`
-        : `${apiUrl}/user/tickets/assigned?status=Pending`;
+        ? `${apiUrl}/user/tickets/assigned?status=Pending&adminId=${adminId}&date=${today}`
+        : `${apiUrl}/user/tickets/assigned?status=Pending&date=${today}`;
       
       const res = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }

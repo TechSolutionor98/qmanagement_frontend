@@ -818,15 +818,22 @@ function TicketInfoContent() {
       return;
     }
 
-    // Prevent overlapping announcements
-    if (isAnnouncing) {
-      console.warn('⚠️ Announcement already in progress, skipping...');
+    // ✅ CRITICAL: Check REF immediately to prevent race conditions
+    if (isAnnouncingRef.current) {
+      console.warn('⚠️ ⚠️ Announcement already in progress (REF check in function), skipping duplicate call...');
       return;
     }
 
+    // Prevent overlapping announcements
+    if (isAnnouncing) {
+      console.warn('⚠️ Announcement already in progress (STATE check), skipping...');
+      return;
+    }
+
+    // ✅ Set BOTH immediately to block any other simultaneous calls
     setIsAnnouncing(true);
     isAnnouncingRef.current = true;
-    console.log('🔒 Announcement started - locked');
+    console.log('🔒 Announcement LOCKED (both state and ref set)');
     
     // ✅ UPDATE DISPLAY IMMEDIATELY when announcement starts (not at the end)
     console.log('🔄 Updating display NOW: Ticket', ticketNumber, 'Counter', counterNumber);
@@ -1260,13 +1267,20 @@ function TicketInfoContent() {
       currentCounter,
       aiVoiceReady,
       isAnnouncing,
+      isAnnouncingRef: isAnnouncingRef.current,
       queueLength: announcementQueue.length,
       timeDiff: lastAnnouncedTime && lastVoiceTime ? lastAnnouncedTime - lastVoiceTime : 'N/A'
     });
     
-    // Check if announcement is already in progress
+    // ✅ CRITICAL: Check REF first to prevent double announcements during simultaneous calls
+    if (isAnnouncingRef.current) {
+      console.log('⚠️ Announcement in progress (REF check), ignoring new trigger');
+      return;
+    }
+    
+    // Double-check state as well
     if (isAnnouncing) {
-      console.log('⚠️ Announcement in progress, ignoring new trigger');
+      console.log('⚠️ Announcement in progress (STATE check), ignoring new trigger');
       return;
     }
     
@@ -1282,12 +1296,19 @@ function TicketInfoContent() {
       
       // Small delay to ensure everything is ready
       setTimeout(() => {
+        // ✅ Double-check before calling - prevents race conditions during delay
+        if (isAnnouncingRef.current) {
+          console.log('⚠️ Announcement started during setTimeout delay, skipping this call');
+          return;
+        }
+        
         console.log('🎤 Calling announceTicket function NOW');
         console.log('🔒 Display will remain locked until ALL languages complete');
         announceTicket(calledTicket, currentCounter)
           .catch(error => {
             console.error('❌ announceTicket failed:', error);
             setIsAnnouncing(false); // Unlock on error
+            isAnnouncingRef.current = false; // Unlock ref on error
           });
       }, 150);
     } else {
