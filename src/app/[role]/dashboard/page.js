@@ -520,8 +520,32 @@ export default function UserDashboard({ adminId = null }) {
       });
       
       if (res.data.success) {
-        setCalledTickets(res.data.tickets || []);
-        console.log('📞 Called tickets fetched:', res.data.tickets?.length || 0);
+        const tickets = res.data.tickets || [];
+        
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Filter: Only today's tickets + Remove duplicates based on ticket_number
+        const uniqueTickets = tickets.filter((ticket, index, self) => {
+          // Check if ticket is from today
+          const ticketDate = ticket.call_time ? new Date(ticket.call_time).toISOString().split('T')[0] : '';
+          const isToday = ticketDate === today;
+          
+          // Check if this is the first occurrence of this ticket_number
+          const isUnique = index === self.findIndex(t => t.ticket_number === ticket.ticket_number);
+          
+          return isToday && isUnique;
+        });
+        
+        // Sort by call_time descending (most recent first)
+        uniqueTickets.sort((a, b) => {
+          const timeA = a.call_time ? new Date(a.call_time).getTime() : 0;
+          const timeB = b.call_time ? new Date(b.call_time).getTime() : 0;
+          return timeB - timeA;
+        });
+        
+        setCalledTickets(uniqueTickets);
+        console.log('📞 Called tickets fetched (unique, today only):', uniqueTickets.length);
       }
     } catch (error) {
       console.error('Error fetching called tickets:', error);
