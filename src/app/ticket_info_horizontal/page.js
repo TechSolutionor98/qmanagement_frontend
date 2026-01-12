@@ -821,6 +821,7 @@ function TicketInfoContent() {
            silentAudio.pause();
            silentAudio.remove();
            setAudioUnlocked(true);
+           setAudioEnabled(true); // ✅ Also set audioEnabled when successful
            console.log('✅ Audio auto-enabled successfully (silent)');
          } catch (playError) {
            // If autoplay fails, retry periodically
@@ -832,6 +833,20 @@ function TicketInfoContent() {
      };
      
      unlockAudio();
+     
+     // ✅ AGGRESSIVE: Auto-unlock on ANY user interaction
+     const aggressiveUnlock = () => {
+       if (!audioUnlocked) {
+         console.log('🔓 User interaction detected, unlocking audio...');
+         unlockAudio();
+       }
+     };
+     
+     // Listen to multiple interaction events
+     const events = ['click', 'touchstart', 'keydown', 'mousemove', 'scroll'];
+     events.forEach(event => {
+       document.addEventListener(event, aggressiveUnlock, { once: true, passive: true });
+     });
        
      // Keep AudioContext resumed and retry audio unlock
      const contextResumeInterval = setInterval(async () => {
@@ -844,8 +859,13 @@ function TicketInfoContent() {
        }
      }, 1000);
      
-     return () => clearInterval(contextResumeInterval);
-   }, []);
+     return () => {
+       clearInterval(contextResumeInterval);
+       events.forEach(event => {
+         document.removeEventListener(event, aggressiveUnlock);
+       });
+     };
+   }, [audioUnlocked]);
  
    // Announce ticket using ChatterBox AI with admin-configured settings
    const announceTicket = async (ticketNumber, counterNumber) => {
