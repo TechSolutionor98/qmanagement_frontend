@@ -867,11 +867,14 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
 
       const updateUrl = `${API_URL}/counter-display/config`;
       console.log('💾 Updating config at:', updateUrl, 'Payload:', payload);
-      const response = await axios.post(updateUrl, payload, {
+      
+      // Use raw axios for production stability (same as video upload)
+      const response = await axiosRaw.post(updateUrl, payload, {
         headers: {
           'Content-Type': 'application/json',
           ...getAuthHeaders()
-        }
+        },
+        timeout: 30000 // 30 seconds timeout
       });
       
       if (response.data.success) {
@@ -883,8 +886,24 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       }
     } catch (error) {
       console.error('❌ Error updating configuration:', error);
-      console.error('Error response:', error.response?.data);
-      toast.error(error.response?.data?.message || 'Failed to update configuration', {
+      console.error('❌ Error name:', error.name);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      
+      let errorMessage = 'Failed to update configuration';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout - server took too long to respond';
+      } else if (!error.response) {
+        errorMessage = 'Network error - Cannot reach server. Please check your internet connection.';
+      }
+      
+      toast.error(`❌ ${errorMessage}`, {
         position: "top-right",
         autoClose: 8000,
         hideProgressBar: false,
