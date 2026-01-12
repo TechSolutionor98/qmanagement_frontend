@@ -494,7 +494,7 @@ export default function LicenseReportPage() {
                   <FaChartBar className="text-purple-600" /> License Limits & Sessions
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-black mb-2">Max Receptionist Sessions</label>
                     <input
                       type="number"
@@ -519,7 +519,7 @@ export default function LicenseReportPage() {
                       max="10"
                     />
                     <p className="text-xs text-gray-500 mt-1">Total ticket info sessions (1-10)</p>
-                  </div>
+                  </div> */}
                   <div>
                     <label className="block text-sm font-medium text-black mb-2">Both User - Receptionist Sessions</label>
                     <input
@@ -529,9 +529,9 @@ export default function LicenseReportPage() {
                       onChange={handleEditFormChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-black"
                       min="1"
-                      max="10"
+                      max="1000"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Sessions for both_user on receptionist screen (1-10)</p>
+                    {/* <p className="text-xs text-gray-500 mt-1">Sessions for both_user on receptionist screen (1-10)</p> */}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-black mb-2">Both User - Ticket Info Sessions</label>
@@ -542,9 +542,9 @@ export default function LicenseReportPage() {
                       onChange={handleEditFormChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-black"
                       min="1"
-                      max="10"
+                      max="1000"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Sessions for both_user on ticket info screen (1-10)</p>
+                    {/* <p className="text-xs text-gray-500 mt-1">Sessions for both_user on ticket info screen (1-10)</p> */}
                   </div>
                   {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Sessions Per Receptionist</label>
