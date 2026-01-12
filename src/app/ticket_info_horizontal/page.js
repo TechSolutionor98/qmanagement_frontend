@@ -42,6 +42,8 @@ function TicketInfoContent() {
    const [broadcastChannel, setBroadcastChannel] = useState(null);
    const [audioUnlocked, setAudioUnlocked] = useState(false); // Auto-enabled in background
    const [audioEnabled, setAudioEnabled] = useState(false); // Track user interaction for audio
+   const [cachedVoiceSettings, setCachedVoiceSettings] = useState(null); // Cache settings
+   const [lastSettingsFetch, setLastSettingsFetch] = useState(0); // Track last fetch time
    
    // Counter Display Config from database
    const [leftLogoUrl, setLeftLogoUrl] = useState('');
@@ -902,30 +904,24 @@ function TicketInfoContent() {
        document.title = `🔊 Announcing ${ticketNumber}`;
      }
 
-// 🔔 Play notification sound BEFORE announcement (ONLY ONCE)
+// 🔔 Play notification sound and wait 0.5 seconds before announcement
      try {
        console.log('🔔 Playing notification sound...');
        const notificationSound = new Audio('/ding-dong-81717.mp3');
        notificationSound.volume = 0.5;
        notificationSound.playbackRate = 0.7; // Slow down the sound
        
-       // ✅ Wait for notification to complete using Promise
-       await new Promise((resolve, reject) => {
-         notificationSound.onended = () => {
-           console.log('✅ Notification sound completed');
-           resolve();
-         };
-         notificationSound.onerror = (e) => {
-           console.warn('⚠️ Notification sound error:', e);
-           resolve(); // Continue even if error
-         };
-         notificationSound.play().catch(err => {
-           console.warn('⚠️ Notification play blocked:', err.message);
-           resolve(); // Continue even if blocked
-         });
+       // Play notification sound
+       notificationSound.play().then(() => {
+         console.log('✅ Notification sound playing');
+         setAudioEnabled(true); // Hide button after successful play
+       }).catch(err => {
+         console.warn('⚠️ Notification play blocked:', err.message);
        });
        
-       setAudioEnabled(true); // Hide button after successful play
+       // ⏱️ Wait 0.5 seconds before starting announcement
+       await new Promise(resolve => setTimeout(resolve, 500));
+       console.log('⏰ 0.5 second delay completed, starting announcement...');
     } catch (error) {
       console.warn('⚠️ Notification sound failed, continuing with announcement:', error.message);
       // Continue even if notification fails
@@ -939,95 +935,112 @@ function TicketInfoContent() {
        selectedLanguages: ['en'] // Support multiple languages
      };
      
-     try {
-       // Try to load from database with authentication token
-       // Add timestamp to prevent caching of old settings
-       const token = getToken();
-       const user = getUser();
-       
-       console.log('🔑 Fetching FRESH voice settings with auth token:', token ? 'Present' : 'Missing');
-       console.log('👤 Current user:', user?.username, '| Role:', user?.role, '| Admin ID:', user?.admin_id);
-       
-       // Build URL with admin_id if available (for ticket_info users)
-       let settingsUrl = `${apiUrl}/voices/settings`;
-       const params = new URLSearchParams();
-       params.append('t', Date.now().toString());
-       
-       if (user?.admin_id) {
-         params.append('adminId', user.admin_id.toString());
-         console.log('📌 Fetching settings for admin_id:', user.admin_id);
-       }
-       
-       settingsUrl += `?${params.toString()}`;
-       console.log('🌐 Full settings URL:', settingsUrl);
-       
-       const response = await axios.get(settingsUrl, {
-         headers: {
-           'Authorization': `Bearer ${token}`
-         }
-       });
-       
-       console.log('📦 Voice settings response (FRESH):', response.data);
-       console.log('📦 Settings received:', response.data?.settings);
-       
-       if (response.data.success && response.data.settings) {
-         const dbSettings = response.data.settings;
+     // ✅ Use cached settings if available and less than 30 seconds old
+     const now = Date.now();
+     const CACHE_DURATION = 30000; // 30 seconds
+     
+     if (cachedVoiceSettings && (now - lastSettingsFetch) < CACHE_DURATION) {
+       console.log('⚡ Using CACHED voice settings (fetched', Math.round((now - lastSettingsFetch) / 1000), 'seconds ago)');
+       settings = cachedVoiceSettings;
+     } else {
+       console.log('🔄 Fetching fresh voice settings from database...');
+       try {
+         // Try to load from database with authentication token
+         const token = getToken();
+         const user = getUser();
          
-         console.log('🎯 Database settings received:', {
-           voice_type: dbSettings.voice_type,
-           language: dbSettings.language,
-           languages: dbSettings.languages,
-           speech_rate: dbSettings.speech_rate,
-           speech_pitch: dbSettings.speech_pitch
+         console.log('🔑 Token:', token ? 'Present' : 'Missing');
+         console.log('👤 Current user:', user?.username, '| Role:', user?.role, '| Admin ID:', user?.admin_id);
+         
+         // Build URL with admin_id if available (for ticket_info users)
+         let settingsUrl = `${apiUrl}/voices/settings`;
+         const params = new URLSearchParams();
+         params.append('t', Date.now().toString());
+         
+         if (user?.admin_id) {
+           params.append('adminId', user.admin_id.toString());
+           console.log('📌 Fetching settings for admin_id:', user.admin_id);
+         }
+         
+         settingsUrl += `?${params.toString()}`;
+         console.log('🌐 Full settings URL:', settingsUrl);
+         
+         const response = await axios.get(settingsUrl, {
+           headers: {
+             'Authorization': `Bearer ${token}`
+           }
          });
          
-         // Parse languages array
-         let languages = ['en'];
-         if (dbSettings.languages) {
-           try {
-             languages = JSON.parse(dbSettings.languages);
-             console.log('✅ Parsed languages array:', languages);
-           } catch (e) {
-             console.warn('⚠️ Failed to parse languages, using single language');
-             languages = [dbSettings.language || 'en'];
+         console.log('📦 Voice settings response (FRESH):', response.data);
+         console.log('📦 Settings received:', response.data?.settings);
+         
+         if (response.data.success && response.data.settings) {
+           const dbSettings = response.data.settings;
+           
+           console.log('🎯 Database settings received:', {
+             voice_type: dbSettings.voice_type,
+             language: dbSettings.language,
+             languages: dbSettings.languages,
+             speech_rate: dbSettings.speech_rate,
+             speech_pitch: dbSettings.speech_pitch
+           });
+           
+           // Parse languages array
+           let languages = ['en'];
+           if (dbSettings.languages) {
+             try {
+               languages = JSON.parse(dbSettings.languages);
+               console.log('✅ Parsed languages array:', languages);
+             } catch (e) {
+               console.warn('⚠️ Failed to parse languages, using single language');
+               languages = [dbSettings.language || 'en'];
+             }
+           } else if (dbSettings.language) {
+             languages = [dbSettings.language];
+             console.log('✅ Using single language:', languages);
            }
-         } else if (dbSettings.language) {
-           languages = [dbSettings.language];
-           console.log('✅ Using single language:', languages);
+           
+           settings = {
+             selectedChatterboxVoice: dbSettings.voice_type || 'male',
+             speechRate: parseFloat(dbSettings.speech_rate) || 0.9,
+             speechPitch: parseFloat(dbSettings.speech_pitch) || 1.0,
+             selectedLanguages: languages
+           };
+           console.log('✅ FINAL settings from database:', settings);
+           
+           // ✅ Cache the settings
+           setCachedVoiceSettings(settings);
+           setLastSettingsFetch(now);
+         } else {
+           console.log('⚠️ No custom settings found in database, using defaults:', settings);
+         }
+       } catch (error) {
+         console.error('❌ ERROR fetching voice settings from database:');
+         console.error('   Status:', error.response?.status);
+         console.error('   Message:', error.message);
+         console.error('   Response:', error.response?.data);
+         
+         // Fallback to localStorage
+         const savedSettings = localStorage.getItem('tts_settings');
+         if (savedSettings) {
+           try {
+             const parsed = JSON.parse(savedSettings);
+             settings.selectedLanguages = parsed.selectedLanguages || [parsed.preferredLanguage || 'en'];
+             settings.selectedChatterboxVoice = parsed.selectedChatterboxVoice || 'male';
+             settings.speechRate = parseFloat(parsed.speechRate) || 0.9;
+             settings.speechPitch = parseFloat(parsed.speechPitch) || 1.0;
+             console.log('✅ Fallback: Using localStorage settings:', settings);
+           } catch (e) {
+             console.error('❌ Error parsing localStorage TTS settings:', e);
+             console.log('⚠️ Using hardcoded defaults:', settings);
+           }
+         } else {
+           console.log('⚠️ No localStorage settings found, using hardcoded defaults:', settings);
          }
          
-         settings = {
-           selectedChatterboxVoice: dbSettings.voice_type || 'male',
-           speechRate: parseFloat(dbSettings.speech_rate) || 0.9,
-           speechPitch: parseFloat(dbSettings.speech_pitch) || 1.0,
-           selectedLanguages: languages
-         };
-         console.log('✅ FINAL settings from database:', settings);
-       } else {
-         console.log('⚠️ No custom settings found in database, using defaults:', settings);
-       }
-     } catch (error) {
-       console.error('❌ ERROR fetching voice settings from database:');
-       console.error('   Status:', error.response?.status);
-       console.error('   Message:', error.message);
-       console.error('   Response:', error.response?.data);
-       
-       // Fallback to localStorage
-       const savedSettings = localStorage.getItem('tts_settings');
-       if (savedSettings) {
-         try {
-           const parsed = JSON.parse(savedSettings);
-           settings.selectedLanguages = parsed.selectedLanguages || [parsed.preferredLanguage || 'en'];
-           settings.selectedChatterboxVoice = parsed.selectedChatterboxVoice || 'male';
-           settings.speechRate = parseFloat(parsed.speechRate) || 0.9;
-           settings.speechPitch = parseFloat(parsed.speechPitch) || 1.0;
-           console.log('✅ Fallback: Using localStorage settings:', settings);
-         } catch (e) {
-           console.error('❌ Error parsing localStorage TTS settings:', e);
-           console.log('⚠️ Using hardcoded defaults:', settings);
-         }
-       } else {
-         console.log('⚠️ No localStorage settings found, using hardcoded defaults:', settings);
+         // ✅ Cache the fallback settings too
+         setCachedVoiceSettings(settings);
+         setLastSettingsFetch(now);
        }
      }
      
@@ -1088,18 +1101,8 @@ function TicketInfoContent() {
            
            console.log(`🔊 Box ${i + 1} final audio URL:`, audioUrl);
            
-           // Verify audio file exists before playing
-           try {
-             const checkResponse = await fetch(audioUrl, { method: 'HEAD' });
-             if (!checkResponse.ok) {
-               console.error(`❌ Box ${i + 1} audio file not accessible (${checkResponse.status})`);
-               continue; // Skip this language and move to next
-             }
-             console.log(`✅ Box ${i + 1} audio file verified and accessible`);
-           } catch (checkError) {
-             console.error(`❌ Box ${i + 1} audio check failed:`, checkError);
-             continue; // Skip this language
-           }
+           // ⚡ REMOVED: HEAD request verification - adds unnecessary ~500ms delay
+           // Audio player will handle errors automatically
            
            // Play audio and wait for completion before next language
            await new Promise((resolve, reject) => {
