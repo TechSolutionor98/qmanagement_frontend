@@ -10,6 +10,7 @@ export default function CreateServicesPage({ adminId }) {
   const [serviceNameArabic, setServiceNameArabic] = useState('');
   const [initialTicket, setInitialTicket] = useState('');
   const [serviceColor, setServiceColor] = useState('#000000');
+  const [textColor, setTextColor] = useState('#FFFFFF');
   const [uploadLogo, setUploadLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [mainService, setMainService] = useState('');
@@ -73,6 +74,7 @@ export default function CreateServicesPage({ adminId }) {
       formData.append('service_name_arabic', serviceNameArabic);
       formData.append('initial_ticket', initialTicket);
       formData.append('color', serviceColor);
+      formData.append('text_color', textColor);
       
       // If adminId is provided (from modal), include it
       if (adminId) {
@@ -123,6 +125,7 @@ export default function CreateServicesPage({ adminId }) {
     setServiceNameArabic('');
     setInitialTicket('');
     setServiceColor('#000000');
+    setTextColor('#FFFFFF');
     setUploadLogo(null);
     setLogoPreview(null);
     setEditingId(null);
@@ -136,7 +139,16 @@ export default function CreateServicesPage({ adminId }) {
     setServiceNameArabic(service.service_name_arabic);
     setInitialTicket(service.initial_ticket);
     setServiceColor(service.color);
+    setTextColor(service.text_color || '#FFFFFF');
     setEditingId(service.id);
+    
+    // Set logo preview if service has a logo
+    if (service.logo_url) {
+      setLogoPreview(`${process.env.NEXT_PUBLIC_API_URL_WS}${service.logo_url}`);
+    } else {
+      setLogoPreview(null);
+    }
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -230,6 +242,19 @@ export default function CreateServicesPage({ adminId }) {
                 type="color"
                 value={serviceColor}
                 onChange={(e) => setServiceColor(e.target.value)}
+                className="w-full h-10 border border-gray-300 rounded cursor-pointer"
+              />
+            </div>
+
+            {/* Text Color */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 uppercase mb-2">
+                Text Color
+              </label>
+              <input
+                type="color"
+                value={textColor}
+                onChange={(e) => setTextColor(e.target.value)}
                 className="w-full h-10 border border-gray-300 rounded cursor-pointer"
               />
             </div>
@@ -376,14 +401,15 @@ export default function CreateServicesPage({ adminId }) {
                 <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Logo</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Service Name</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Initial Ticket</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Color</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Service Color</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Text Color</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {services.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
                     No services found. Create your first service above.
                   </td>
                 </tr>
@@ -415,6 +441,15 @@ export default function CreateServicesPage({ adminId }) {
                           style={{ backgroundColor: service.color }}
                         ></div>
                         <span>{service.color}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-6 h-6 rounded border border-gray-300"
+                          style={{ backgroundColor: service.text_color || '#FFFFFF' }}
+                        ></div>
+                        <span>{service.text_color || '#FFFFFF'}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm">

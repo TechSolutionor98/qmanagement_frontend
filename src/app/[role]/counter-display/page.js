@@ -645,6 +645,76 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
     }
   };
 
+  // Delete left logo handler
+  const handleDeleteLeftLogo = async () => {
+    if (!confirm('Are you sure you want to remove the left logo?')) {
+      return;
+    }
+
+    try {
+      if (leftLogoUrl) {
+        const deleteUrl = `${API_URL}/counter-display/delete-logo`;
+        console.log('🗑️ Deleting left logo from server');
+        
+        await axios.post(deleteUrl, 
+          { admin_id: adminId, logoType: 'left' },
+          { headers: getAuthHeaders() }
+        );
+      }
+
+      // Clear from state
+      setLeftLogo(null);
+      setLeftLogoUrl('');
+      
+      toast.success('Left logo removed successfully!', {
+        position: "top-right",
+        autoClose: 3000
+      });
+      console.log('✅ Left logo removed');
+    } catch (error) {
+      console.error('❌ Error deleting left logo:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete left logo', {
+        position: "top-right",
+        autoClose: 5000
+      });
+    }
+  };
+
+  // Delete right logo handler
+  const handleDeleteRightLogo = async () => {
+    if (!confirm('Are you sure you want to remove the right logo?')) {
+      return;
+    }
+
+    try {
+      if (rightLogoUrl) {
+        const deleteUrl = `${API_URL}/counter-display/delete-logo`;
+        console.log('🗑️ Deleting right logo from server');
+        
+        await axios.post(deleteUrl, 
+          { admin_id: adminId, logoType: 'right' },
+          { headers: getAuthHeaders() }
+        );
+      }
+
+      // Clear from state
+      setRightLogo(null);
+      setRightLogoUrl('');
+      
+      toast.success('Right logo removed successfully!', {
+        position: "top-right",
+        autoClose: 3000
+      });
+      console.log('✅ Right logo removed');
+    } catch (error) {
+      console.error('❌ Error deleting right logo:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete right logo', {
+        position: "top-right",
+        autoClose: 5000
+      });
+    }
+  };
+
   // Delete video handler
   const handleDeleteVideo = async () => {
     if (!confirm('Are you sure you want to remove the video?')) {
@@ -929,7 +999,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
 
 
       {/* Top Row: Left Logo, Right Logo, Screen Type */
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="bg-white rounded-lg shadow p-4">
           <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">
             Left Logo
@@ -941,12 +1011,21 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
             className="w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded file:border file:border-gray-300 file:text-xs file:font-semibold file:bg-white file:text-gray-700 hover:file:bg-gray-50"
           />
           {(leftLogo || leftLogoUrl) && (
-            <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
+            <div className="mt-2 p-2 bg-green-50 rounded border border-green-200 relative">
               <img 
                 src={leftLogo ? URL.createObjectURL(leftLogo) : `${process.env.NEXT_PUBLIC_API_URL_WS}${leftLogoUrl}`} 
                 alt="Left Logo" 
                 className="h-12 object-contain mx-auto"
               />
+              <button
+                onClick={handleDeleteLeftLogo}
+                className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full shadow-lg transition-colors"
+                title="Delete Left Logo"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
             </div>
           )}
         </div>
@@ -962,42 +1041,23 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
             className="w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded file:border file:border-gray-300 file:text-xs file:font-semibold file:bg-white file:text-gray-700 hover:file:bg-gray-50"
           />
           {(rightLogo || rightLogoUrl) && (
-            <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
+            <div className="mt-2 p-2 bg-green-50 rounded border border-green-200 relative">
               <img 
                 src={rightLogo ? URL.createObjectURL(rightLogo) : `${process.env.NEXT_PUBLIC_API_URL_WS}${rightLogoUrl}`} 
                 alt="Right Logo" 
                 className="h-12 object-contain mx-auto"
               />
+              <button
+                onClick={handleDeleteRightLogo}
+                className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full shadow-lg transition-colors"
+                title="Delete Right Logo"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
             </div>
           )}
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4">
-          <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">
-            Screen Type
-          </label>
-          <select
-            value={screenType}
-            onChange={(e) => setScreenType(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-700 text-sm"
-          >
-            <option value="horizontal">Horizontal</option>
-            <option value="vertical">Vertical</option>
-          </select>
-          <div className="mt-2 text-xs text-gray-500 text-center">
-            Current: <span className="font-semibold text-green-600">{screenType}</span>
-          </div>
-          <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
-            <p className="text-xs text-gray-600 mb-1">Display Link:</p>
-            <a 
-              href={`${typeof window !== 'undefined' ? window.location.origin : ''}/ticket_info_${screenType}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 underline break-all font-medium"
-            >
-              {typeof window !== 'undefined' ? window.location.origin : ''}/ticket_info_{screenType}
-            </a>
-          </div>
         </div>
       </div>
 

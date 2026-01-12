@@ -6,6 +6,7 @@ import axios from '@/utils/axiosInstance';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/Components/ProtectedRoute';
 import { getToken, getUser } from '@/utils/sessionStorage';
+import logo from '@/Components/images/logo_main.png'
 
 function TicketInfoContent() {
   const router = useRouter();
@@ -1471,7 +1472,7 @@ function TicketInfoContent() {
               />
             ) : (
               <img
-                src="https://ded.techsolutionor.com/assets/img/logo/DEDpreview.png"
+                src={logo}
                 alt="Logo"
                 className="w-full h-[150px] mx-auto object-contain"
               />
@@ -1503,7 +1504,7 @@ function TicketInfoContent() {
               />
             ) : (
               <img
-                src="https://epbc.techsolutionor.com/assets/img/logo/image-removebg-preview.png"
+                src={logo}
                 alt="Logo"
                 className="w-full h-[150px] mx-auto object-contain"
               />
