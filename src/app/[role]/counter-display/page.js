@@ -849,10 +849,13 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       }
       
       // ✅ STEP 2: Update configuration
+      toast.dismiss(); // Dismiss all previous toasts
       toast.info('💾 Configuration is being saved...', {
         position: "top-right",
-        autoClose: false
+        autoClose: false,
+        toastId: 'config-save' // Prevent duplicate toasts
       });
+      
       const payload = {
         leftLogoUrl,
         rightLogoUrl,
@@ -866,18 +869,23 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       };
 
       const updateUrl = `${API_URL}/counter-display/config`;
-      console.log('💾 Updating config at:', updateUrl, 'Payload:', payload);
+      console.log('💾 Updating config at:', updateUrl);
+      console.log('📦 Payload size:', JSON.stringify(payload).length, 'bytes');
+      console.log('📋 Payload:', payload);
       
-      // Use raw axios for production stability (same as video upload)
+      // Use raw axios with extended timeout for production
       const response = await axiosRaw.post(updateUrl, payload, {
         headers: {
           'Content-Type': 'application/json',
           ...getAuthHeaders()
         },
-        timeout: 30000 // 30 seconds timeout
+        timeout: 60000, // 60 seconds timeout (increased for production)
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
       });
       
       if (response.data.success) {
+        toast.dismiss(); // Dismiss all toasts
         toast.success('✅ Configuration updated successfully!', {
           position: "top-right",
           autoClose: 3000
@@ -885,32 +893,36 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         console.log('✅ Configuration updated successfully');
       }
     } catch (error) {
+      toast.dismiss(); // Dismiss all toasts
       console.error('❌ Error updating configuration:', error);
       console.error('❌ Error name:', error.name);
       console.error('❌ Error message:', error.message);
+      console.error('❌ Error code:', error.code);
       console.error('❌ Error response:', error.response?.data);
       console.error('❌ Error status:', error.response?.status);
       
       let errorMessage = 'Failed to update configuration';
       
-      if (error.response?.data?.message) {
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = '⏱️ Request timeout - Server is taking too long to respond.\n\nPlease try again or contact support if issue persists.';
+      } else if (error.code === 'ERR_NETWORK') {
+        errorMessage = '🌐 Network error - Cannot reach server.\n\nPossible causes:\n• Server is down\n• Internet connection issue\n• Firewall blocking request\n\nPlease check your internet connection and try again.';
+      } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
-      } else if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Request timeout - server took too long to respond';
       } else if (!error.response) {
-        errorMessage = 'Network error - Cannot reach server. Please check your internet connection.';
+        errorMessage = '❌ Network error - Cannot reach server.\n\nThe server might be down or restarting.\nPlease wait a moment and try again.';
       }
       
       toast.error(`❌ ${errorMessage}`, {
         position: "top-right",
-        autoClose: 8000,
+        autoClose: 10000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        style: { whiteSpace: 'pre-line' }
+        style: { whiteSpace: 'pre-line', fontSize: '14px' }
       });
     } finally {
       setLoading(false);
