@@ -902,17 +902,30 @@ function TicketInfoContent() {
        document.title = `🔊 Announcing ${ticketNumber}`;
      }
 
-    // 🔔 Play notification sound BEFORE announcement
-    try {
-      console.log('🔔 Playing notification sound...');
-      const notificationSound = new Audio('/ding-dong-81717.mp3');
-      notificationSound.volume = 0.5;
-      notificationSound.playbackRate = 0.7; // Slow down the sound
-      await notificationSound.play();
-      setAudioEnabled(true); // Hide button after successful play
-      // Wait for notification sound to finish (approx 2.5 seconds due to slower playback)
-      await new Promise(resolve => setTimeout(resolve, 2500));
-      console.log('✅ Notification sound completed');
+// 🔔 Play notification sound BEFORE announcement (ONLY ONCE)
+     try {
+       console.log('🔔 Playing notification sound...');
+       const notificationSound = new Audio('/ding-dong-81717.mp3');
+       notificationSound.volume = 0.5;
+       notificationSound.playbackRate = 0.7; // Slow down the sound
+       
+       // ✅ Wait for notification to complete using Promise
+       await new Promise((resolve, reject) => {
+         notificationSound.onended = () => {
+           console.log('✅ Notification sound completed');
+           resolve();
+         };
+         notificationSound.onerror = (e) => {
+           console.warn('⚠️ Notification sound error:', e);
+           resolve(); // Continue even if error
+         };
+         notificationSound.play().catch(err => {
+           console.warn('⚠️ Notification play blocked:', err.message);
+           resolve(); // Continue even if blocked
+         });
+       });
+       
+       setAudioEnabled(true); // Hide button after successful play
     } catch (error) {
       console.warn('⚠️ Notification sound failed, continuing with announcement:', error.message);
       // Continue even if notification fails
