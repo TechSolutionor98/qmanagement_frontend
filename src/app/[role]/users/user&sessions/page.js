@@ -604,14 +604,31 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                   <td className="px-6 py-4 text-sm text-gray-700">{user.username}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{user.email}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                      user.role === 'receptionist' ? 'bg-blue-100 text-blue-800' :
-                      user.role === 'ticket_info' ? 'bg-indigo-100 text-indigo-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {user.role === 'ticket_info' ? 'Ticket Info' : user.role?.charAt(0).toUpperCase() + user.role?.slice(1) || 'User'}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                        user.role === 'receptionist' ? 'bg-blue-100 text-blue-800' :
+                        user.role === 'ticket_info' ? 'bg-indigo-100 text-indigo-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.role === 'ticket_info' ? 'Ticket Info' : user.role?.charAt(0).toUpperCase() + user.role?.slice(1) || 'User'}
+                      </span>
+                      {(() => {
+                        let userPermissions = user.permissions;
+                        if (typeof userPermissions === 'string') {
+                          try {
+                            userPermissions = JSON.parse(userPermissions);
+                          } catch (e) {
+                            userPermissions = null;
+                          }
+                        }
+                        return userPermissions?.canAccessDashboard && (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            Admin
+                          </span>
+                        );
+                      })()}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">••••••</td>
                   <td className="px-6 py-4 text-sm">
