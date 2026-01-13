@@ -909,7 +909,7 @@ function TicketInfoContent() {
      try {
        console.log('🔔 Playing notification sound...');
        const notificationSound = new Audio('/ding-dong-81717.mp3');
-       notificationSound.volume = 0.5;
+       notificationSound.volume = 0.7;
        notificationSound.playbackRate = 0.7; // Slow down the sound
        
        // Play notification sound
@@ -920,9 +920,9 @@ function TicketInfoContent() {
          console.warn('⚠️ Notification play blocked:', err.message);
        });
        
-       // ⏱️ Wait 0.5 seconds before starting announcement
-       await new Promise(resolve => setTimeout(resolve, 500));
-       console.log('⏰ 0.5 second delay completed, starting announcement...');
+       // ⏱️ Wait 0.3 seconds before starting announcement
+       await new Promise(resolve => setTimeout(resolve, 300));
+       console.log('⏰ 0.3 second delay completed, starting announcement...');
     } catch (error) {
       console.warn('⚠️ Notification sound failed, continuing with announcement:', error.message);
       // Continue even if notification fails
