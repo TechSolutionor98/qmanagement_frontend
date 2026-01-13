@@ -1435,7 +1435,7 @@ function TicketInfoContent() {
               <span className="text-2xl sm:text-3xl lg:text-[50px] uppercase font-bold">{displayedTicket || 'Waiting...'}</span>
               {displayedTicket && (
                 <>
-                  <span className="inline-block w-[20px] sm:w-[35px] lg:w-[50px] h-[3px] sm:h-[5px] lg:h-[6px] bg-black align-middle mx-1 sm:mx-2"></span>
+                  <span className="inline-block w-[30px] sm:w-[40px] lg:w-[50px] h-[4px] sm:h-[6px] lg:h-[8px] bg-black align-middle mx-2 sm:mx-3 rounded-sm"></span>
                   <span className="text-2xl sm:text-3xl lg:text-[50px] font-bold">{displayedCounter || 'N/A'}</span>
                 </>
               )}
@@ -1443,7 +1443,7 @@ function TicketInfoContent() {
           </div>
           
           {/* Right Logo - Dynamic from database - Responsive */}
-          <div className="w-full sm:flex-[0_0_30%] text-center px-2 sm:px-0 mt-2 sm:mt-0">
+          <div className="w-full sm:flex-[0_0_30%] text-center px-2 sm:px-0 mt-2 sm:mt-0 border-t-2 sm:border-t-0 border-gray-300 pt-2 sm:pt-0">
             {rightLogoUrl ? (
               <img
                 src={`${apiUrlWs}${rightLogoUrl}`}
