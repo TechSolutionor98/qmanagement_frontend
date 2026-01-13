@@ -921,7 +921,7 @@ function TicketInfoContent() {
        });
        
        // ⏱️ Wait 0.3 seconds before starting announcement
-       await new Promise(resolve => setTimeout(resolve, 300));
+       await new Promise(resolve => setTimeout(resolve, 10));
        console.log('⏰ 0.3 second delay completed, starting announcement...');
     } catch (error) {
       console.warn('⚠️ Notification sound failed, continuing with announcement:', error.message);
