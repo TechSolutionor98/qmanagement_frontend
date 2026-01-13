@@ -1395,80 +1395,80 @@ function TicketInfoContent() {
     <ProtectedRoute allowedRoles={['ticket_info']}>
       <div className="flex flex-col h-screen w-full bg-white text-white font-sans overflow-hidden">
       
-      {/* Enable Audio Button - Floating at top */}
+      {/* Enable Audio Button - Floating at top - Responsive */}
       {!audioEnabled && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed top-2 sm:top-4 left-1/2 transform -translate-x-1/2 z-50">
           <button
             onClick={handleEnableAudio}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg shadow-2xl text-2xl animate-bounce border-4 border-white"
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 sm:py-4 sm:px-8 rounded-lg shadow-2xl text-base sm:text-2xl animate-bounce border-2 sm:border-4 border-white"
           >
             🔊 Click to Enable Audio
           </button>
         </div>
       )}
       
-      {/* Header Section - Full Width */}
+      {/* Header Section - Full Width - Responsive */}
         
-      <div className="w-full flex justify-around items-center bg-white/95 shadow-lg h-[150px] border-b border-gray-300">
-          {/* Left Logo - Dynamic from database */}
-          <div className="flex-[0_0_30%] text-center">
+      <div className="w-full flex flex-col sm:flex-row justify-around items-center bg-white/95 shadow-lg min-h-[80px] sm:min-h-[120px] lg:h-[150px] border-b border-gray-300 py-2 sm:py-0">
+          {/* Left Logo - Dynamic from database - Responsive */}
+          <div className="w-full sm:flex-[0_0_30%] text-center px-2 sm:px-0 mb-2 sm:mb-0">
             {leftLogoUrl ? (
               <img
                 src={`${apiUrlWs}${leftLogoUrl}`}
                 alt="Left Logo"
-                className="w-full h-[130px] mx-auto object-contain"
+                className="w-auto h-[50px] sm:h-[80px] lg:h-[130px] mx-auto object-contain"
               />
             ) : (
               <img
                 src={logo}
                 alt="Logo"
-                className="w-full h-[130px] mx-auto object-contain"
+                className="w-auto h-[50px] sm:h-[80px] lg:h-[130px] mx-auto object-contain"
               />
             )}
           </div>
           
-          {/* Now Calling Section */}
-          <div className="flex-[0_0_40%] text-center border-l-[5px] border-r-[5px] border-gray-300">
-            <div className="text-black font-bold text-[40px]">
-              <b className="text-red-600 text-[50px]">Now Calling</b>
+          {/* Now Calling Section - Responsive */}
+          <div className="w-full sm:flex-[0_0_40%] text-center border-t-2 sm:border-t-0 sm:border-l-[5px] sm:border-r-[5px] border-gray-300 py-2 sm:py-0">
+            <div className="text-black font-bold">
+              <b className="text-red-600 text-xl sm:text-3xl lg:text-[50px]">Now Calling</b>
               <br />
-              <span className="text-[50px] uppercase font-bold">{displayedTicket || 'Waiting...'}</span>
+              <span className="text-2xl sm:text-3xl lg:text-[50px] uppercase font-bold">{displayedTicket || 'Waiting...'}</span>
               {displayedTicket && (
                 <>
-                  <span className="inline-block w-[50px] h-[6px] bg-black align-middle mx-2"></span>
-                  <span className="text-[50px] font-bold">{displayedCounter || 'N/A'}</span>
+                  <span className="inline-block w-[20px] sm:w-[35px] lg:w-[50px] h-[3px] sm:h-[5px] lg:h-[6px] bg-black align-middle mx-1 sm:mx-2"></span>
+                  <span className="text-2xl sm:text-3xl lg:text-[50px] font-bold">{displayedCounter || 'N/A'}</span>
                 </>
               )}
             </div>
           </div>
           
-          {/* Right Logo - Dynamic from database */}
-          <div className="flex-[0_0_30%] text-center">
+          {/* Right Logo - Dynamic from database - Responsive */}
+          <div className="w-full sm:flex-[0_0_30%] text-center px-2 sm:px-0 mt-2 sm:mt-0">
             {rightLogoUrl ? (
               <img
                 src={`${apiUrlWs}${rightLogoUrl}`}
                 alt="Right Logo"
-                className="w-full h-[130px] mx-auto object-contain"
+                className="w-auto h-[50px] sm:h-[80px] lg:h-[130px] mx-auto object-contain"
               />
             ) : (
               <img
                 src={logo}
                 alt="Logo"
-                className="w-full h-[130px] mx-auto object-contain"
+                className="w-auto h-[50px] sm:h-[80px] lg:h-[130px] mx-auto object-contain"
               />
             )}
           </div>
         </div>
 
-      {/* Full Width Table Section */}
-      <div className="flex-1 bg-green-700 flex flex-col overflow-hidden">
+      {/* Full Width Table Section - Responsive */}
+      <div className="flex-1 bg-green-700 flex flex-col overflow-hidden overflow-y-auto">
         <table className="w-full border-collapse">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr>
-              <th className="bg-green-700 text-[48px] text-white text-center p-5 font-bold shadow-lg">
+              <th className="bg-green-700 text-2xl sm:text-3xl md:text-4xl lg:text-[48px] text-white text-center p-2 sm:p-3 lg:p-5 font-bold shadow-lg">
                 Ticket
               </th>
-              <th className="bg-green-700 text-[48px] text-white text-center p-5 font-bold shadow-lg">
+              <th className="bg-green-700 text-2xl sm:text-3xl md:text-4xl lg:text-[48px] text-white text-center p-2 sm:p-3 lg:p-5 font-bold shadow-lg">
                 Counter
               </th>
             </tr>
@@ -1476,7 +1476,7 @@ function TicketInfoContent() {
           <tbody>
             {calledTickets.length === 0 ? (
               <tr>
-                <td colSpan="2" className="bg-white text-gray-500 text-[24px] text-center py-8">
+                <td colSpan="2" className="bg-white text-gray-500 text-base sm:text-xl md:text-2xl text-center py-4 sm:py-8">
                   No tickets called yet
                 </td>
               </tr>
@@ -1530,10 +1530,10 @@ function TicketInfoContent() {
                     
                     return (
                       <tr key={index} className={`border-b-2 border-[#e6e9ec] ${isCurrentTicket ? 'animate-pulse' : ''}`}>
-                        <td className={`${bgColor} text-black uppercase text-[65px] text-center align-middle ${textWeight} py-5`}>
+                        <td className={`${bgColor} text-black uppercase text-2xl sm:text-4xl md:text-5xl lg:text-[65px] text-center align-middle ${textWeight} py-2 sm:py-3 lg:py-5`}>
                           {item.ticket_number}
                         </td>
-                        <td className={`${bgColor} text-black text-[65px] text-center align-middle ${textWeight} py-5`}>
+                        <td className={`${bgColor} text-black text-2xl sm:text-4xl md:text-5xl lg:text-[65px] text-center align-middle ${textWeight} py-2 sm:py-3 lg:py-5`}>
                           {item.counter_no || 'N/A'}
                         </td>
                       </tr>
@@ -1545,82 +1545,113 @@ function TicketInfoContent() {
         </table>
       </div>
 
-      {/* News Ticker - Dynamic from database - Full Width */}
-      <div className="w-full bg-[#333] text-white p-4 text-center text-[32px] font-bold h-[70px] flex items-center justify-center">
-        <marquee>{tickerContent}</marquee>
+      {/* News Ticker - Dynamic from database - Full Width - Responsive */}
+      <div className="w-full bg-[#333] text-white p-2 sm:p-3 lg:p-4 text-center text-sm sm:text-xl md:text-2xl lg:text-[32px] font-bold min-h-[40px] sm:min-h-[50px] lg:h-[70px] flex items-center justify-center">
+        <marquee className="w-full">{tickerContent}</marquee>
       </div>
 
-      {/* Responsive Styles */}
+      {/* Enhanced Responsive Styles */}
       <style jsx>{`
-        /* Large Screens (Desktop) - Bigger fonts */
-        @media (min-width: 1920px) {
+        /* Extra Large Screens (4K) - Biggest fonts */
+        @media (min-width: 2560px) {
+          table th {
+            font-size: 100px !important;
+            padding: 15px !important;
+          }
+          table td {
+            font-size: 120px !important;
+            padding: 20px !important;
+          }
+        }
+        
+        /* Large Screens (Desktop 1920px+) - Bigger fonts */
+        @media (min-width: 1920px) and (max-width: 2559px) {
           table th {
             font-size: 80px !important;
-            padding: 8px !important;
+            padding: 10px !important;
           }
           table td {
             font-size: 100px !important;
-            padding: 10px !important;
-          }
-        }
-        
-        /* Medium-Large Screens (1440px - 1920px) */
-        @media (min-width: 1440px) and (max-width: 1919px) {
-          table th {
-            font-size: 70px !important;
-            padding: 7px !important;
-          }
-          table td {
-            font-size: 90px !important;
-            padding: 8px !important;
-          }
-        }
-        
-        /* Standard Screens (1024px - 1439px) - Current size */
-        @media (min-width: 1024px) and (max-width: 1439px) {
-          table th {
-            font-size: 48px !important;
-            padding: 5px !important;
-          }
-          table td {
-            font-size: 65px !important;
-            padding: 5px !important;
-          }
-        }
-        
-        /* Tablets (768px - 1023px) - Smaller */
-        @media (min-width: 768px) and (max-width: 1023px) {
-          table th {
-            font-size: 45px !important;
-            padding: 10px !important;
-          }
-          table td {
-            font-size: 60px !important;
             padding: 12px !important;
           }
         }
         
-        /* Small Tablets/Large Phones (481px - 767px) */
-        @media (min-width: 481px) and (max-width: 767px) {
+        /* Medium-Large Screens (1440px - 1919px) */
+        @media (min-width: 1440px) and (max-width: 1919px) {
           table th {
-            font-size: 35px !important;
+            font-size: 70px !important;
             padding: 8px !important;
           }
           table td {
-            font-size: 45px !important;
+            font-size: 90px !important;
             padding: 10px !important;
           }
         }
         
-        /* Mobile Phones (max 480px) - Smallest */
-        @media (max-width: 480px) {
+        /* Standard Desktop (1024px - 1439px) */
+        @media (min-width: 1024px) and (max-width: 1439px) {
           table th {
-            font-size: 28px !important;
+            font-size: 48px !important;
+            padding: 8px !important;
+          }
+          table td {
+            font-size: 65px !important;
+            padding: 8px !important;
+          }
+        }
+        
+        /* Tablets Landscape (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          table th {
+            font-size: 36px !important;
             padding: 6px !important;
           }
           table td {
-            font-size: 36px !important;
+            font-size: 48px !important;
             padding: 8px !important;
+          }
+        }
+        
+        /* Tablets Portrait / Large Phones (481px - 767px) */
+        @media (min-width: 481px) and (max-width: 767px) {
+          table th {
+            font-size: 28px !important;
+            padding: 5px !important;
+          }
+          table td {
+            font-size: 36px !important;
+            padding: 6px !important;
+          }
+        }
+        
+        /* Mobile Phones (320px - 480px) */
+        @media (min-width: 320px) and (max-width: 480px) {
+          table th {
+            font-size: 20px !important;
+            padding: 4px !important;
+          }
+          table td {
+            font-size: 28px !important;
+            padding: 5px !important;
+          }
+        }
+        
+        /* Very Small Phones (below 320px) */
+        @media (max-width: 319px) {
+          table th {
+            font-size: 16px !important;
+            padding: 3px !important;
+          }
+          table td {
+            font-size: 22px !important;
+            padding: 4px !important;
+          }
+        }
+        
+        /* Smooth scrolling for mobile */
+        @media (max-width: 768px) {
+          .overflow-y-auto {
+            -webkit-overflow-scrolling: touch;
           }
         }
       `}</style>
