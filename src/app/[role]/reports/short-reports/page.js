@@ -265,7 +265,7 @@ export default function ShortReportsPage({ adminId: propAdminId }) {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <h1 className="text-2xl font-semibold text-gray-700 mb-6">Short Reports</h1>
 
       {/* Error Message */}
@@ -276,34 +276,34 @@ export default function ShortReportsPage({ adminId: propAdminId }) {
       )}
 
       {/* Date Filter Section */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <input
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-black"
+          className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-black"
         />
         <input
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-black"
+          className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-black"
         />
         <button
           onClick={handleFilter}
           disabled={loading}
-          className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           {loading ? 'Loading...' : 'Filter'}
         </button>
       </div>
 
       {/* Download Buttons */}
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <button
           onClick={handleDownloadWord}
           disabled={loading || reportData.length === 0}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gray-500 text-white rounded hover:bg-gray-600 font-medium transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-500 text-white rounded hover:bg-gray-600 font-medium transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           <FaDownload />
           Download Word
@@ -311,7 +311,7 @@ export default function ShortReportsPage({ adminId: propAdminId }) {
         <button
           onClick={handleDownloadPDF}
           disabled={loading || reportData.length === 0}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gray-500 text-white rounded hover:bg-gray-600 font-medium transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-500 text-white rounded hover:bg-gray-600 font-medium transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           <FaDownload />
           Download PDF
@@ -329,41 +329,80 @@ export default function ShortReportsPage({ adminId: propAdminId }) {
       {/* Summary Details Table */}
       {!loading && reportData.length > 0 && (
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
+          <div className="p-4 md:p-6 border-b">
             <h2 className="text-lg font-semibold text-gray-700">Summary Details</h2>
           </div>
           
-          <div className="overflow-x-auto">
+          {/* Mobile Card View */}
+          <div className="block md:hidden">
+            {reportData.map((report, index) => (
+              <div key={index} className="border-b p-4 hover:bg-gray-50">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="px-3 py-1 bg-green-500 text-white rounded font-medium text-sm">
+                    {report.user}
+                  </span>
+                  <span className="px-3 py-1.5 bg-green-600 text-white rounded-lg font-bold text-base">
+                    Total: {report.total}
+                  </span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Solved:</span>
+                    <span className="font-medium text-gray-900">{report.totalSolved}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Not Solved:</span>
+                    <span className="font-medium text-gray-900">{report.notSolved}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Unattended:</span>
+                    <span className="font-medium text-gray-900">{report.unattendedTickets}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Transferred:</span>
+                    <span className="font-medium text-gray-900">{report.transferred}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t">
+                    <span className="text-gray-600">Date Range:</span>
+                    <span className="font-medium text-gray-900 text-xs">{report.dateRange}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Total Solved</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Not Solved</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Unattended Tickets</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Transferred</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white bg-green-600 uppercase tracking-wider">Total</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Date Range</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">User</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Total Solved</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Not Solved</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Unattended Tickets</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Transferred</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-white bg-green-600 uppercase tracking-wider">Total</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">Date Range</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {reportData.map((report, index) => (
                   <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm">
+                    <td className="px-3 md:px-6 py-4 text-sm">
                       <span className="px-3 py-1 bg-green-500 text-white rounded font-medium">
                         {report.user}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{report.totalSolved}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{report.notSolved}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{report.unattendedTickets}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{report.transferred}</td>
-                    <td className="px-6 py-4 text-sm">
+                    <td className="px-3 md:px-6 py-4 text-sm text-gray-700">{report.totalSolved}</td>
+                    <td className="px-3 md:px-6 py-4 text-sm text-gray-700">{report.notSolved}</td>
+                    <td className="px-3 md:px-6 py-4 text-sm text-gray-700">{report.unattendedTickets}</td>
+                    <td className="px-3 md:px-6 py-4 text-sm text-gray-700">{report.transferred}</td>
+                    <td className="px-3 md:px-6 py-4 text-sm">
                       <span className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold text-lg inline-block min-w-[60px] text-center">
                         {report.total}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{report.dateRange}</td>
+                    <td className="px-3 md:px-6 py-4 text-sm text-gray-700">{report.dateRange}</td>
                   </tr>
                 ))}
               </tbody>

@@ -8,7 +8,7 @@ import autoTable from 'jspdf-autotable';
 import { getUser } from '@/utils/sessionStorage';
 
 
-export default function SuperAdminPage({ adminId: propAdminId }) {
+export default function DetailsReportsPage({ adminId: propAdminId }) {
   const { token, callAPI, user } = useAuthContext();
   const [effectiveAdminId, setEffectiveAdminId] = useState(null);
   const [filterBy, setFilterBy] = useState('');
@@ -433,7 +433,7 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6 lg:p-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-600">{error}</p>
           <button 
@@ -448,23 +448,23 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
   }
 
   return (
-    <div className="p-8 w-full" style={{maxWidth: 'calc(100vw - 272px)'}}>
+    <div className="p-4 sm:p-6 lg:p-8 w-full max-w-full lg:max-w-[calc(100vw-272px)]">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold text-gray-700">Admin Panel</h1>
+      <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-700">Admin Panel</h1>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4 mb-6 flex-wrap">
-        <div className="flex items-center gap-2">
-          <HiMenu className="text-gray-400 text-xl" />
+      <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-row lg:items-center lg:gap-4 mb-4">
+        <div className="flex items-center gap-2 col-span-2 lg:col-span-1">
+          <HiMenu className="text-gray-400 text-lg lg:text-xl flex-shrink-0" />
           <select
             value={filterBy}
             onChange={(e) => {
               setFilterBy(e.target.value);
               setFilterValue('');
             }}
-            className="px-4 py-2 border border-gray-300 rounded bg-white text-black min-w-[150px]"
+            className="px-3 py-2.5 border border-gray-300 rounded bg-white text-black text-sm w-full lg:min-w-[150px]"
           >
             <option value="">Filter By (Optional)</option>
             <option value="counter">Counter</option>
@@ -472,11 +472,12 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
           </select>
         </div>
 
+        <div className="col-span-2 lg:col-span-1">
         {filterBy === 'counter' ? (
           <select
             value={filterValue}
             onChange={(e) => setFilterValue(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded bg-white text-black min-w-[200px]"
+            className="px-3 py-2.5 border border-gray-300 rounded bg-white text-black text-sm w-full lg:min-w-[200px]"
           >
             <option value="">Select Counter</option>
             {counters.map((counter) => (
@@ -489,7 +490,7 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
           <select
             value={filterValue}
             onChange={(e) => setFilterValue(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded bg-white text-black min-w-[200px]"
+            className="px-3 py-2.5 border border-gray-300 rounded bg-white text-black text-sm w-full lg:min-w-[200px]"
           >
             <option value="">Select Representative</option>
             {representatives.map((rep) => (
@@ -504,14 +505,15 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
             placeholder="Enter Value"
             value={filterValue}
             onChange={(e) => setFilterValue(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded text-black placeholder-gray-500 min-w-[200px]"
+            className="px-3 py-2.5 border border-gray-300 rounded text-black placeholder-gray-500 text-sm w-full lg:min-w-[200px]"
           />
         )}
+        </div>
 
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded bg-white text-black min-w-[150px]"
+          className="px-3 py-2.5 border border-gray-300 rounded bg-white text-black text-sm w-full lg:min-w-[150px]"
         >
           <option value="">All Status</option>
           <option value="Pending">Pending</option>
@@ -520,14 +522,13 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
           <option value="Unattended">Unattended</option>
         </select>
 
-        <div className="flex items-center gap-2">
-          <FaCalendarAlt className="text-gray-400" />
+        <div className="flex items-center gap-2 lg:gap-2">
+          <FaCalendarAlt className="text-gray-400 text-sm flex-shrink-0" />
           <input
             type="date"
-            placeholder="mm/dd/yyyy"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded text-black"
+            className="px-3 py-2.5 border border-gray-300 rounded text-black text-sm w-full"
           />
         </div>
 
@@ -544,21 +545,20 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
       </div>
 
       {/* Second Row Filters */}
-      <div className="flex items-center gap-4 mb-6 flex-wrap">
+      <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-row lg:items-center lg:gap-4 mb-4">
         <div className="flex items-center gap-2">
-          <FaCalendarAlt className="text-gray-400" />
+          <FaCalendarAlt className="text-gray-400 text-sm flex-shrink-0" />
           <input
             type="date"
-            placeholder="mm/dd/yyyy"
             value={startDate2}
             onChange={(e) => setStartDate2(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded text-black"
+            className="px-3 py-2.5 border border-gray-300 rounded text-black text-sm w-full"
           />
         </div>
 
         <button 
           onClick={handleFilter}
-          className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+          className="px-6 py-2.5 bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center gap-2 text-sm font-medium w-full lg:w-auto"
         >
           <FaSearch />
           Filter
@@ -566,24 +566,24 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end gap-4 mb-6 flex-wrap relative">
+      <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-row lg:justify-end lg:gap-4 mb-4 relative">
         <div className="relative">
           <button 
             onClick={() => setShowColumnModal(!showColumnModal)}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center gap-2"
+            className="px-4 py-2.5 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center justify-center gap-2 text-sm font-medium w-full"
           >
-            Select Columns <FaChevronDown />
+            Select Columns <FaChevronDown className="text-xs" />
           </button>
           
           {/* Column Selection Modal */}
           {showColumnModal && (
-            <div className="absolute right-0 top-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50 w-64 max-h-96 overflow-y-auto">
+            <div className="fixed lg:absolute left-0 lg:left-auto right-0 lg:right-0 top-0 lg:top-full mt-0 lg:mt-2 bg-white border border-gray-300 rounded-none lg:rounded-lg shadow-lg z-50 w-full lg:w-64 h-full lg:h-auto max-h-full lg:max-h-96 overflow-y-auto">
               <div className="p-4">
                 <div className="flex justify-between items-center mb-3 pb-2 border-b">
-                  <h3 className="font-semibold text-gray-700">Select Columns</h3>
+                  <h3 className="font-semibold text-gray-700 text-base lg:text-sm">Select Columns</h3>
                   <button 
                     onClick={() => setShowColumnModal(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 hover:text-gray-700 text-xl lg:text-base"
                   >
                     ✕
                   </button>
@@ -610,39 +610,53 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
         </div>
         
         <button 
-          onClick={downloadAsWord}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center gap-2"
+          onClick={() => {
+            setFilterBy('');
+            setFilterValue('');
+            setStatus('');
+            setStartDate('');
+            setStartDate2('');
+            fetchTickets();
+          }}
+          className="px-4 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-2 text-sm font-medium w-full lg:w-auto"
         >
-          <FaFileWord /> Download as Word
+          Clear Filters
+        </button>
+        
+        <button 
+          onClick={downloadAsWord}
+          className="px-4 py-2.5 bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center gap-2 text-sm font-medium w-full lg:w-auto"
+        >
+          <FaFileWord className="text-base" /> Word
         </button>
         <button 
           onClick={downloadAsPDF}
-          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center gap-2"
+          className="px-4 py-2.5 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center justify-center gap-2 text-sm font-medium w-full lg:w-auto"
         >
-          Download as PDF
+          PDF
         </button>
         <button 
           onClick={downloadAsExcel}
-          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center gap-2"
+          className="px-4 py-2.5 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center justify-center gap-2 text-sm font-medium w-full lg:w-auto"
         >
-          Download as Excel
+          Excel
         </button>
       </div>
 
       {/* Service Details Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden w-full">
-        <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-700">Service Details</h2>
+        <div className="p-3 lg:p-4 border-b">
+          <h2 className="text-base lg:text-lg font-semibold text-gray-700">Service Details</h2>
         </div>
         
-        <div className="overflow-auto max-w-full max-h-[400px]">
-          <table className="w-full border-collapse table-auto">
-            <thead className="bg-gray-50">
+        <div className="overflow-x-auto overflow-y-auto max-w-full" style={{maxHeight: '60vh'}}>
+          <table className="w-full border-collapse table-auto min-w-[800px]">
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
                 {selectedColumns.filter(col => col.selected).map((column) => (
                   <th 
                     key={column.key}
-                    className="px-3 py-3 text-left text-xs font-medium text-black uppercase tracking-wider border-b border-gray-200 whitespace-nowrap"
+                    className="px-2 py-2 text-left text-[11px] font-semibold text-gray-700 uppercase tracking-wide border-b-2 border-gray-200 whitespace-nowrap bg-gray-50"
                   >
                     {column.label}
                   </th>
@@ -652,7 +666,7 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
             <tbody className="bg-white divide-y divide-gray-200">
               {services.length === 0 ? (
                 <tr>
-                  <td colSpan={selectedColumns.filter(col => col.selected).length} className="px-3 py-8 text-center text-gray-500">
+                  <td colSpan={selectedColumns.filter(col => col.selected).length} className="px-2 lg:px-3 py-6 lg:py-8 text-center text-gray-500 text-sm">
                     No tickets found
                   </td>
                 </tr>
@@ -662,14 +676,14 @@ export default function SuperAdminPage({ adminId: propAdminId }) {
                     {selectedColumns.filter(col => col.selected).map((column) => (
                       <td 
                         key={column.key}
-                        className={`px-3 py-3 whitespace-nowrap ${
-                          column.key === 'service_name' ? 'text-green-600 text-sm' : 
-                          column.key === 'created_at' || column.key === 'calling_user_time' || column.key === 'status_time' || column.key === 'transfered_time' || column.key === 'last_updated' ? 'text-gray-900 text-xs' : 
-                          'text-gray-900 text-sm'
+                        className={`px-2 lg:px-3 py-2 lg:py-3 whitespace-nowrap ${
+                          column.key === 'service_name' ? 'text-green-600 text-xs lg:text-sm' : 
+                          column.key === 'created_at' || column.key === 'calling_user_time' || column.key === 'status_time' || column.key === 'transfered_time' || column.key === 'last_updated' ? 'text-gray-900 text-[10px] lg:text-xs' : 
+                          'text-gray-900 text-xs lg:text-sm'
                         }`}
                       >
                         {column.key === 'status' ? (
-                          <span className={`px-2 py-1 rounded text-xs ${
+                          <span className={`px-1.5 lg:px-2 py-0.5 lg:py-1 rounded text-[10px] lg:text-xs ${
                             ticket.status?.toLowerCase() === 'pending' || ticket.status?.toLowerCase() === 'unattended' ? 'bg-yellow-100 text-yellow-800' :
                             ticket.status?.toLowerCase() === 'solved' || ticket.status?.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
                             ticket.status?.toLowerCase() === 'not solved' || ticket.status?.toLowerCase() === 'cancelled' ? 'bg-red-100 text-red-800' :

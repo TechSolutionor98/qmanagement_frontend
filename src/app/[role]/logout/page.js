@@ -89,15 +89,15 @@ export default function LogoutPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-8">
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-        <h1 className="text-2xl font-semibold text-gray-700 mb-4">Logout</h1>
-        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-        <div className="flex gap-4 justify-center">
+    <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 max-w-md w-full text-center">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-3 sm:mb-4">Logout</h1>
+        <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Are you sure you want to logout?</p>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <button
             onClick={handleLogout}
             disabled={loading}
-            className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
+            className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px] text-sm sm:text-base"
           >
             {loading ? (
               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@ export default function LogoutPage() {
           </button>
           <button
             onClick={() => router.back()}
-            className="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+            className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm sm:text-base"
           >
             Cancel
           </button>

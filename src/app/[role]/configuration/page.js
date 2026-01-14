@@ -428,24 +428,24 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
       
       {/* Loading state while adminId is being fetched */}
       {!adminId && (
-        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 max-w-3xl">
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 md:p-6 max-w-3xl">
           <div className="flex items-center gap-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
-            <p className="text-yellow-800 font-medium">Loading admin configuration...</p>
+            <p className="text-yellow-800 font-medium text-sm md:text-base">Loading admin configuration...</p>
           </div>
         </div>
       )}
       
       {/* Show settings only when adminId is available */}
       {adminId && (
-      <div className="bg-white rounded-lg shadow p-6 max-w-3xl">
-        <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-4 md:p-6 max-w-3xl">
+        <div className="space-y-4 md:space-y-6">
           
           {/* AI Voice Service Status */}
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg p-6 shadow-lg">
-            <div className="flex items-center justify-between">
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg p-4 md:p-6 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-[22px] font-bold flex items-center gap-2">
+                <h2 className="text-lg md:text-[22px] font-bold flex items-center gap-2">
                   🎙️ ChatterBox Tech Solutionor Custom Voice System
                 </h2>
                 <p className="text-white/90 mt-1">
@@ -525,25 +525,25 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
 
           {/* Preferred Languages - Multi Select (Max 2) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Preferred Languages (Select up to 2)
             </label>
             <p className="text-xs text-gray-500 mb-3">Select maximum 2 languages for announcements</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
               {[
-                { code: 'en', flag: '🇬🇧', name: 'English' },
-                { code: 'ar-ae', flag: '🇦🇪', name: 'Dubai Arabic' },
-                { code: 'ar', flag: '🇸🇦', name: 'Arabic' },
-                { code: 'ur', flag: '🇵🇰', name: 'Urdu (اردو)' },
-                { code: 'hi', flag: '🇮🇳', name: 'Hindi' },
-                { code: 'es', flag: '🇪🇸', name: 'Spanish' }
+                { code: 'en', flag: '🇬🇧', name: 'English', abbr: 'GB' },
+                { code: 'ar-ae', flag: '🇦🇪', name: 'Arabic', abbr: 'AE', subtitle: 'Dubai' },
+                { code: 'ar', flag: '🇸🇦', name: 'Arabic', abbr: 'SA' },
+                { code: 'ur', flag: '🇵🇰', name: 'Urdu', abbr: 'PK', subtitle: 'اردو' },
+                { code: 'hi', flag: '🇮🇳', name: 'Hindi', abbr: 'IN' },
+                { code: 'es', flag: '🇪🇸', name: 'Spanish', abbr: 'ES' }
               ].map(lang => (
                 <label
                   key={lang.code}
-                  className={`flex items-center gap-2 p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                  className={`flex flex-col items-center justify-center p-3 md:p-4 border-2 rounded-lg cursor-pointer transition-all min-h-[90px] ${
                     selectedLanguages.includes(lang.code)
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-300 hover:border-gray-400'
+                      ? 'border-green-500 bg-green-50 shadow-sm'
+                      : 'border-gray-300 hover:border-gray-400 bg-white'
                   } ${
                     !selectedLanguages.includes(lang.code) && selectedLanguages.length >= 2
                       ? 'opacity-50 cursor-not-allowed'
@@ -555,10 +555,16 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                     checked={selectedLanguages.includes(lang.code)}
                     onChange={() => handleLanguageToggle(lang.code)}
                     disabled={!selectedLanguages.includes(lang.code) && selectedLanguages.length >= 2}
-                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 mb-2"
                   />
-                  <span className="text-2xl">{lang.flag}</span>
-                  <span className="text-sm font-medium text-gray-700">{lang.name}</span>
+                  <span className="text-xl mb-1">{lang.flag}</span>
+                  <div className="text-center">
+                    <div className="text-xs md:text-sm font-bold text-gray-700">{lang.abbr}</div>
+                    <div className="text-xs text-gray-600">{lang.name}</div>
+                    {lang.subtitle && (
+                      <div className="text-[10px] text-gray-500">{lang.subtitle}</div>
+                    )}
+                  </div>
                 </label>
               ))}
             </div>
@@ -663,23 +669,29 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-4 flex gap-3">
+          <div className="pt-4 flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleTestVoice}
               disabled={synthesizing || chatterboxServiceStatus === 'offline'}
-              className={`flex-1 px-8 py-3 rounded-lg font-medium transition-colors ${
+              className={`w-full sm:flex-1 px-6 md:px-8 py-3 md:py-4 rounded-lg font-medium text-sm md:text-base transition-colors ${
                 synthesizing || chatterboxServiceStatus === 'offline'
                   ? 'bg-gray-400 cursor-not-allowed' 
                   : 'bg-green-600 hover:bg-green-700'
-              } text-white`}
+              } text-white shadow-md hover:shadow-lg`}
             >
-              {synthesizing ? '⏳ Generating...' : '🔊 Test AI Voice'}
+              <span className="flex items-center justify-center gap-2">
+                <span className="text-lg">🔊</span>
+                <span>{synthesizing ? 'Generating...' : 'Test AI Voice'}</span>
+              </span>
             </button>
             <button
               onClick={handleUpdateSettings}
-              className="flex-1 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors"
+              className="w-full sm:flex-1 px-6 md:px-8 py-3 md:py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm md:text-base transition-colors shadow-md hover:shadow-lg"
             >
-              💾 Save Settings
+              <span className="flex items-center justify-center gap-2">
+                <span className="text-lg">💾</span>
+                <span>Save Settings</span>
+              </span>
             </button>
           </div>
 

@@ -230,28 +230,28 @@ export default function AssignServicesPage({ adminId }) {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold text-gray-700 mb-6">Admin Assign Services</h1>
+    <div className="p-4 md:p-6 lg:p-8">
+      <h1 className="text-xl md:text-2xl font-semibold text-gray-700 mb-4 md:mb-6">Admin Assign Services</h1>
 
       {/* Assigned Services Table */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-700">Assigned Services</h2>
+      <div className="bg-white rounded-lg shadow mb-4 md:mb-6">
+        <div className="p-4 md:p-6 border-b">
+          <h2 className="text-base md:text-lg font-semibold text-gray-700">Assigned Services</h2>
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Username</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Services</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-600 uppercase tracking-wider">Username</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-600 uppercase tracking-wider">Services</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-[10px] md:text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {assignedServices.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan="3" className="px-3 md:px-6 py-8 text-center text-gray-500 text-sm">
                     No services assigned yet
                   </td>
                 </tr>
@@ -260,26 +260,26 @@ export default function AssignServicesPage({ adminId }) {
                   .filter((item) => item.services && item.services.trim() !== '')
                   .map((item) => (
                     <tr key={item.user_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm">
+                      <td className="px-3 md:px-6 py-3 md:py-4 text-sm">
                         <div className="font-medium text-gray-900">{item.username}</div>
                         {/* <div className="text-gray-500 text-xs">{item.email}</div> */}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
+                      <td className="px-3 md:px-6 py-3 md:py-4">
+                        <div className="flex flex-wrap gap-2">
                           {item.services.split(', ').map((service, index) => (
                             <span
                               key={index}
-                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium  text-gray-800"
+                              className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-200"
                             >
                               {service}
                             </span>
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm">
+                      <td className="px-3 md:px-6 py-3 md:py-4 text-sm">
                         <button
                           onClick={() => handleDeleteAll(item.user_id)}
-                          className="px-4 py-1.5 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                          className="w-full sm:w-auto px-3 md:px-4 py-1.5 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors whitespace-nowrap"
                         >
                           Delete All
                         </button>
@@ -293,14 +293,14 @@ export default function AssignServicesPage({ adminId }) {
       </div>
 
       {/* Assign Services to User */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-700">Assign Services to User</h2>
+      <div className="bg-white rounded-lg shadow mb-4 md:mb-6">
+        <div className="p-4 md:p-6 border-b">
+          <h2 className="text-base md:text-lg font-semibold text-gray-700">Assign Services to User</h2>
         </div>
         
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {/* Assign to User Dropdown */}
-          <div className="mb-6 relative">
+          <div className="mb-4 md:mb-6 relative">
             <label className="block text-xs font-medium text-gray-600 uppercase mb-2">
               Assign to Users ({selectedUsers.length} selected)
             </label>
@@ -347,14 +347,14 @@ export default function AssignServicesPage({ adminId }) {
           </div>
 
           {/* Select Services */}
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <label className="block text-xs font-medium text-gray-600 uppercase mb-3">
               Select Services
             </label>
             
             <div className="space-y-2">
               {/* Select All Checkbox */}
-              <div className="flex items-center">
+              <div className="flex items-center p-2 bg-gray-50 rounded">
                 <input
                   type="checkbox"
                   id="select-all"
@@ -368,24 +368,27 @@ export default function AssignServicesPage({ adminId }) {
               </div>
 
               {/* Individual Service Checkboxes */}
-              {services.length === 0 ? (
-                <p className="text-sm text-gray-500 ml-6">No services available. Create services first.</p>
-              ) : (
-                services.map((service) => (
-                  <div key={service.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`service-${service.id}`}
-                      checked={selectedServices.includes(service.id)}
-                      onChange={() => handleServiceToggle(service.id)}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                    />
-                    <label htmlFor={`service-${service.id}`} className="ml-2 text-sm text-gray-700">
-                      {service.service_name} ({service.service_name_arabic})
-                    </label>
-                  </div>
-                ))
-              )}
+              <div className="max-h-60 overflow-y-auto border border-gray-200 rounded p-2">
+                {services.length === 0 ? (
+                  <p className="text-sm text-gray-500 p-2">No services available. Create services first.</p>
+                ) : (
+                  services.map((service) => (
+                    <div key={service.id} className="flex items-start p-2 hover:bg-gray-50 rounded">
+                      <input
+                        type="checkbox"
+                        id={`service-${service.id}`}
+                        checked={selectedServices.includes(service.id)}
+                        onChange={() => handleServiceToggle(service.id)}
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 mt-0.5 flex-shrink-0"
+                      />
+                      <label htmlFor={`service-${service.id}`} className="ml-2 text-sm text-gray-700">
+                        <span className="font-medium">{service.service_name}</span>
+                        <span className="text-gray-500"> ({service.service_name_arabic})</span>
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
@@ -394,7 +397,7 @@ export default function AssignServicesPage({ adminId }) {
             <button
               onClick={handleAssignServices}
               disabled={loading}
-              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-4 md:px-6 py-2 bg-green-600 text-white text-sm md:text-base rounded hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {loading ? 'Assigning...' : 'Assign Services'}
             </button>

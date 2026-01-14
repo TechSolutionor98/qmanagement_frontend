@@ -11,7 +11,7 @@ import { FaUsers, FaFileContract } from 'react-icons/fa6';
 import { IoChevronForward } from 'react-icons/io5';
 import { FaClock } from 'react-icons/fa';
 
-export default function Sidebar() {
+export default function Sidebar({ isMobileOpen = false, onClose = () => {} }) {
   const pathname = usePathname();
   const currentUser = useSelector(selectCurrentUser);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
@@ -26,6 +26,11 @@ export default function Sidebar() {
   
   // Check if user is super admin
   const isSuperAdmin = currentUser?.role === 'super_admin';
+
+  // Close mobile menu on navigation
+  useEffect(() => {
+    onClose();
+  }, [pathname]);
 
   const isActive = (path) => pathname === path;
 
@@ -128,25 +133,53 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 h-screen fixed top-0 left-0 flex flex-col overflow-y-auto z-40" style={{ backgroundColor: '#2d3540', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
-      {/* Navigation */}
-      <nav className="flex-1 py-6">
-        <div className="px-6 mb-6">
+    <>
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-opacity-50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside 
+        className={`
+          w-48 lg:w-64 h-screen fixed top-0 left-0 flex flex-col mt-16 overflow-y-auto z-50
+          transition-transform duration-300 ease-in-out
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `} 
+        style={{ backgroundColor: '#2d3540', borderRight: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        {/* Close button for mobile */}
+        {/* <button
+          onClick={onClose}
+          className="lg:hidden absolute top-4 right-4 text-white hover:text-gray-300 p-2"
+          aria-label="Close menu"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button> */}
+
+        {/* Navigation */}
+        <nav className="flex-1 py-6">
+        {/* <div className="px-6 mb-6">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">MENU</p>
-        </div>
+        </div> */}
 
         {/* License Management - Only for Super Admin */}
         {isSuperAdmin && (
           <div>
             <button
               onClick={handleLicenseToggle}
-              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+              className={`flex items-center justify-between w-full px-3 lg:px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/license') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
-                <FaFileContract className="text-lg" />
-                <span className="text-sm font-medium">License Management</span>
+                <FaFileContract className="text-base lg:text-lg" />
+                <span className="text-xs lg:text-sm font-medium">License Management</span>
               </div>
               <IoChevronForward className={`text-sm transition-transform duration-200 ${isLicenseOpen ? 'rotate-90' : ''}`} />
             </button>
@@ -154,36 +187,36 @@ export default function Sidebar() {
               <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/license/create-license`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/license/create-license') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/license/create-license') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">Create License</span>
+                  <span className="text-xs lg:text-sm">Create License</span>
                 </Link>
                 <Link
                   href={`/${role}/license/license-report`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/license/license-report') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/license/license-report') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">License Report</span>
+                  <span className="text-xs lg:text-sm">License Report</span>
                 </Link>
                 <Link
                   href={`/${role}/license/list-of-license`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/license/list-of-license') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/license/list-of-license') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">List of License</span>
+                  <span className="text-xs lg:text-sm">List of License</span>
                 </Link>
               </div>
             )}
@@ -195,13 +228,13 @@ export default function Sidebar() {
           <div>
             <button
               onClick={handleServicesToggle}
-              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+              className={`flex items-center justify-between w-full px-3 lg:px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/services') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
-                <MdSettings className="text-lg" />
-                <span className="text-sm font-medium">Services</span>
+                <MdSettings className="text-base lg:text-lg" />
+                <span className="text-xs lg:text-sm font-medium">Services</span>
               </div>
               <IoChevronForward className={`text-sm transition-transform duration-200 ${isServicesOpen ? 'rotate-90' : ''}`} />
             </button>
@@ -209,25 +242,25 @@ export default function Sidebar() {
               <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/services/create-services`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/services/create-services') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/services/create-services') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">Create Services</span>
+                  <span className="text-xs lg:text-sm">Create Services</span>
                 </Link>
                 <Link
                   href={`/${role}/services/assign-services`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/services/assign-services') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/services/assign-services') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">Assign Services</span>
+                  <span className="text-xs lg:text-sm">Assign Services</span>
                 </Link>
               </div>
             )}
@@ -239,13 +272,13 @@ export default function Sidebar() {
           <div>
             <button
               onClick={handleCounterSettingsToggle}
-              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+              className={`flex items-center justify-between w-full px-3 lg:px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/counter-display') || pathname.includes('/display-screens-sessions') || pathname.includes('/configuration') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
-                <MdSettings className="text-lg" />
-                <span className="text-sm font-medium">Counter Settings</span>
+                <MdSettings className="text-base lg:text-lg" />
+                <span className="text-xs lg:text-sm font-medium">Counter Settings</span>
               </div>
               <IoChevronForward className={`text-sm transition-transform duration-200 ${isCounterSettingsOpen ? 'rotate-90' : ''}`} />
             </button>
@@ -253,36 +286,36 @@ export default function Sidebar() {
               <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/configuration`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/configuration') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/configuration') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">Configuration</span>
+                  <span className="text-xs lg:text-sm">Configuration</span>
                 </Link>
                 <Link
                   href={`/${role}/counter-display`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/counter-display') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/counter-display') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">Counter Display</span>
+                  <span className="text-xs lg:text-sm">Counter Display</span>
                 </Link>
                 <Link
                   href={`/${role}/display-screens-sessions`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/display-screens-sessions') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/display-screens-sessions') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">Display Screens Sessions</span>
+                  <span className="text-xs lg:text-sm">Display Screens Sessions</span>
                 </Link>
               </div>
             )}
@@ -294,13 +327,13 @@ export default function Sidebar() {
           <div>
             <button
               onClick={handleUsersToggle}
-              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+              className={`flex items-center justify-between w-full px-3 lg:px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/users') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
-                <FaUsers className="text-lg" />
-                <span className="text-sm font-medium">Users & Permissions</span>
+                <FaUsers className="text-base lg:text-lg" />
+                <span className="text-xs lg:text-sm font-medium">Users & Permissions</span>
               </div>
               <IoChevronForward className={`text-sm transition-transform duration-200 ${isUsersOpen ? 'rotate-90' : ''}`} />
             </button>
@@ -308,14 +341,14 @@ export default function Sidebar() {
               <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/users/user&sessions`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/users/user&sessions') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/users/user&sessions') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">User & Sessions</span>
+                  <span className="text-xs lg:text-sm">User & Sessions</span>
                 </Link>
               </div>
             )}
@@ -329,12 +362,12 @@ export default function Sidebar() {
         {!isSuperAdmin && (
           <Link
             href={`/${role}/user-dashboard-btns`}
-            className={`flex items-center gap-3 px-6 py-3 transition-all duration-200 ${
+            className={`flex items-center gap-3 px-3 lg:px-6 py-3 transition-all duration-200 ${
               pathname.includes('/user-dashboard-btns') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}
           >
-            <FaTv className="text-lg" />
-            <span className="text-sm font-medium">User Dashboard Btns</span>
+            <FaTv className="text-base lg:text-lg" />
+            <span className="text-xs lg:text-sm font-medium">User Dashboard Btns</span>
           </Link>
         )}
 
@@ -344,13 +377,13 @@ export default function Sidebar() {
           <div>
             <button
               onClick={handleReportsToggle}
-              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+              className={`flex items-center justify-between w-full px-3 lg:px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/reports') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
-                <HiDocumentReport className="text-lg" />
-                <span className="text-sm font-medium">Reports</span>
+                <HiDocumentReport className="text-base lg:text-lg" />
+                <span className="text-xs lg:text-sm font-medium">Reports</span>
               </div>
               <IoChevronForward className={`text-sm transition-transform duration-200 ${isReportsOpen ? 'rotate-90' : ''}`} />
             </button>
@@ -358,25 +391,25 @@ export default function Sidebar() {
               <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/reports/short-reports`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/reports/short-reports') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/reports/short-reports') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">Short Reports</span>
+                  <span className="text-xs lg:text-sm">Short Reports</span>
                 </Link>
                 <Link
                   href={`/${role}/reports/details-reports`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/reports/details-reports') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full ${
                     pathname.includes('/reports/details-reports') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
-                  <span className="text-sm">Details Reports</span>
+                  <span className="text-xs lg:text-sm">Details Reports</span>
                 </Link>
               </div>
             )}
@@ -388,13 +421,13 @@ export default function Sidebar() {
           <div>
             <button
               onClick={handleAdminSettingsToggle}
-              className={`flex items-center justify-between w-full px-6 py-3 transition-all duration-200 ${
+              className={`flex items-center justify-between w-full px-3 lg:px-6 py-3 transition-all duration-200 ${
                 pathname.includes('/admin-settings') ? 'bg-green-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
             >
               <div className="flex items-center gap-3">
-                <MdSettings className="text-lg" />
-                <span className="text-sm font-medium">Time Zone Setting</span>
+                <MdSettings className="text-base lg:text-lg" />
+                <span className="text-xs lg:text-sm font-medium">Time Zone Setting</span>
               </div>
               <IoChevronForward className={`text-sm transition-transform duration-200 ${isAdminSettingsOpen ? 'rotate-90' : ''}`} />
             </button>
@@ -402,7 +435,7 @@ export default function Sidebar() {
               <div className="bg-black/20 py-1">
                 <Link
                   href={`/${role}/admin-settings/timezone/admin-timezone`}
-                  className={`flex items-center gap-3 px-12 py-2.5 transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-8 lg:px-12 py-2.5 transition-all duration-200 ${
                     pathname.includes('/admin-settings/timezone/admin-timezone') ? 'text-white bg-green-500' : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -410,8 +443,8 @@ export default function Sidebar() {
                     pathname.includes('/admin-settings/timezone/admin-timezone') ? 'bg-white' : 'bg-gray-500'
                   }`}></span>
                   <div className="flex items-center gap-2">
-                    <FaClock className="text-sm" />
-                    <span className="text-sm">My Timezone</span>
+                    <FaClock className="text-xs lg:text-sm" />
+                    <span className="text-xs lg:text-sm">My Timezone</span>
                   </div>
                 </Link>
               </div>
@@ -421,5 +454,6 @@ export default function Sidebar() {
 
       </nav>
     </aside>
+    </>
   );
 }

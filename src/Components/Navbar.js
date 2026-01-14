@@ -3,11 +3,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '@/store/slices/authSlice';
-import { FaBell, FaLock, FaGlobe, FaSignOutAlt, FaInfoCircle, FaUser, FaIdCard, FaBuilding, FaDesktop, FaKey, FaEnvelope } from 'react-icons/fa';
+import { FaBell, FaLock, FaGlobe, FaSignOutAlt, FaInfoCircle, FaUser, FaIdCard, FaBuilding, FaDesktop, FaKey, FaEnvelope, FaBars } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import MainLogo from '@/Components/images/logo_main.png';
 
-export default function Navbar() {
+export default function Navbar({ onMenuClick = () => {}, isMobileMenuOpen = false }) {
   const currentUser = useSelector(selectCurrentUser);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -138,22 +138,42 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-[#71dd37] border-b border-gray-200 px-8 py-2.5 sticky top-0 z-50 shadow-md">
+      <nav className="bg-[#71dd37] border-b border-gray-200 px-4 md:px-8 py-2.5 sticky top-0 z-50 shadow-md">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <Link href={getDashboardRoute()} className="flex items-center hover:opacity-90 transition-opacity">
-            <Image 
-              src={MainLogo} 
-              alt="Tech Solutionor Logo" 
-              width={160} 
-              height={36}
-              className="h-auto object-contain"
-              priority
-            />
-          </Link>
+          {/* Left Section - Hamburger + Logo */}
+          <div className="flex items-center gap-3">
+            {/* Hamburger Menu - For all logged-in users */}
+            {currentUser && (
+              <button
+                onClick={onMenuClick}
+                className="lg:hidden p-2 text-gray-700 hover:bg-green-600 hover:text-white rounded-lg transition-all duration-200"
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <FaBars className="text-xl" />
+                )}
+              </button>
+            )}
+            
+            {/* Logo */}
+            <Link href={getDashboardRoute()} className="flex items-center hover:opacity-90 transition-opacity">
+              <Image 
+                src={MainLogo} 
+                alt="Tech Solutionor Logo" 
+                width={160} 
+                height={36}
+                className="h-auto object-contain w-32 md:w-40"
+                priority
+              />
+            </Link>
+          </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             {/* Notifications */}
             <div className="relative">
               {/* <button

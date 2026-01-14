@@ -1,0 +1,160 @@
+/* Admin Pages Responsive Utilities */
+
+@layer components {
+  /* Container responsive padding */
+  .admin-container {
+    @apply p-4 md:p-6 lg:p-8;
+  }
+
+/* Responsive headings */
+.admin-heading {
+  @apply text-xl md:text-2xl font-semibold text-gray-700 mb-4 md:mb-6;
+}
+
+.admin-subheading {
+  @apply text-base md:text-lg font-semibold text-gray-700;
+}
+
+/* Responsive card */
+.admin-card {
+  @apply bg-white rounded-lg shadow;
+}
+
+.admin-card-header {
+  @apply p-4 md:p-6 border-b;
+}
+
+.admin-card-body {
+  @apply p-4 md:p-6;
+}
+
+/* Responsive table wrapper */
+.admin-table-wrapper {
+  @apply overflow-x-auto;
+}
+
+.admin-table {
+  @apply min-w-full divide-y divide-gray-200 text-sm;
+}
+
+/* Responsive buttons */
+.admin-btn {
+  @apply px-4 md:px-6 py-2 text-sm md:text-base rounded font-medium transition-colors;
+}
+
+.admin-btn-primary {
+  @apply px-4 md:px-6 py-2 text-sm md:text-base rounded font-medium transition-colors bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.admin-btn-secondary {
+  @apply px-4 md:px-6 py-2 text-sm md:text-base rounded font-medium transition-colors bg-gray-500 text-white hover:bg-gray-600;
+}
+
+.admin-btn-danger {
+  @apply px-4 md:px-6 py-2 text-sm md:text-base rounded font-medium transition-colors bg-red-500 text-white hover:bg-red-600;
+}
+
+.admin-btn-small {
+  @apply px-2 md:px-3 py-1 text-xs rounded transition-colors whitespace-nowrap;
+}
+
+/* Responsive button group */
+.admin-btn-group {
+  @apply flex flex-col sm:flex-row gap-2 md:gap-3;
+}
+
+/* Responsive form group */
+.admin-form-group {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6;
+}
+
+/* Responsive modal */
+.admin-modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto;
+}
+
+.admin-modal-container {
+  @apply flex min-h-full items-center justify-center p-2 md:p-4;
+}
+
+.admin-modal-content {
+  @apply relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto;
+}
+
+.admin-modal-header {
+  @apply sticky top-0 bg-white border-b px-4 md:px-6 py-3 md:py-4 flex items-center justify-between z-10;
+}
+
+.admin-modal-body {
+  @apply px-4 md:px-6 py-4 md:py-6;
+}
+
+.admin-modal-footer {
+  @apply sticky bottom-0 bg-gray-50 border-t px-4 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row justify-end gap-2 md:gap-3;
+}
+
+/* Responsive stats card */
+.admin-stat-card {
+  @apply bg-white rounded-lg shadow p-4 md:p-6;
+}
+
+.admin-stat-value {
+  @apply text-2xl md:text-3xl font-bold;
+}
+
+.admin-stat-label {
+  @apply text-xs md:text-sm text-gray-600;
+}
+
+/* Responsive grid */
+.admin-grid-2 {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6;
+}
+
+.admin-grid-3 {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+}
+
+.admin-grid-4 {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6;
+}
+
+/* Responsive filters */
+.admin-filter-container {
+  @apply flex flex-col md:flex-row gap-3 md:gap-4;
+}
+
+.admin-filter-input {
+  @apply w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none;
+}
+
+/* Responsive action buttons in table */
+.admin-table-actions {
+  @apply flex flex-col sm:flex-row items-start sm:items-center gap-2;
+}
+
+.admin-table-action-btn {
+  @apply px-2 md:px-3 py-1 text-xs rounded transition-colors whitespace-nowrap w-full sm:w-auto;
+}
+
+/* Mobile table adjustments */
+@media (max-width: 640px) {
+  .admin-table th,
+  .admin-table td {
+    @apply px-2 py-2 text-xs;
+  }
+  
+  .admin-table th {
+    @apply text-[10px];
+  }
+}
+
+/* Hide on mobile */
+.hide-mobile {
+  @apply hidden md:block;
+}
+
+/* Show only on mobile */
+.show-mobile {
+  @apply block md:hidden;
+}}

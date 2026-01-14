@@ -178,8 +178,8 @@ export default function CreateServicesPage({ adminId }) {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold text-gray-700 mb-6">Admin Service Management</h1>
+    <div className="p-4 md:p-6 lg:p-8">
+      <h1 className="text-xl md:text-2xl font-semibold text-gray-700 mb-4 md:mb-6">Admin Service Management</h1>
 
       {/* Manage Services Card */}
       <div className="bg-white rounded-lg shadow mb-6">
@@ -368,18 +368,18 @@ export default function CreateServicesPage({ adminId }) {
           </div>
 
           {/* Add Service Button */}
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleAddService}
               disabled={loading}
-              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-4 md:px-6 py-2 bg-green-600 text-white text-sm md:text-base rounded hover:bg-green-700 font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {loading ? 'Saving...' : (editingId ? 'Update Service' : 'Add Service')}
             </button>
             {editingId && (
               <button
                 onClick={resetForm}
-                className="ml-3 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 font-medium transition-colors"
+                className="px-4 md:px-6 py-2 bg-gray-500 text-white text-sm md:text-base rounded hover:bg-gray-600 font-medium transition-colors"
               >
                 Cancel
               </button>
@@ -453,16 +453,16 @@ export default function CreateServicesPage({ adminId }) {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                         <button
                           onClick={() => handleEdit(service)}
-                          className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                          className="px-2 md:px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors whitespace-nowrap w-full sm:w-auto"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleDelete(service.id)}
-                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                          className="px-2 md:px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors whitespace-nowrap w-full sm:w-auto"
                         >
                           Delete
                         </button>

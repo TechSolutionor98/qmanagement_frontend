@@ -301,7 +301,7 @@ export default function CompletedTasks({ adminId = null }) {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* No Permissions Error UI */}
         {noPermissions ? (
@@ -324,40 +324,40 @@ export default function CompletedTasks({ adminId = null }) {
           </div>
         ) : (
           <>
-            <h1 className="text-3xl font-semibold text-gray-700 mb-6">Completed Tickets</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-700 mb-4 sm:mb-6">Completed Tickets</h1>
 
         {/* Date Filter */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center gap-6 flex-wrap">
-            <div className="flex items-center gap-3">
-              <label className="text-gray-700 font-medium">Start Date:</label>
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row items-stretch lg:items-center gap-3 sm:gap-4 lg:gap-6">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <label className="text-gray-700 font-medium text-sm sm:text-base">Start Date:</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm sm:text-base w-full sm:w-auto"
               />
             </div>
-            <div className="flex items-center gap-3">
-              <label className="text-gray-700 font-medium">End Date:</label>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <label className="text-gray-700 font-medium text-sm sm:text-base">End Date:</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black"
+                className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-black text-sm sm:text-base w-full sm:w-auto"
               />
             </div>
             <button 
               onClick={handleFilter}
               disabled={loading}
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-green-500 hover:bg-green-600 text-white px-6 sm:px-8 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base w-full sm:w-auto"
             >
               {loading ? 'Loading...' : 'Filter'}
             </button>
             <button 
               onClick={handleReset}
               disabled={loading}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gray-500 hover:bg-gray-600 text-white px-6 sm:px-8 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base w-full sm:w-auto"
             >
               Reset
             </button>
@@ -397,37 +397,37 @@ export default function CompletedTasks({ adminId = null }) {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Ticket Created Time
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       T.#
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Service
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Service Time
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Status Update Time
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Called Count
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Called Time
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Transfer Info
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Transfer Time
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-medium text-black uppercase tracking-wider">
                       Solved By C.#
                     </th>
                   </tr>
@@ -435,41 +435,41 @@ export default function CompletedTasks({ adminId = null }) {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {completedTasks.map((task) => (
                     <tr key={task.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                         {formatDateTime(task.ticketCreatedTime)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                         {task.ticketNumber}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                         {task.service}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
                         {task?.serviceTime || "00:00:00"}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
                         {formatDateTime(task.statusUpdateTime)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 text-center">
                         {task.calledCount || 0}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
                         {formatDateTime(task.calledTime)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                         {task.transferInfo || 'Not Transferred'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
                         {task.transferInfo && task.transferInfo !== 'Not Transferred' 
                           ? formatDateTime(task.transferTime) 
                           : 'N/A'}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-4 py-2 rounded font-medium ${getStatusColor(task.status)}`}>
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
+                        <span className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded font-medium text-xs sm:text-sm ${getStatusColor(task.status)}`}>
                           {formatStatus(task.status)}
                         </span>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 text-center">
                         {task.solvedBy || 'N/A'}
                       </td>
                     </tr>

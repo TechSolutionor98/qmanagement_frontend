@@ -190,70 +190,70 @@ export default function AdminTimezonePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-green-500 rounded-lg">
-              <FaClock className="text-white text-2xl" />
+        <div className="mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="p-2 sm:p-3 bg-green-500 rounded-lg flex-shrink-0">
+              <FaClock className="text-white text-xl sm:text-2xl" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">My Timezone Settings</h1>
-              <p className="text-gray-600 mt-1">Set your preferred timezone for all activities</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">My Timezone Settings</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Set your preferred timezone for all activities</p>
             </div>
           </div>
         </div>
 
         {/* Loading Message */}
         {loading && (
-          <div className="mb-6 p-4 rounded-lg flex items-center gap-3 bg-blue-50 border border-blue-200 text-blue-800">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg flex items-center gap-2 sm:gap-3 bg-blue-50 border border-blue-200 text-blue-800 text-sm sm:text-base">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 flex-shrink-0"></div>
             <span>Loading timezone settings...</span>
           </div>
         )}
 
         {/* Message */}
         {message.text && (
-          <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+          <div className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg flex items-center gap-2 sm:gap-3 text-sm sm:text-base ${
             message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
             message.type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
             'bg-blue-50 border border-blue-200 text-blue-800'
           }`}>
-            {message.type === 'success' && <FaCheck className="text-lg flex-shrink-0" />}
-            {message.type === 'error' && <FaTimes className="text-lg flex-shrink-0" />}
+            {message.type === 'success' && <FaCheck className="text-base sm:text-lg flex-shrink-0" />}
+            {message.type === 'error' && <FaTimes className="text-base sm:text-lg flex-shrink-0" />}
             <span>{message.text}</span>
           </div>
         )}
 
         {/* Main Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
             {/* Current Timezone Info */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200">
-              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Current Timezone</h3>
-              <div className="flex items-center gap-3 mb-4">
-                <FaGlobe className="text-2xl text-green-600" />
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 sm:p-6 border border-green-200">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3 sm:mb-4">Current Timezone</h3>
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <FaGlobe className="text-xl sm:text-2xl text-green-600 flex-shrink-0" />
                 <div>
-                  <p className="text-2xl font-bold text-gray-800">{currentTimezone}</p>
-                  <p className="text-sm text-gray-600">{getTimezoneName(currentTimezone)}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-800">{currentTimezone}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">{getTimezoneName(currentTimezone)}</p>
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 mt-6">
-                <p className="text-xs text-gray-600 font-semibold mb-2">Current Local Time</p>
-                <p className="text-lg font-mono font-bold text-gray-800">
+              <div className="bg-white rounded-lg p-3 sm:p-4 mt-4 sm:mt-6">
+                <p className="text-[10px] sm:text-xs text-gray-600 font-semibold mb-2">Current Local Time</p>
+                <p className="text-sm sm:text-base lg:text-lg font-mono font-bold text-gray-800">
                   {getCurrentTime(currentTimezone)}
                 </p>
               </div>
             </div>
 
             {/* Timezone Selection */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Select New Timezone</h3>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 sm:p-6 border border-blue-200">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3 sm:mb-4">Select New Timezone</h3>
               <select
                 value={selectedTimezone}
                 onChange={(e) => setSelectedTimezone(e.target.value)}
-                className="w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 mb-4"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800 mb-3 sm:mb-4 text-sm sm:text-base"
               >
                 {timezones.map((tz) => (
                   <option key={tz.offset} value={tz.offset}>
@@ -261,9 +261,9 @@ export default function AdminTimezonePage() {
                   </option>
                 ))}
               </select>
-              <div className="bg-white rounded-lg p-4 mt-6">
-                <p className="text-xs text-gray-600 font-semibold mb-2">Preview in Selected Timezone</p>
-                <p className="text-lg font-mono font-bold text-gray-800">
+              <div className="bg-white rounded-lg p-3 sm:p-4 mt-4 sm:mt-6">
+                <p className="text-[10px] sm:text-xs text-gray-600 font-semibold mb-2">Preview in Selected Timezone</p>
+                <p className="text-sm sm:text-base lg:text-lg font-mono font-bold text-gray-800">
                   {getCurrentTime(selectedTimezone)}
                 </p>
               </div>
@@ -271,10 +271,10 @@ export default function AdminTimezonePage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 mt-8 justify-end">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 sm:mt-6 lg:mt-8 justify-stretch sm:justify-end">
             <button
               onClick={handleCancel}
-              className="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition-all duration-200 flex items-center gap-2"
+              className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
               disabled={saving}
             >
               <FaTimes /> Cancel
@@ -282,7 +282,7 @@ export default function AdminTimezonePage() {
             <button
               onClick={handleSave}
               disabled={saving || selectedTimezone === currentTimezone}
-              className="px-6 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 disabled:cursor-not-allowed"
+              className="px-4 sm:px-6 py-2.5 sm:py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed text-sm sm:text-base w-full sm:w-auto"
             >
               <FaSave /> {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -290,16 +290,16 @@ export default function AdminTimezonePage() {
         </div>
 
         {/* Timezone Reference */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2">
             <FaClock className="text-green-500" />
             Available Timezones Reference
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {timezones.map((tz) => (
               <div
                 key={tz.offset}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+                className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
                   selectedTimezone === tz.offset
                     ? 'bg-green-50 border-green-400'
                     : currentTimezone === tz.offset
@@ -308,19 +308,19 @@ export default function AdminTimezonePage() {
                 }`}
                 onClick={() => setSelectedTimezone(tz.offset)}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="font-semibold text-gray-800">{tz.name}</p>
-                    <p className="text-sm text-gray-600">{tz.offset}</p>
+                <div className="flex justify-between items-start mb-2 gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-800 text-sm sm:text-base truncate">{tz.name}</p>
+                    <p className="text-xs sm:text-sm text-gray-600">{tz.offset}</p>
                   </div>
                   {currentTimezone === tz.offset && (
-                    <span className="px-2 py-1 bg-blue-500 text-white text-xs rounded font-semibold">Current</span>
+                    <span className="px-2 py-1 bg-blue-500 text-white text-[10px] sm:text-xs rounded font-semibold flex-shrink-0">Current</span>
                   )}
                   {selectedTimezone === tz.offset && selectedTimezone !== currentTimezone && (
-                    <span className="px-2 py-1 bg-green-500 text-white text-xs rounded font-semibold">Selected</span>
+                    <span className="px-2 py-1 bg-green-500 text-white text-[10px] sm:text-xs rounded font-semibold flex-shrink-0">Selected</span>
                   )}
                 </div>
-                <p className="text-xs font-mono text-gray-600 mt-2">
+                <p className="text-[10px] sm:text-xs font-mono text-gray-600 mt-2">
                   {getCurrentTime(tz.offset)}
                 </p>
               </div>
@@ -329,9 +329,9 @@ export default function AdminTimezonePage() {
         </div>
 
         {/* Info Box */}
-        <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 How This Works</h3>
-          <ul className="text-sm text-blue-800 space-y-2">
+        <div className="mt-4 sm:mt-6 lg:mt-8 bg-blue-50 border-l-4 border-blue-500 p-4 sm:p-6 rounded-lg">
+          <h3 className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">💡 How This Works</h3>
+          <ul className="text-xs sm:text-sm text-blue-800 space-y-1.5 sm:space-y-2">
             <li>✓ Your timezone setting will be saved to your profile</li>
             <li>✓ All your activities (tickets, calls, updates) will be recorded in your local timezone</li>
             <li>✓ The system will automatically use your timezone for all timestamps</li>

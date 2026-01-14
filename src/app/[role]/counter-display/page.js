@@ -1187,61 +1187,61 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       </div>
 
       {/* Content Type Selection Section */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-md p-5 mb-6 border-2 border-green-200">
-        <label className="block text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-md p-4 md:p-5 mb-6 border-2 border-green-200">
+        <label className="block text-sm md:text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
           Select Content Type:
         </label>
-        <div className="flex gap-8">
-          <label className="flex items-center gap-3 cursor-pointer group">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-8">
+          <label className="flex items-center gap-2 sm:gap-3 cursor-pointer group p-3 sm:p-0 bg-white sm:bg-transparent rounded-lg sm:rounded-none border sm:border-0 border-gray-200">
             <input
               type="radio"
               name="contentType"
               value="video"
               checked={contentType === 'video'}
               onChange={(e) => handleContentTypeChange(e.target.value)}
-              className="w-6 h-6 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
+              className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer flex-shrink-0"
             />
-            <span className={`text-lg font-semibold transition-all flex items-center gap-2 ${
+            <span className={`text-base sm:text-lg font-semibold transition-all flex items-center gap-2 ${
               contentType === 'video' 
-                ? 'text-green-700 scale-105' 
+                ? 'text-green-700' 
                 : 'text-gray-600 group-hover:text-green-600'
             }`}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
               Video
             </span>
             {contentType === 'video' && (
-              <span className="ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full animate-pulse">
+              <span className="ml-auto sm:ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full animate-pulse">
                 Active
               </span>
             )}
           </label>
           
-          <label className="flex items-center gap-3 cursor-pointer group">
+          <label className="flex items-center gap-2 sm:gap-3 cursor-pointer group p-3 sm:p-0 bg-white sm:bg-transparent rounded-lg sm:rounded-none border sm:border-0 border-gray-200">
             <input
               type="radio"
               name="contentType"
               value="images"
               checked={contentType === 'images'}
               onChange={(e) => handleContentTypeChange(e.target.value)}
-              className="w-6 h-6 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
+              className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer flex-shrink-0"
             />
-            <span className={`text-lg font-semibold transition-all flex items-center gap-2 ${
+            <span className={`text-base sm:text-lg font-semibold transition-all flex items-center gap-2 ${
               contentType === 'images' 
-                ? 'text-green-700 scale-105' 
+                ? 'text-green-700' 
                 : 'text-gray-600 group-hover:text-green-600'
             }`}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Images Slider
             </span>
             {contentType === 'images' && (
-              <span className="ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full animate-pulse">
+              <span className="ml-auto sm:ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full animate-pulse">
                 Active
               </span>
             )}
@@ -1312,19 +1312,19 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
 
         {/* Image Section - Only show when contentType is 'images' */}
         {contentType === 'images' && (
-        <div className="flex-1 bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-bold text-green-700 mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex-1 bg-white rounded-lg shadow p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-bold text-green-700 mb-4 flex items-center gap-2">
+            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Image Slider Configuration
           </h2>
           
-          {/* Timer Input & Upload Images - Same Row */}
-          <div className="flex gap-4 mb-4">
-            {/* Timer Dropdown - Smaller Width */}
-            <div className="w-48">
-              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
+          {/* Timer Input & Upload Images - Responsive Layout */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            {/* Timer Dropdown - Full width on mobile, smaller on desktop */}
+            <div className="w-full sm:w-48">
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -1376,23 +1376,23 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
 
           {/* Images Preview Grid */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <svg className="w-4 h-4 md:w-5 md:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Uploaded Images ({sliderImages.length})
             </label>
-            <div className="border-4 border-dashed border-green-300 rounded-lg h-96 overflow-y-auto bg-green-50/30 p-4">
+            <div className="border-2 md:border-4 border-dashed border-green-300 rounded-lg h-64 sm:h-80 md:h-96 overflow-y-auto bg-green-50/30 p-2 md:p-4">
               {sliderImages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                  <svg className="h-20 w-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <p className="text-xl font-medium text-gray-500">No images uploaded</p>
-                  <p className="text-sm text-gray-400 mt-1">Upload images to create your slider</p>
+                  <p className="text-base sm:text-lg md:text-xl font-medium text-gray-500">No images uploaded</p>
+                  <p className="text-xs sm:text-sm text-gray-400 mt-1">Upload images to create your slider</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
                   {sliderImages.map((image) => (
                     <div
                       key={image.id}

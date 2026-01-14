@@ -1159,7 +1159,7 @@ export default function UserDashboard({ adminId = null }) {
   }
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* No Permissions Error UI */}
         {noPermissions ? (
@@ -1183,38 +1183,38 @@ export default function UserDashboard({ adminId = null }) {
         ) : (
           <>
             {/* Top Section */}
-            <div className="flex ml-2 gap-3 mb-6">
+            <div className="grid grid-cols-1 lg:flex lg:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
               {/* Load More Tickets Card - Left */}
-              <div className="w-45 rounded-lg">
+              <div className="w-full lg:w-auto lg:flex-shrink-0 rounded-lg">
                 <button
                   onClick={loadMoreTickets}
                   disabled={noPermissions}
-                  className={`w-full px-6 py-2.5 rounded-lg text-base font-medium transition-colors mb-3 ${noPermissions ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                  className={`w-full px-4 sm:px-6 py-2.5 rounded-lg text-sm sm:text-base font-medium transition-colors mb-3 ${noPermissions ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
                 >
                   Load More Tickets
                 </button>
-                <div className="bg-white rounded-lg shadow-md px-2 py-2 text-center">
-                  <p className="text-[15px] leading-[22.95px] text-gray-600 text-center">Total Pending Tickets</p>
-                  <p className="text-2xl font-bold mt-2 text-gray-800">{totalPending}</p>
+                <div className="bg-white rounded-lg shadow-md px-3 sm:px-4 py-3 sm:py-4 text-center">
+                  <p className="text-sm sm:text-base text-gray-600 text-center">Total Pending Tickets</p>
+                  <p className="text-xl sm:text-2xl font-bold mt-2 text-gray-800">{totalPending}</p>
                 </div>
               </div>
 
               {/* Current Ticket ID Card - Center */}
-              <div className="flex-1 bg-white rounded-lg shadow-md py-8 px-6 flex items-center justify-center">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-[38px] font-semibold text-gray-700">
+              <div className="flex-1 bg-white rounded-lg shadow-md py-6 sm:py-8 px-4 sm:px-6 flex items-center justify-center">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+                  <h1 className="text-lg sm:text-2xl lg:text-[38px] font-semibold text-gray-700">
                     Current Ticket ID:
                   </h1>
-                  <p className="text-[38px] uppercase font-bold text-gray-900">{currentTicket}</p>
+                  <p className="text-2xl sm:text-3xl lg:text-[38px] uppercase font-bold text-gray-900">{currentTicket}</p>
                 </div>
               </div>
 
               {/* Show Called Tickets Button - Right */}
-              <div className="flex text-[15px] leading-[22.95px] items-start justify-end width-[180px]">
+              <div className="flex items-start justify-stretch lg:justify-end w-full lg:w-auto">
                 <button 
                   onClick={handleShowCalledTickets}
                   disabled={noPermissions}
-                  className={`px-8 py-2.5 rounded-lg text-base font-medium transition-colors ${noPermissions ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
+                  className={`w-full lg:w-auto px-4 sm:px-8 py-2.5 rounded-lg text-sm sm:text-base font-medium transition-colors ${noPermissions ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
                 >
                   Show Called Tickets
                 </button>
@@ -1223,11 +1223,11 @@ export default function UserDashboard({ adminId = null }) {
 
         {/* Action Buttons */}
         {!isAccepted ? (
-          <div className="flex justify-center gap-3 mb-6">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <button
               onClick={handleCall}
               disabled={isCalling || noPermissions}
-              className={`px-10 py-3 rounded-lg text-lg font-medium transition-colors ${
+              className={`px-6 sm:px-10 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base lg:text-lg font-medium transition-colors ${
                 isCalling || noPermissions
                   ? 'bg-gray-400 cursor-not-allowed text-white' 
                   : 'bg-green-500 hover:bg-green-600 text-white'
@@ -1264,14 +1264,14 @@ export default function UserDashboard({ adminId = null }) {
         ) : (
           <>
             {/* Timer Display */}
-            <div className="flex justify-center mb-6">
-              <div className="text-4xl font-bold text-gray-700">
+            <div className="flex justify-center mb-4 sm:mb-6">
+              <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-700">
                 {formatTimer(timer)}
               </div>
             </div>
             
             {/* Solved, Not Solved, Transfer Buttons */}
-            <div className="flex justify-center gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:flex sm:flex-row justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
               <button
                 onClick={handleSolved}
                 disabled={noPermissions}
@@ -1309,19 +1309,19 @@ export default function UserDashboard({ adminId = null }) {
         )}
 
         {/* Manual Ticket Entry */}
-        <div className="flex justify-center gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
           <input
             type="text"
             value={manualTicketId}
             onChange={(e) => !noPermissions && setManualTicketId(e.target.value)}
             placeholder="Enter Manual Ticket ID"
             disabled={noPermissions}
-            className={`px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-72 text-base text-black placeholder-gray-500 ${noPermissions ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
+            className={`px-4 sm:px-5 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-full sm:w-72 text-sm sm:text-base text-black placeholder-gray-500 ${noPermissions ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
           />
           <button
             onClick={handleSelectManual}
             disabled={noPermissions}
-            className={`px-10 py-3 rounded-lg text-base font-medium transition-colors ${noPermissions ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+            className={`px-6 sm:px-10 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors w-full sm:w-auto ${noPermissions ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
           >
             Select
           </button>
@@ -1329,10 +1329,10 @@ export default function UserDashboard({ adminId = null }) {
 
         {/* Transferred Tickets Table */}
         {transferredTickets.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-            <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
-              <h2 className="text-xl font-semibold text-blue-800">Transferred Tickets</h2>
-              <p className="text-sm text-blue-600 mt-1">Click on any ticket to set it as current ticket</p>
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-4 sm:mb-6">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-blue-50">
+              <h2 className="text-lg sm:text-xl font-semibold text-blue-800">Transferred Tickets</h2>
+              <p className="text-xs sm:text-sm text-blue-600 mt-1">Click on any ticket to set it as current ticket</p>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -1389,8 +1389,8 @@ export default function UserDashboard({ adminId = null }) {
 
         {/* Unassigned Tickets Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">Unassigned Tickets</h2>
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Unassigned Tickets</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

@@ -1,5 +1,5 @@
 'use client';
-import { use, useEffect } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/Components/Navbar';
 import Sidebar from '@/Components/Sidebar';
@@ -20,6 +20,8 @@ import ProtectedRoute from '@/Components/ProtectedRoute';
  */
 export default function DynamicRoleLayout({ children, params }) {
   const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   // Unwrap params Promise using React.use()
   const { role } = use(params);
 
@@ -62,10 +64,10 @@ export default function DynamicRoleLayout({ children, params }) {
   // Determine which sidebar to use
   const renderSidebar = () => {
     if (role === 'user') {
-      return <UserSidebar />;
+      return <UserSidebar isMobileOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />;
     }
-    // Both superadmin and admin use the same sidebar
-    return <Sidebar />;
+    // Both superadmin and admin use the same sidebar with mobile support
+    return <Sidebar isMobileOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />;
   };
 
   // Determine layout style based on role
@@ -74,17 +76,17 @@ export default function DynamicRoleLayout({ children, params }) {
   return (
     <ProtectedRoute allowedRoles={getAllowedRoles(role)}>
       {isUserRole ? (
-        // User Layout Style
+        // User Layout Style - Responsive
         <div className="flex flex-col h-screen bg-gray-50">
-          <Navbar />
+          <Navbar onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} isMobileMenuOpen={isMobileMenuOpen} />
           <div className="flex flex-1 overflow-hidden">
             {renderSidebar()}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <main className="flex-1 overflow-y-auto">
+            <div className="flex-1 flex flex-col overflow-hidden lg:64">
+              <main className="flex-1 overflow-y-auto p-4 md:p-6">
                 {children}
               </main>
-              <footer className="bg-white border-t border-gray-200 px-6 py-3">
-                <p className="text-sm text-gray-600 text-right">
+              <footer className="bg-white border-t border-gray-200 px-4 md:px-6 py-3">
+                <p className="text-xs md:text-sm text-gray-600 text-center md:text-right">
                   © {new Date().getFullYear()} Tech Solutionor. All rights reserved.
                 </p>
               </footer>
@@ -92,27 +94,29 @@ export default function DynamicRoleLayout({ children, params }) {
           </div>
         </div>
       ) : (
-        // Admin/SuperAdmin Layout Style
+        // Admin/SuperAdmin Layout Style - Responsive
         <div className="flex flex-col min-h-screen bg-gray-50">
-          <Navbar />
+          <Navbar onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} isMobileMenuOpen={isMobileMenuOpen} />
           <div className="flex flex-1">
             {renderSidebar()}
-            <main className="flex-1 flex flex-col ml-64">
-              <div className="flex-1">
+            <main className="flex-1 flex flex-col lg:ml-64 w-full overflow-x-hidden">
+              <div className="flex-1 p-4 md:p-6 lg:p-8">
                 {children}
               </div>
               {/* Footer */}
-              <div className="py-4 px-8 text-gray-600">
-            © {new Date().getFullYear()}, Developed By{' '}
-            <a 
-              href="https://techsolutionor.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="font-bold text-green-600 hover:text-blue-700"
-            >
-              TechSolutionor
-            </a>
-          </div>
+              <div className="py-3 px-4 md:px-6 lg:px-8 bg-white border-t border-gray-200">
+                <p className="text-gray-600 text-center md:text-right text-xs md:text-sm break-words">
+                  © {new Date().getFullYear()}, Developed By{' '}
+                  <a 
+                    href="https://techsolutionor.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="font-bold text-green-600 hover:text-blue-700 whitespace-nowrap"
+                  >
+                    TechSolutionor
+                  </a>
+                </p>
+              </div>
             </main>
           </div>
         </div>

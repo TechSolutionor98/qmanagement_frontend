@@ -545,65 +545,131 @@ export default function UserManagementPage({ adminId: propAdminId }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-[calc(100vw-280px)] mx-auto p-8">
-      <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-700 flex items-center gap-3">
-          User Management
+    <div className="min-h-screen w-full bg-gray-50">
+      <div className="w-full max-w-[1400px] xl:max-w-[1000px] 2xl:max-w-[1800px] mx-auto p-4 md:p-6 lg:p-8">
+      <div className="mb-4 md:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-xl md:text-2xl font-semibold text-gray-700 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+          <span>User Management</span>
           {licenseInfo && (
-            <span className="text-sm font-normal text-gray-500">
+            <span className="text-xs md:text-sm font-normal text-gray-500">
               ({users.filter(u => u.role === 'user').length}/{licenseInfo.max_users} users)
             </span>
           )}
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto min-w-0">
           {!adminId && !propAdminId && currentUser?.role === 'super_admin' && admins.length > 0 && (
             <select
               value={selectedAdminId}
               onChange={(e) => setSelectedAdminId(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full sm:w-auto sm:min-w-[180px] px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
             >
               {admins.map(a => <option key={a.id} value={a.id}>{a.username}</option>)}
             </select>
           )}
           {licenseInfo && users.filter(u => u.role === 'user').length >= licenseInfo.max_users && (
-            <div className="px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+            <div className="w-full sm:w-auto sm:whitespace-nowrap px-3 py-2 bg-red-50 border border-red-200 rounded text-xs md:text-sm text-red-700 text-center">
               ⚠️ User limit reached ({licenseInfo.max_users}/{licenseInfo.max_users})
             </div>
           )}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-lg shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 hover:scale-105 active:scale-95 transition-all"
+            className="w-full sm:w-auto whitespace-nowrap flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-lg shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 hover:scale-105 active:scale-95 transition-all flex-shrink-0"
           >
-            <FaPlus /> Create User
+            <FaPlus /> <span>Create User</span>
           </button>
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-700">Manage Users</h2>
+        <div className="p-4 md:p-6 border-b">
+          <h2 className="text-base md:text-lg font-semibold text-gray-700">Manage Users</h2>
         </div>
-        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+        
+        {/* Mobile Card View */}
+        <div className="block lg:hidden divide-y divide-gray-200">
+          {users.map(user => {
+            let userPermissions = user.permissions;
+            if (typeof userPermissions === 'string') {
+              try {
+                userPermissions = JSON.parse(userPermissions);
+              } catch (e) {
+                userPermissions = null;
+              }
+            }
+            return (
+              <div key={user.id} className="p-4 hover:bg-gray-50">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-semibold text-gray-700">{user.username}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                        user.role === 'receptionist' ? 'bg-blue-100 text-blue-800' :
+                        user.role === 'ticket_info' ? 'bg-indigo-100 text-indigo-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.role === 'ticket_info' ? 'Ticket Info' : user.role?.charAt(0).toUpperCase() + user.role?.slice(1) || 'User'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500">{user.email}</div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {user.status === 'active' ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                {userPermissions?.canAccessDashboard && (
+                  <div className="mb-3">
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      Admin Access
+                    </span>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => handleView(user)} className="flex-1 min-w-[80px] px-3 py-2 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-1">
+                    <FaEye /> View
+                  </button>
+                  <button onClick={() => handleEdit(user)} className="flex-1 min-w-[80px] px-3 py-2 bg-orange-500 text-white text-xs rounded hover:bg-orange-600 transition-colors font-medium">
+                    Edit
+                  </button>
+                  <button onClick={() => handleToggleStatus(user.id)} className={`flex-1 min-w-[80px] px-3 py-2 rounded font-medium transition-colors text-xs ${
+                    user.status === 'active' ? 'bg-gray-500 text-white hover:bg-gray-600' : 'bg-green-500 text-white hover:bg-green-600'
+                  }`}>
+                    {user.status === 'active' ? 'Inactive' : 'Active'}
+                  </button>
+                  {(user.isLoggedIn === 1 || user.isLoggedIn === '1') && (
+                    <button onClick={() => handleLogout(user.id)} className="px-3 py-2 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors font-medium flex items-center gap-1">
+                      <FaSignOutAlt /> Logout
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto max-h-[600px] overflow-y-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Username</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Password</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Actions</th>
+                <th className="px-3 xl:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">ID</th>
+                <th className="px-3 xl:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Username</th>
+                <th className="px-3 xl:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Email</th>
+                <th className="px-3 xl:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Role</th>
+                <th className="px-3 xl:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Password</th>
+                <th className="px-3 xl:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Status</th>
+                <th className="px-3 xl:px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider bg-gray-50">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-700">{user.id}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{user.username}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{user.email}</td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-3 xl:px-6 py-3 xl:py-4 text-sm text-gray-700">{user.id}</td>
+                  <td className="px-3 xl:px-6 py-3 xl:py-4 text-sm text-gray-700">{user.username}</td>
+                  <td className="px-3 xl:px-6 py-3 xl:py-4 text-sm text-gray-700">{user.email}</td>
+                  <td className="px-3 xl:px-6 py-3 xl:py-4 text-sm">
                     <div className="flex flex-col gap-1">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
@@ -630,18 +696,18 @@ export default function UserManagementPage({ adminId: propAdminId }) {
                       })()}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">••••••</td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{user.status === 'active' ? 'Active' : 'Inactive'}</span>
+                  <td className="px-3 xl:px-6 py-3 xl:py-4 text-sm text-gray-700">••••••</td>
+                  <td className="px-3 xl:px-6 py-3 xl:py-4 text-sm">
+                    <span className={`px-2 xl:px-3 py-1 rounded-full text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{user.status === 'active' ? 'Active' : 'Inactive'}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handleView(user)} className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors" title="View Details"><FaEye /></button>
-                      <button onClick={() => handleEdit(user)} className="px-4 py-2 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors font-medium">Edit</button>
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => handleToggleStatus(user.id)} className={`px-4 py-2 rounded font-medium transition-colors text-sm ${user.status === 'active' ? 'bg-gray-500 text-white hover:bg-gray-600' : 'bg-green-500 text-white hover:bg-green-600'}`}>{user.status === 'active' ? 'Inactive' : 'Active'}</button>
+                  <td className="px-3 xl:px-6 py-3 xl:py-4 text-sm">
+                    <div className="flex items-center gap-1 xl:gap-2">
+                      <button onClick={() => handleView(user)} className="p-1.5 xl:p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors" title="View Details"><FaEye className="text-xs xl:text-base" /></button>
+                      <button onClick={() => handleEdit(user)} className="px-2 xl:px-4 py-1.5 xl:py-2 bg-orange-500 text-white text-xs xl:text-sm rounded hover:bg-orange-600 transition-colors font-medium">Edit</button>
+                      <div className="flex items-center gap-1 xl:gap-2">
+                        <button onClick={() => handleToggleStatus(user.id)} className={`px-2 xl:px-4 py-1.5 xl:py-2 rounded font-medium transition-colors text-xs xl:text-sm ${user.status === 'active' ? 'bg-gray-500 text-white hover:bg-gray-600' : 'bg-green-500 text-white hover:bg-green-600'}`}>{user.status === 'active' ? 'Inactive' : 'Active'}</button>
                         {(user.isLoggedIn === 1 || user.isLoggedIn === '1') && (
-                          <button onClick={() => handleLogout(user.id)} className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" title="Logout User"><FaSignOutAlt /></button>
+                          <button onClick={() => handleLogout(user.id)} className="p-1.5 xl:p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors" title="Logout User"><FaSignOutAlt className="text-xs xl:text-base" /></button>
                         )}
                       </div>
                     </div>
