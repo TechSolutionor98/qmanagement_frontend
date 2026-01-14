@@ -941,10 +941,10 @@ export default function LoginPage() {
                 >
                   <div className="flex flex-col items-center space-y-4">
                     {/* Horizontal Screen Icon */}
-                    <div className="w-24 h-16 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                      <svg className="w-16 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <rect x="2" y="6" width="20" height="12" rx="2" strokeWidth="2" />
-                        <line x1="2" y1="12" x2="22" y2="12" strokeWidth="2" />
+                     <div className="w-16 h-24 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                      <svg className="w-10 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="6" y="2" width="12" height="20" rx="2" strokeWidth="2" />
+                        <line x1="12" y1="2" x2="12" y2="22" strokeWidth="2" />
                       </svg>
                     </div>
                     
@@ -977,12 +977,14 @@ export default function LoginPage() {
                 >
                   <div className="flex flex-col items-center space-y-4">
                     {/* Vertical Screen Icon */}
-                    <div className="w-16 h-24 bg-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                      <svg className="w-10 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <rect x="6" y="2" width="12" height="20" rx="2" strokeWidth="2" />
-                        <line x1="12" y1="2" x2="12" y2="22" strokeWidth="2" />
+
+                     <div className="w-24 h-16 bg-green-600 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                      <svg className="w-16 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="2" y="6" width="20" height="12" rx="2" strokeWidth="2" />
+                        <line x1="2" y1="12" x2="22" y2="12" strokeWidth="2" />
                       </svg>
                     </div>
+                  
                     
                     <div className="text-center">
                       <h3 className="text-xl font-bold text-gray-800 mb-2">Vertical Screen</h3>
