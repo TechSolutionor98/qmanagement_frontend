@@ -167,50 +167,6 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
   
   // Translate text to different languages
   const translateText = (text, langCode) => {
-    const translations = {
-      'en': {
-        ticket: 'Ticket number',
-        counter: 'Please go to counter number',
-        number: (num) => num
-      },
-      'ar': {
-        ticket: 'تذكرة رقم',
-        counter: 'الرجاء الذهاب لكونتر رقم',
-        number: (num) => {
-          const arabicNumbers = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
-          return num.toString().split('').map(d => arabicNumbers[d] || d).join('');
-        }
-      },
-      'ar-ae': { // Dubai Arabic
-        ticket: 'التذكره رقم بي',
-        counter: 'الذهاب إلى الكونتر رقم',
-        number: (num) => {
-          // Dubai Arabic number words
-          const arabicNumerals = {
-            '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
-            '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩'
-          };
-          // Convert to Arabic numerals (٠-٩)
-          return num.toString().split('').map(d => arabicNumerals[d] || d).join('');
-        }
-      },
-      'ur': {
-        ticket: 'ٹکٹ نمبر',
-        counter: 'براہ کرم کاؤنٹر نمبر پر تشریف لے جائیں',
-        number: (num) => num
-      },
-      'hi': {
-        ticket: 'टिकट नंबर',
-        counter: 'कृपया काउंटर नंबर पर जाएं',
-        number: (num) => num
-      },
-      'es': {
-        ticket: 'Número de ticket',
-        counter: 'Por favor vaya al mostrador número',
-        number: (num) => num
-      }
-    };
-    
     // Parse ticket and counter from text
     const ticketMatch = text.match(/P-(\d+)|number\s+(\d+)/i);
     const counterMatch = text.match(/counter\s+(\d+)/i);
@@ -218,18 +174,28 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
     const ticketNum = ticketMatch ? (ticketMatch[1] || ticketMatch[2]) : '101';
     const counterNum = counterMatch ? counterMatch[1] : '5';
     
-    const lang = translations[langCode] || translations['en'];
-    
-    if (langCode === 'ar' || langCode === 'ar-ae') {
-      // Arabic is right-to-left
-      if (langCode === 'ar-ae') {
-        // Dubai format: "التذكره رقم بي -١٠١ الذهاب إلى الكونتر رقم ٥"
-        return `${lang.ticket} -${lang.number(ticketNum)} ${lang.counter} ${lang.number(counterNum)}`;
+    const translations = {
+      'en': {
+        text: `Ticket number ${ticketNum}\nPlease come to counter number ${counterNum}`
+      },
+      'ar-ae': {
+        text: `التذكره رقم بي -${ticketNum}\nالذهاب إلى الكونتر رقم ${counterNum}`
+      },
+      'ar': {
+        text: `تذكرة رقم ${ticketNum}\nالرجاء الذهاب لكونتر رقم ${counterNum}`
+      },
+      'ur': {
+        text: `ٹکٹ نمبر ${ticketNum}\nبراہ کرم کاؤنٹر نمبر ${counterNum} پر تشریف لے جائیں`
+      },
+      'hi': {
+        text: `टिकट नंबर ${ticketNum}\nकृपया काउंटर नंबर ${counterNum} पर जाएं`
+      },
+      'es': {
+        text: `Número de ticket ${ticketNum}\nPor favor vaya al mostrador número ${counterNum}`
       }
-      return `${lang.ticket}: ${lang.number(ticketNum)}\n${lang.counter} ${lang.number(counterNum)}`;
-    }
+    };
     
-    return `${lang.ticket} ${lang.number(ticketNum)}\n${lang.counter} ${lang.number(counterNum)}`;
+    return (translations[langCode] || translations['en']).text;
   };
   
   const handleVoiceUpload = async (event) => {
@@ -662,9 +628,9 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
             <input
               type="text"
               value={testText}
-              onChange={(e) => setTestText(e.target.value)}
+              readOnly
               placeholder="Enter text to test voice"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-700"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed outline-none text-gray-700"
             />
           </div>
 
