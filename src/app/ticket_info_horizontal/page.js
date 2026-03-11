@@ -1393,82 +1393,81 @@ function TicketInfoContent() {
  
   return (
     <ProtectedRoute allowedRoles={['ticket_info']}>
-      <div className="flex flex-col h-screen w-full bg-white text-white font-sans overflow-hidden">
+      <div className="ticket-display-root flex flex-col h-screen w-full bg-white text-white font-sans overflow-hidden">
       
-      {/* Enable Audio Button - Floating at top - Responsive */}
+      {/* Enable Audio Button - Floating at top */}
       {!audioEnabled && (
-        <div className="fixed top-2 sm:top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed top-[1vh] left-1/2 transform -translate-x-1/2 z-50">
           <button
             onClick={handleEnableAudio}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 sm:py-4 sm:px-8 rounded-lg shadow-2xl text-base sm:text-2xl animate-bounce border-2 sm:border-4 border-white"
+            className="enable-audio-btn bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-2xl animate-bounce border-2 border-white"
           >
             🔊 Click to Enable Audio
           </button>
         </div>
       )}
       
-      {/* Header Section - Full Width - Responsive */}
-        
-      <div className="w-full flex flex-col sm:flex-row justify-around items-center bg-white/95 shadow-lg min-h-[80px] sm:min-h-[120px] lg:h-[150px] border-b border-gray-300 py-2 sm:py-0">
-          {/* Left Logo - Dynamic from database - Responsive */}
-          <div className="w-full sm:flex-[0_0_30%] text-center px-2 sm:px-0 mb-2 sm:mb-0">
+      {/* Header Section - Logos + Now Calling */}
+      <div className="header-section w-full flex flex-row justify-around items-center bg-white/95 shadow-lg border-b border-gray-300">
+          {/* Left Logo */}
+          <div className="header-logo-box text-center">
             {leftLogoUrl ? (
               <img
                 src={`${apiUrlWs}${leftLogoUrl}`}
                 alt="Left Logo"
-                className="w-auto h-[50px] sm:h-[80px] lg:h-[130px] mx-auto object-contain"
+                className="header-logo mx-auto object-contain"
               />
             ) : (
               <img
                 src={logo}
                 alt="Logo"
-                className="w-auto h-[50px] sm:h-[80px] lg:h-[130px] mx-auto object-contain"
+                className="header-logo mx-auto object-contain"
               />
             )}
           </div>
           
-          {/* Now Calling Section - Responsive */}
-          <div className="w-full sm:flex-[0_0_40%] text-center border-t-2 sm:border-t-0 sm:border-l-[5px] sm:border-r-[5px] border-gray-300 py-2 sm:py-0">
+          {/* Now Calling Section */}
+          <div className="now-calling-box text-center border-l-[3px] border-r-[3px] border-gray-300">
             <div className="text-black font-bold">
-              <b className="text-red-600 text-xl sm:text-3xl lg:text-[50px]">Now Calling</b>
+              <b className="now-calling-label text-red-600">Now Calling</b>
               <br />
-              <span className="text-2xl sm:text-3xl lg:text-[50px] uppercase font-bold">{displayedTicket || 'Waiting...'}</span>
+              <span className="now-calling-ticket uppercase font-bold">{displayedTicket || 'Waiting...'}</span>
               {displayedTicket && (
                 <>
-                  <span className="inline-block w-[30px] sm:w-[40px] lg:w-[50px] h-[4px] sm:h-[6px] lg:h-[8px] bg-black align-middle mx-2 sm:mx-3 rounded-sm"></span>
-                  <span className="text-2xl sm:text-3xl lg:text-[50px] font-bold">{displayedCounter || 'N/A'}</span>
+                  <span className="now-calling-dash inline-block bg-black align-middle rounded-sm"></span>
+                  <span className="now-calling-ticket font-bold">{displayedCounter || 'N/A'}</span>
                 </>
               )}
             </div>
           </div>
           
-          {/* Right Logo - Dynamic from database - Responsive */}
-          <div className="w-full sm:flex-[0_0_30%] text-center px-2 sm:px-0 mt-2 sm:mt-0 border-t-2 sm:border-t-0 border-gray-300 pt-2 sm:pt-0">
+          {/* Right Logo */}
+          <div className="header-logo-box text-center">
             {rightLogoUrl ? (
               <img
                 src={`${apiUrlWs}${rightLogoUrl}`}
                 alt="Right Logo"
-                className="w-auto h-[50px] sm:h-[80px] lg:h-[130px] mx-auto object-contain"
+                className="header-logo mx-auto object-contain"
               />
             ) : (
               <img
                 src={logo}
                 alt="Logo"
-                className="w-auto h-[50px] sm:h-[80px] lg:h-[130px] mx-auto object-contain"
+                className="header-logo mx-auto object-contain"
               />
             )}
           </div>
         </div>
 
-      {/* Full Width Table Section - Responsive */}
+      {/* Full Width Table Section */}
       <div className="flex-1 bg-green-700 flex flex-col overflow-hidden overflow-y-auto">
         <table className="w-full border-collapse">
           <thead className="sticky top-0 z-10">
             <tr>
-              <th className="bg-green-700 text-2xl sm:text-3xl md:text-4xl lg:text-[48px] text-white text-center p-2 sm:p-3 lg:p-5 font-bold shadow-lg">
+              <th className="table-header bg-green-700 text-white text-center font-bold shadow-lg">
                 Ticket
               </th>
-              <th className="bg-green-700 text-2xl sm:text-3xl md:text-4xl lg:text-[48px] text-white text-center p-2 sm:p-3 lg:p-5 font-bold shadow-lg">
+              <th className="table-header bg-green-700 text-white text-center font-bold shadow-lg">
                 Counter
               </th>
             </tr>
@@ -1476,7 +1475,7 @@ function TicketInfoContent() {
           <tbody>
             {calledTickets.length === 0 ? (
               <tr>
-                <td colSpan="2" className="bg-white text-gray-500 text-base sm:text-xl md:text-2xl text-center py-4 sm:py-8">
+                <td colSpan="2" className="bg-white text-gray-500 table-empty-text text-center">
                   No tickets called yet
                 </td>
               </tr>
@@ -1526,14 +1525,13 @@ function TicketInfoContent() {
                     // Highlight the currently ANNOUNCING ticket (displayedTicket)
                     const isCurrentTicket = normalizeTicket(item.ticket_number) === currentTicketNormalized;
                     const bgColor = isCurrentTicket ? 'bg-yellow-200' : 'bg-white';
-                    const textWeight = isCurrentTicket ? 'font-bold' : 'font-bold';
                     
                     return (
                       <tr key={index} className={`border-b-2 border-[#e6e9ec] ${isCurrentTicket ? 'animate-pulse' : ''}`}>
-                        <td className={`${bgColor} text-black uppercase text-2xl sm:text-4xl md:text-5xl lg:text-[65px] text-center align-middle ${textWeight} py-2 sm:py-3 lg:py-5`}>
+                        <td className={`table-cell-text ${bgColor} text-black uppercase text-center align-middle font-bold`}>
                           {item.ticket_number}
                         </td>
-                        <td className={`${bgColor} text-black text-2xl sm:text-4xl md:text-5xl lg:text-[65px] text-center align-middle ${textWeight} py-2 sm:py-3 lg:py-5`}>
+                        <td className={`table-cell-text ${bgColor} text-black text-center align-middle font-bold`}>
                           {item.counter_no || 'N/A'}
                         </td>
                       </tr>
@@ -1545,114 +1543,197 @@ function TicketInfoContent() {
         </table>
       </div>
 
-      {/* News Ticker - Dynamic from database - Full Width - Responsive */}
-      <div className="w-full bg-[#333] text-white p-2 sm:p-3 lg:p-4 text-center text-sm sm:text-xl md:text-2xl lg:text-[32px] font-bold min-h-[40px] sm:min-h-[50px] lg:h-[70px] flex items-center justify-center">
+      {/* News Ticker - Dynamic from database */}
+      <div className="ticker-bar w-full bg-[#333] text-white font-bold flex items-center justify-center">
         <marquee className="w-full">{tickerContent}</marquee>
       </div>
 
-      {/* Enhanced Responsive Styles */}
+      {/* ============================================ */}
+      {/* VW-BASED RESPONSIVE STYLES                   */}
+      {/* Works on ANY resolution proportionally        */}
+      {/* 344x1032, 1920x1080, 4K etc.                */}
+      {/* ============================================ */}
       <style jsx>{`
-        /* Extra Large Screens (4K) - Biggest fonts */
-        @media (min-width: 2560px) {
-          table th {
-            font-size: 100px !important;
-            padding: 15px !important;
+        /* ---- Base: Use vw for all sizing so everything scales with screen width ---- */
+        
+        .enable-audio-btn {
+          font-size: clamp(10px, 3.5vw, 24px);
+          padding: clamp(4px, 1.2vw, 16px) clamp(8px, 3vw, 32px);
+        }
+        
+        /* Header */
+        .header-section {
+          padding: clamp(4px, 1vw, 12px) 0;
+          min-height: clamp(50px, 12vw, 150px);
+        }
+        
+        .header-logo-box {
+          flex: 0 0 25%;
+          padding: 0 clamp(2px, 0.5vw, 8px);
+        }
+        
+        .header-logo {
+          width: auto;
+          height: clamp(30px, 9vw, 130px);
+          max-width: 100%;
+        }
+        
+        .now-calling-box {
+          flex: 0 0 50%;
+          padding: clamp(2px, 0.5vw, 8px) clamp(4px, 1vw, 16px);
+        }
+        
+        .now-calling-label {
+          font-size: clamp(12px, 5vw, 50px);
+          line-height: 1.2;
+        }
+        
+        .now-calling-ticket {
+          font-size: clamp(14px, 5.5vw, 50px);
+          line-height: 1.2;
+        }
+        
+        .now-calling-dash {
+          width: clamp(12px, 4vw, 50px);
+          height: clamp(2px, 0.5vw, 8px);
+          margin: 0 clamp(4px, 0.8vw, 12px);
+        }
+        
+        /* Table Header */
+        .table-header {
+          font-size: clamp(14px, 5.5vw, 80px);
+          padding: clamp(4px, 1.2vw, 15px) clamp(2px, 0.5vw, 8px);
+        }
+        
+        /* Table Cells */
+        .table-cell-text {
+          font-size: clamp(16px, 7vw, 100px);
+          padding: clamp(4px, 1.5vw, 20px) clamp(2px, 0.5vw, 8px);
+        }
+        
+        .table-empty-text {
+          font-size: clamp(10px, 3vw, 24px);
+          padding: clamp(8px, 2vw, 32px) 0;
+        }
+        
+        /* Ticker */
+        .ticker-bar {
+          font-size: clamp(10px, 3.5vw, 32px);
+          padding: clamp(4px, 1vw, 16px);
+          min-height: clamp(28px, 5vw, 70px);
+        }
+        
+        /* ---- Portrait narrow screens (like 344x1032) ---- */
+        /* When width < height (portrait orientation) AND narrow */
+        @media (max-width: 500px) and (min-height: 700px) {
+          .header-section {
+            min-height: clamp(50px, 8vh, 120px);
+            padding: clamp(2px, 0.5vh, 6px) 0;
           }
-          table td {
-            font-size: 120px !important;
-            padding: 20px !important;
+          
+          .header-logo {
+            height: clamp(25px, 6vh, 80px);
+          }
+          
+          .now-calling-label {
+            font-size: clamp(12px, 4.5vw, 28px);
+          }
+          
+          .now-calling-ticket {
+            font-size: clamp(14px, 5vw, 32px);
+          }
+          
+          .table-header {
+            font-size: clamp(14px, 5vw, 36px);
+            padding: clamp(3px, 1vw, 8px);
+          }
+          
+          .table-cell-text {
+            font-size: clamp(16px, 6.5vw, 42px);
+            padding: clamp(6px, 2vw, 12px) clamp(2px, 0.5vw, 4px);
+          }
+          
+          .ticker-bar {
+            font-size: clamp(9px, 3vw, 18px);
+            min-height: clamp(24px, 4vh, 50px);
           }
         }
         
-        /* Large Screens (Desktop 1920px+) - Bigger fonts */
-        @media (min-width: 1920px) and (max-width: 2559px) {
-          table th {
-            font-size: 80px !important;
-            padding: 10px !important;
+        /* ---- Ultra narrow screens (below 360px width) ---- */
+        @media (max-width: 360px) {
+          .header-logo-box {
+            flex: 0 0 22%;
           }
-          table td {
-            font-size: 100px !important;
-            padding: 12px !important;
+          
+          .now-calling-box {
+            flex: 0 0 56%;
+          }
+          
+          .now-calling-label {
+            font-size: clamp(11px, 4vw, 20px);
+          }
+          
+          .now-calling-ticket {
+            font-size: clamp(12px, 4.5vw, 22px);
+          }
+          
+          .header-logo {
+            height: clamp(22px, 7vw, 50px);
+          }
+          
+          .table-header {
+            font-size: clamp(12px, 4.5vw, 24px);
+            padding: clamp(2px, 0.8vw, 6px);
+          }
+          
+          .table-cell-text {
+            font-size: clamp(14px, 6vw, 32px);
+            padding: clamp(4px, 1.5vw, 10px) clamp(1px, 0.3vw, 4px);
+          }
+          
+          .now-calling-dash {
+            width: clamp(8px, 3vw, 20px);
+            height: 2px;
+            margin: 0 clamp(2px, 0.5vw, 6px);
+          }
+        }
+
+        /* ---- Large Screens (1440px+) ---- */
+        @media (min-width: 1440px) {
+          .table-header {
+            font-size: clamp(48px, 4.5vw, 100px);
+            padding: clamp(8px, 0.8vw, 15px);
+          }
+          
+          .table-cell-text {
+            font-size: clamp(65px, 5.5vw, 120px);
+            padding: clamp(8px, 1vw, 20px);
+          }
+          
+          .now-calling-label {
+            font-size: clamp(36px, 3.2vw, 60px);
+          }
+          
+          .now-calling-ticket {
+            font-size: clamp(36px, 3.2vw, 60px);
+          }
+          
+          .header-logo {
+            height: clamp(80px, 7vw, 140px);
           }
         }
         
-        /* Medium-Large Screens (1440px - 1919px) */
-        @media (min-width: 1440px) and (max-width: 1919px) {
-          table th {
-            font-size: 70px !important;
-            padding: 8px !important;
-          }
-          table td {
-            font-size: 90px !important;
-            padding: 10px !important;
-          }
+        /* Smooth scrolling for touch */
+        .overflow-y-auto {
+          -webkit-overflow-scrolling: touch;
         }
         
-        /* Standard Desktop (1024px - 1439px) */
-        @media (min-width: 1024px) and (max-width: 1439px) {
-          table th {
-            font-size: 48px !important;
-            padding: 8px !important;
-          }
-          table td {
-            font-size: 65px !important;
-            padding: 8px !important;
-          }
-        }
-        
-        /* Tablets Landscape (768px - 1023px) */
-        @media (min-width: 768px) and (max-width: 1023px) {
-          table th {
-            font-size: 36px !important;
-            padding: 6px !important;
-          }
-          table td {
-            font-size: 48px !important;
-            padding: 8px !important;
-          }
-        }
-        
-        /* Tablets Portrait / Large Phones (481px - 767px) */
-        @media (min-width: 481px) and (max-width: 767px) {
-          table th {
-            font-size: 28px !important;
-            padding: 5px !important;
-          }
-          table td {
-            font-size: 36px !important;
-            padding: 6px !important;
-          }
-        }
-        
-        /* Mobile Phones (320px - 480px) */
-        @media (min-width: 320px) and (max-width: 480px) {
-          table th {
-            font-size: 20px !important;
-            padding: 4px !important;
-          }
-          table td {
-            font-size: 28px !important;
-            padding: 5px !important;
-          }
-        }
-        
-        /* Very Small Phones (below 320px) */
-        @media (max-width: 319px) {
-          table th {
-            font-size: 16px !important;
-            padding: 3px !important;
-          }
-          table td {
-            font-size: 22px !important;
-            padding: 4px !important;
-          }
-        }
-        
-        /* Smooth scrolling for mobile */
-        @media (max-width: 768px) {
-          .overflow-y-auto {
-            -webkit-overflow-scrolling: touch;
-          }
+        /* Prevent text overflow on narrow screens */
+        .table-cell-text,
+        .table-header,
+        .now-calling-ticket {
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
       `}</style>
     </div>
