@@ -609,8 +609,8 @@ export default function Home() {
           .company-sponser {
             font-size: 9px;
             color: #999;
-            margin-top: 8px;
-            padding-top: 6px;
+            // margin-top: 8px;
+            // padding-top: 6px;
             border-top: 1px dashed #ddd;
           }
           @media print {
