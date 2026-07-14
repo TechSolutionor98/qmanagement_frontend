@@ -26,7 +26,7 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
   }, [propAdminId]);
 
   const [selectedLanguages, setSelectedLanguages] = useState(['en']); // Max 2 languages
-  const [speechRate, setSpeechRate] = useState(1.0);
+  const [speechRate, setSpeechRate] = useState(0.9);
   const [speechPitch, setSpeechPitch] = useState(1.0);
   const [testText, setTestText] = useState('Ticket number P-101 please come to counter 5');
 
@@ -680,8 +680,8 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
         <button
           onClick={() => setActiveTab('voice')}
           className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 outline-none ${activeTab === 'voice'
-              ? 'border-green-600 text-green-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+            ? 'border-green-600 text-green-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
         >
           🎙️ Announcement Settings
@@ -689,8 +689,8 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
         <button
           onClick={() => setActiveTab('ticket')}
           className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 outline-none ${activeTab === 'ticket'
-              ? 'border-green-600 text-green-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+            ? 'border-green-600 text-green-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
         >
           🎫 Ticket Print Settings
@@ -727,8 +727,8 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                   </div>
                   <div className="text-right">
                     <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold ${chatterboxServiceStatus === 'online'
-                        ? 'bg-green-500'
-                        : 'bg-red-500'
+                      ? 'bg-green-500'
+                      : 'bg-red-500'
                       }`}>
                       <span className="w-3 h-3 rounded-full bg-white animate-pulse"></span>
                       {chatterboxServiceStatus === 'online' ? 'Online' : 'Offline'}
@@ -813,8 +813,8 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                       <label
                         key={lang.code}
                         className={`flex flex-col items-center justify-center p-3 md:p-4 border-2 rounded-lg cursor-pointer transition-all min-h-[90px] ${selectedLanguages.includes(lang.code)
-                            ? 'border-green-500 bg-green-50 shadow-sm'
-                            : 'border-gray-300 hover:border-gray-400 bg-white'
+                          ? 'border-green-500 bg-green-50 shadow-sm'
+                          : 'border-gray-300 hover:border-gray-400 bg-white'
                           } ${!selectedLanguages.includes(lang.code) && selectedLanguages.length >= 2
                             ? 'opacity-50 cursor-not-allowed'
                             : ''
@@ -942,8 +942,8 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                     onClick={handleTestVoice}
                     disabled={synthesizing || chatterboxServiceStatus === 'offline'}
                     className={`w-full sm:flex-1 px-6 md:px-8 py-3 md:py-4 rounded-lg font-medium text-sm md:text-base transition-colors ${synthesizing || chatterboxServiceStatus === 'offline'
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-green-600 hover:bg-green-700'
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700'
                       } text-white shadow-md hover:shadow-lg`}
                   >
                     <span className="flex items-center justify-center gap-2">

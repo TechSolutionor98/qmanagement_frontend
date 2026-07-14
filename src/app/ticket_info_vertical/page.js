@@ -894,7 +894,7 @@ function TicketInfoContent() {
     // Get admin's saved TTS settings from database first, then localStorage
     let settings = {
       selectedChatterboxVoice: 'child',  // Default to 'child' for child boy voice
-      speechRate: 1.0,
+      speechRate: 0.9,
       speechPitch: 1.0,
       selectedLanguages: ['en'] // Support multiple languages
     };
@@ -966,7 +966,7 @@ function TicketInfoContent() {
 
           settings = {
             selectedChatterboxVoice: dbSettings.voice_type || 'child',
-            speechRate: parseFloat(dbSettings.speech_rate) || 1.0,
+            speechRate: parseFloat(dbSettings.speech_rate) || 0.9,
             speechPitch: parseFloat(dbSettings.speech_pitch) || 1.0,
             selectedLanguages: languages
           };
@@ -991,7 +991,7 @@ function TicketInfoContent() {
             const parsed = JSON.parse(savedSettings);
             settings.selectedLanguages = parsed.selectedLanguages || [parsed.preferredLanguage || 'en'];
             settings.selectedChatterboxVoice = parsed.selectedChatterboxVoice || 'child';
-            settings.speechRate = parseFloat(parsed.speechRate) || 1.0;
+            settings.speechRate = parseFloat(parsed.speechRate) || 0.9;
             settings.speechPitch = parseFloat(parsed.speechPitch) || 1.0;
             console.log('✅ Fallback: Using localStorage settings:', settings);
           } catch (e) {
