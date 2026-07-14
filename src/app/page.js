@@ -502,6 +502,104 @@ export default function Home() {
     const date = now.toLocaleDateString('en-GB');
     const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     
+    // Parse layout settings if available
+    let layoutArray = null;
+    if (licenseData?.ticket_layout) {
+      try {
+        layoutArray = JSON.parse(licenseData.ticket_layout);
+      } catch (e) {
+        console.error('Error parsing ticket_layout in printTicket:', e);
+      }
+    }
+
+    let ticketBodyHTML = '';
+    const wsUrl = process.env.NEXT_PUBLIC_API_URL_WS || 'http://localhost:5000';
+
+    if (layoutArray && Array.isArray(layoutArray) && layoutArray.length > 0) {
+      ticketBodyHTML = layoutArray
+        .filter(item => item.visible !== false)
+        .map(item => {
+          switch (item.type) {
+            case 'logo':
+              return licenseData?.company_logo ? `
+                <div class="logo-wrapper" style="text-align: center; margin-bottom: 12px; margin-top: 4px;">
+                  <img src="${wsUrl}${licenseData.company_logo}" alt="Logo" style="max-height: 60px; max-width: 180px; display: block; margin: 0 auto;" />
+                </div>
+              ` : '';
+            case 'text':
+            case 'custom':
+              if (item.id === 'company_name' || item.isHeading) {
+                return `<h2 class="company-name">${item.value || licenseData?.company_name || 'Emirates Professional Businessmen Services'}</h2>`;
+              }
+              if (item.id === 'waiting_message') {
+                return `<p class="waiting-message">${item.value || 'Please wait. We will serve you shortly.'}</p>`;
+              }
+              if (item.id === 'thank_you_text') {
+                return `<p class="thank-you-text">${item.value || 'Thank you for your service!'}</p>`;
+              }
+              if (item.id === 'footer_text') {
+                return `<p class="company-sponser">${item.value || 'Designed by techsolutionor.com'}</p>`;
+              }
+              // Custom text fields
+              return `
+                <p class="custom-field" style="font-size: 11px; color: #000; margin: 8px 0; text-align: center; font-style: normal; line-height: 1.4;">
+                  ${item.value || ''}
+                </p>
+              `;
+            case 'service':
+              return `<p class="service-type">Service Type: <strong>${serviceName}</strong></p>`;
+            case 'customer_info':
+              return (customerData?.name || customerData?.email || customerData?.number) ? `
+                <div class="customer-info">
+                  ${customerData.name ? `<p><strong>Name:</strong> ${customerData.name}</p>` : ''}
+                  ${customerData.email ? `<p><strong>Email:</strong> ${customerData.email}</p>` : ''}
+                  ${customerData.number ? `<p><strong>Number:</strong> ${customerData.number}</p>` : ''}
+                </div>
+              ` : '';
+            case 'ticket_no':
+              return `
+                <p class="ticket-title">Ticket No</p>
+                <h1 class="ticket-number">${ticketNumber.toUpperCase()}</h1>
+              `;
+            case 'date_time':
+              return `
+                <div class="date-time">
+                  <p>Date: <strong>${date}</strong> | Time: <strong>${time}</strong></p>
+                </div>
+              `;
+            default:
+              return '';
+          }
+        })
+        .join('\n');
+    } else {
+      // Fallback Layout
+      ticketBodyHTML = `
+        ${licenseData?.company_logo ? `
+          <div class="logo-wrapper" style="text-align: center; margin-bottom: 12px; margin-top: 4px;">
+            <img src="${wsUrl}${licenseData.company_logo}" alt="Logo" style="max-height: 60px; max-width: 180px; display: block; margin: 0 auto;" />
+          </div>
+        ` : ''}
+        <h2 class="company-name">${licenseData?.company_name || 'Emirates Professional Businessmen Services'}</h2>
+        <p class="service-type">Service Type: <strong>${serviceName}</strong></p>
+        ${(customerData?.name || customerData?.email || customerData?.number) ? `
+          <div class="customer-info">
+            ${customerData.name ? `<p><strong>Name:</strong> ${customerData.name}</p>` : ''}
+            ${customerData.email ? `<p><strong>Email:</strong> ${customerData.email}</p>` : ''}
+            ${customerData.number ? `<p><strong>Number:</strong> ${customerData.number}</p>` : ''}
+          </div>
+        ` : ''}
+        <p class="ticket-title">Ticket No</p>
+        <h1 class="ticket-number">${ticketNumber.toUpperCase()}</h1>
+        <p class="waiting-message">${licenseData?.ticket_waiting_message || 'Please wait. We will serve you shortly.'}</p>
+        <div class="date-time">
+          <p>Date: <strong>${date}</strong> | Time: <strong>${time}</strong></p>
+        </div>
+        <p class="thank-you-text">${licenseData?.ticket_thank_you_text || 'Thank you for your service!'}</p>
+        <p class="company-sponser">${licenseData?.ticket_footer_text || 'Designed by techsolutionor.com'}</p>
+      `;
+    }
+
     // Create print window
     const printWindow = window.open('', '_blank', 'width=400,height=600');
     
@@ -527,30 +625,17 @@ export default function Home() {
             background: white;
             margin: 0 auto;
           }
-          .ticket-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 8px;
-            text-align: center;
-          }
-          .logo-container {
-            background: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            color: #667eea;
-            display: inline-block;
-          }
           .ticket-details {
-            padding: 12px 15px;
+            padding: 15px;
             text-align: center;
           }
           .company-name {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             color: #333;
             margin-bottom: 10px;
             line-height: 1.4;
+            text-transform: uppercase;
           }
           .service-type {
             font-size: 11px;
@@ -567,6 +652,7 @@ export default function Home() {
             padding: 6px;
             background: #f9f9f9;
             border-radius: 3px;
+            text-align: left;
           }
           .customer-info p {
             margin: 3px 0;
@@ -608,10 +694,10 @@ export default function Home() {
           }
           .company-sponser {
             font-size: 9px;
-            color: #999;
+            color: #000;
             margin-top: 8px;
             padding-top: 6px;
-            border-top: 1px dashed #ddd;
+            border-top: 1px dashed #000;
           }
           @media print {
             @page {
@@ -631,29 +717,8 @@ export default function Home() {
       </head>
       <body>
         <div class="ticket">
-          <div class="ticket-header">
-            <div class="logo-container">
-              ${licenseData?.company_logo ? `<img src="${process.env.NEXT_PUBLIC_API_URL_WS}${licenseData.company_logo}" alt="Logo" style="max-height: 60px; max-width: 180px; display: block; margin: 0 auto; margin-top: -16px;" />` : 'LOGO'}
-            </div>
-          </div>
           <div class="ticket-details">
-            <h2 class="company-name">${licenseData?.company_name || 'Emirates Professional Businessmen Services'}</h2>
-            <p class="service-type">Service Type: <strong>${serviceName}</strong></p>
-            ${customerData.name || customerData.email || customerData.number ? `
-              <div class="customer-info">
-                ${customerData.name ? `<p><strong>Name:</strong> ${customerData.name}</p>` : ''}
-                ${customerData.email ? `<p><strong>Email:</strong> ${customerData.email}</p>` : ''}
-                ${customerData.number ? `<p><strong>Number:</strong> ${customerData.number}</p>` : ''}
-              </div>
-            ` : ''}
-            <p class="ticket-title">Ticket No</p>
-            <h1 class="ticket-number">${ticketNumber.toUpperCase()}</h1>
-            <p class="waiting-message">Please wait. We will serve you shortly.</p>
-            <div class="date-time">
-              <p>Date: <strong>${date}</strong> | Time: <strong>${time}</strong></p>
-            </div>
-            <p class="thank-you-text">Thank you for your service!</p>
-            <p class="company-sponser">Designed by techsolutionor.com</p>
+            ${ticketBodyHTML}
           </div>
         </div>
         <script>
