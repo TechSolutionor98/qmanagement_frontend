@@ -1463,7 +1463,7 @@ function TicketInfoContent() {
           {/* Header Section */}
           <div className="w-full flex justify-around items-center bg-white/95 shadow-lg h-[200px] border-b border-gray-300">
             {/* Left Logo - Dynamic from database */}
-            <div className="flex-[0_0_30%] text-center">
+            <div className="flex-[0_0_30%] text-center py-4 px-3">
               {leftLogoUrl ? (
                 <img
                   src={`${apiUrlWs}${leftLogoUrl}`}
@@ -1495,7 +1495,7 @@ function TicketInfoContent() {
             </div>
 
             {/* Right Logo - Dynamic from database */}
-            <div className="flex-[0_0_30%] text-center">
+            <div className="flex-[0_0_30%] text-center py-4 px-3">
               {rightLogoUrl ? (
                 <img
                   src={`${apiUrlWs}${rightLogoUrl}`}
