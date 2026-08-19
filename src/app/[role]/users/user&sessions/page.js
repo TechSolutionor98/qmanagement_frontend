@@ -359,7 +359,6 @@ export default function UserManagementPage({ adminId: propAdminId }) {
     else if (editForm.username.length < 3) errs.username = 'Username must be at least 3 characters';
     if (!editForm.email.trim()) errs.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(editForm.email)) errs.email = 'Email is invalid';
-    if (editForm.password && editForm.password.length < 6) errs.password = 'Password must be at least 6 characters';
     if (editForm.password && editForm.password !== editForm.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     if (currentUser?.role === 'super_admin' && !editForm.adminId) errs.adminId = 'Select an admin';
     setEditErrors(errs);
@@ -397,7 +396,6 @@ export default function UserManagementPage({ adminId: propAdminId }) {
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm password';
     else if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
     // Only validate admin selection if adminId not set and user is super_admin

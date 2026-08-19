@@ -212,8 +212,6 @@ export default function CreateAdminPage() {
     if (!editingAdmin) {
       if (!formData.password) {
         newErrors.password = 'Password is required';
-      } else if (formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
       }
 
       if (!formData.confirmPassword) {
@@ -223,9 +221,6 @@ export default function CreateAdminPage() {
       }
     } else {
       // When editing, password is optional but if provided must match
-      if (formData.password && formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
-      }
       if (formData.password && formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
       }

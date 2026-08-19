@@ -69,13 +69,6 @@ export default function SuperAdminLoginPage() {
       return false;
     }
 
-    if (formData.password.length < 8) {
-      const errorMsg = 'Password must be at least 8 characters';
-      dispatch(setError(errorMsg));
-      showToast(errorMsg, 'error');
-      return false;
-    }
-
     return true;
   };
 

@@ -97,11 +97,6 @@ export default function Navbar({ onMenuClick = () => {}, isMobileMenuOpen = fals
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters long');
-      return;
-    }
-
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
       const token = localStorage.getItem('token');

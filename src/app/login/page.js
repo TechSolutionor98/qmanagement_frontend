@@ -84,13 +84,6 @@ export default function LoginPage() {
       return false;
     }
 
-    if (formData.password.length < 3) {
-      const errorMsg = 'Password must be at least 3 characters';
-      dispatch(setError(errorMsg));
-      showToast(errorMsg, 'error');
-      return false;
-    }
-
     return true;
   };
 

@@ -77,12 +77,6 @@ export default function ProfileUI({ role }) {
       return false;
     }
 
-    // Password validation (only if provided)
-    if (formData.password && formData.password.length < 6) {
-      showToast('error', 'Password must be at least 6 characters long');
-      return false;
-    }
-
     return true;
   };
 
