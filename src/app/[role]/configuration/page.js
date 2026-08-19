@@ -1188,7 +1188,7 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                           // If it's the company name heading
                           if (item.id === 'company_name' || item.isHeading) {
                             return (
-                              <h4 key={item.id} className="font-black text-xl text-black leading-tight break-words w-full py-0.5">
+                              <h4 key={item.id} className="font-extrabold text-xl text-black leading-snug break-words w-full py-0.5">
                                 {item.value || 'Dubai Economic Department Services'}
                               </h4>
                             );
@@ -1209,7 +1209,7 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                           }
                           if (item.id === 'footer_text') {
                             return (
-                              <p key={item.id} className="text-[11px] font-bold text-black border-t border-dashed border-black w-full pt-1.5 break-words py-0.5">
+                              <p key={item.id} className="text-[11px] font-normal text-black w-full pt-1 break-words py-0.5">
                                 {item.value || 'Designed by techsolutionor.com'}
                               </p>
                             );

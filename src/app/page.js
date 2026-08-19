@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '@/store';
@@ -14,6 +14,7 @@ export default function Home() {
   const token = useSelector((state) => state.auth.token);
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const dispatch = useDispatch();
+  const currentTicketRef = useRef(null);
   const [showRecentTickets, setShowRecentTickets] = useState(false);
   const [showReportsModal, setShowReportsModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -443,49 +444,60 @@ export default function Home() {
   };
 
   const handleSkip = async () => {
-    const ticketNumber = selectedService.preCreatedTicket;
-    
+    const activeTicket = currentTicketRef.current || selectedService;
+    const ticketNumber = activeTicket?.preCreatedTicket || activeTicket?.ticket_id || selectedService?.preCreatedTicket;
+    const serviceObj = activeTicket?.service || selectedService || activeTicket;
+
     setShowDetailsModal(false);
     setIsCreatingTicket(false);
-    
-    // Print ticket without customer details
-    if (ticketNumber) {
-      printTicket(selectedService, { name: '', email: '', number: '' }, ticketNumber);
+
+    // Print ticket immediately without customer details
+    if (ticketNumber && serviceObj) {
+      console.log('🖨️ Printing ticket on Skip click:', ticketNumber);
+      printTicket(serviceObj, { name: '', email: '', number: '' }, ticketNumber);
+    } else {
+      console.warn('⚠️ Missing ticket info for printing on Skip:', { ticketNumber, serviceObj });
     }
     setCustomerDetails({ name: '', email: '', number: '' });
   };
 
   const handleSubmit = async (service) => {
-    const ticketNumber = service.preCreatedTicket;
-    const ticketDbId = service.ticketDbId;
-    
-    // Update ticket with customer details (no await for speed)
-    try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      fetch(`${API_URL}/tickets/${ticketDbId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: customerDetails.name,
-          email: customerDetails.email,
-          number: customerDetails.number
-        })
-      }).catch(error => console.error('Error updating ticket:', error));
-    } catch (error) {
-      console.error('Error:', error);
+    const activeTicket = currentTicketRef.current || selectedService;
+    const ticketNumber = activeTicket?.preCreatedTicket || activeTicket?.ticket_id || service?.preCreatedTicket || selectedService?.preCreatedTicket;
+    const ticketDbId = activeTicket?.ticketDbId || service?.ticketDbId || selectedService?.ticketDbId;
+    const serviceObj = service || activeTicket?.service || selectedService || activeTicket;
+
+    // Print ticket immediately on click (0 delay)
+    if (ticketNumber && serviceObj) {
+      console.log('🖨️ Printing ticket on Submit click:', ticketNumber);
+      printTicket(serviceObj, customerDetails, ticketNumber);
+    } else {
+      console.warn('⚠️ Missing ticket info for printing on Submit:', { ticketNumber, serviceObj });
     }
-    
+
+    // Update ticket in database asynchronously
+    if (ticketDbId) {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        fetch(`${API_URL}/tickets/${ticketDbId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: customerDetails.name,
+            email: customerDetails.email,
+            number: customerDetails.number
+          })
+        }).catch(error => console.error('Error updating ticket:', error));
+      } catch (error) {
+        console.error('Error updating ticket:', error);
+      }
+    }
+
     setShowDetailsModal(false);
     setIsCreatingTicket(false);
-    
-    // Print ticket immediately (don't wait for update)
-    if (ticketNumber) {
-      printTicket(service, customerDetails, ticketNumber);
-    }
-    
     setCustomerDetails({ name: '', email: '', number: '' });
   };
 
@@ -604,9 +616,20 @@ export default function Home() {
       `;
     }
 
-    // Create print window
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
-    
+    // Use hidden background iframe instead of popup window
+    let printIframe = document.getElementById('ticket-print-iframe');
+    if (!printIframe) {
+      printIframe = document.createElement('iframe');
+      printIframe.id = 'ticket-print-iframe';
+      printIframe.style.position = 'fixed';
+      printIframe.style.right = '0';
+      printIframe.style.bottom = '0';
+      printIframe.style.width = '0px';
+      printIframe.style.height = '0px';
+      printIframe.style.border = '0px';
+      document.body.appendChild(printIframe);
+    }
+
     const ticketHTML = `
       <!DOCTYPE html>
       <html>
@@ -617,151 +640,129 @@ export default function Home() {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            color: #000000 !important;
           }
-          body {
-            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
-            background: white !important;
-            color: #000000 !important;
+          html, body {
+            font-family: 'Arial', sans-serif;
+            width: 80mm;
             margin: 0;
             padding: 0;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            background: white;
+            color: black;
           }
           .ticket {
             width: 80mm;
-            background: white !important;
-            color: #000000 !important;
-            margin: 0 auto;
+            margin: 0;
+            padding: 0;
+            background: white;
+            color: black;
           }
           .ticket-details {
-            padding: 12px 15px;
+            padding: 5px 8px;
             text-align: center;
-            color: #000000 !important;
+            color: black;
+          }
+          .logo-wrapper {
+            margin-bottom: 8px;
           }
           .logo-wrapper img, img {
-            filter: grayscale(100%) contrast(150%) !important;
-            -webkit-filter: grayscale(100%) contrast(150%) !important;
+            max-width: 180px;
+            height: auto;
+            filter: grayscale(100%) contrast(150%);
+            -webkit-filter: grayscale(100%) contrast(150%);
           }
           .company-name {
-            font-size: 22px;
-            font-weight: 900;
-            color: #000000 !important;
-            margin-bottom: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 8px 0;
+            color: black;
             line-height: 1.2;
-            text-transform: none;
-            letter-spacing: -0.2px;
             word-break: break-word;
           }
           .service-type {
-            font-size: 13px;
-            font-weight: 800;
-            color: #000000 !important;
-            margin-bottom: 6px;
+            font-size: 14px;
+            margin: 4px 0;
+            color: black;
           }
           .service-type strong {
-            color: #000000 !important;
-            font-weight: 900;
+            color: black;
           }
           .customer-info {
-            font-size: 11px;
-            font-weight: 800;
-            color: #000000 !important;
-            margin-bottom: 8px;
-            padding: 2px 0;
-            background: transparent !important;
-            border: none !important;
+            font-size: 12px;
+            font-weight: bold;
+            color: black;
+            margin: 4px 0;
+            background: transparent;
+            border: none;
             text-align: center;
           }
           .customer-info p {
             margin: 2px 0;
-            color: #000000 !important;
+            color: black;
           }
           .ticket-title {
             font-size: 14px;
-            font-weight: 800;
-            color: #000000 !important;
-            margin-top: 6px;
-            margin-bottom: 2px;
+            font-weight: bold;
+            margin: 6px 0 2px 0;
+            color: black;
           }
           .ticket-number {
-            font-size: 42px;
-            font-weight: 900;
-            color: #000000 !important;
-            margin: 4px 0 10px 0;
-            letter-spacing: 1.5px;
+            font-size: 48px;
+            font-weight: bold;
+            margin: 2px 0 8px 0;
+            color: black;
             line-height: 1;
           }
           .waiting-message {
-            font-size: 13px;
-            font-weight: 800;
-            color: #000000 !important;
-            margin: 10px 0;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 8px 0 4px 0;
+            color: black;
             line-height: 1.3;
           }
           .date-time {
-            font-size: 12px;
-            font-weight: 800;
-            color: #000000 !important;
-            margin: 8px 0;
-            padding: 2px 0;
-            background: transparent !important;
-            border: none !important;
-            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            margin: 4px 0;
+            color: black;
+            background: transparent;
+            border: none;
           }
           .date-time strong {
-            color: #000000 !important;
-            font-weight: 900;
+            color: black;
           }
           .thank-you-text {
-            font-size: 15px;
-            font-weight: 900;
-            color: #000000 !important;
-            margin: 12px 0 6px 0;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 8px 0 4px 0;
+            color: black;
           }
           .company-sponser {
-            font-size: 11px;
-            font-weight: bold;
-            color: #000000 !important;
-            margin-top: 8px;
-            padding-top: 6px;
-            border-top: 1px dashed #000000;
+            color: black;
+            font-size: 12px;
+            font-weight: normal;
+            margin-top: 2px;
           }
           .custom-field {
-            font-size: 12px;
-            font-weight: 800;
-            color: #000000 !important;
-            margin: 6px 0;
+            font-size: 13px;
+            font-weight: bold;
+            color: black;
+            margin: 4px 0;
             text-align: center;
-            line-height: 1.3;
           }
           @media print {
             @page {
               size: 80mm auto;
               margin: 0;
             }
-            * {
-              color: #000000 !important;
-              background-color: transparent !important;
-              box-shadow: none !important;
-              text-shadow: none !important;
-            }
-            body {
+            html, body {
+              width: 80mm;
               margin: 0;
               padding: 0;
-              color: #000000 !important;
-              background: #ffffff !important;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
             }
             .ticket {
-              margin: 0;
               width: 80mm;
-              color: #000000 !important;
-              background: #ffffff !important;
-            }
-            h1, h2, h3, h4, p, span, div, strong, small, a, li {
-              color: #000000 !important;
+              margin: 0;
+              padding: 0;
             }
             img {
               filter: grayscale(100%) contrast(150%) !important;
@@ -776,22 +777,25 @@ export default function Home() {
             ${ticketBodyHTML}
           </div>
         </div>
-        <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.print();
-              setTimeout(function() {
-                window.close();
-              }, 100);
-            }, 500);
-          };
-        </script>
       </body>
       </html>
     `;
     
-    printWindow.document.write(ticketHTML);
-    printWindow.document.close();
+    const iframeWin = printIframe.contentWindow;
+    const iframeDoc = iframeWin.document;
+    iframeDoc.open();
+    iframeDoc.write(ticketHTML);
+    iframeDoc.close();
+
+    // Trigger print directly on iframe window with focus
+    setTimeout(() => {
+      try {
+        iframeWin.focus();
+        iframeWin.print();
+      } catch (err) {
+        console.error('Error printing ticket iframe:', err);
+      }
+    }, 250);
   };
 
   useEffect(() => {
@@ -1085,10 +1089,9 @@ export default function Home() {
                       }
 
                       const data = await response.json();
-                      console.log('✅ Ticket created:', data.ticket_id);
-                      
-                      // Store the ticket info with the service
-                      setSelectedService({ ...service, preCreatedTicket: data.ticket_id, ticketDbId: data.ticket?.id });
+                      const ticketInfo = { ...service, service, preCreatedTicket: data.ticket_id, ticketNumber: data.ticket_id, ticketDbId: data.ticket?.id };
+                      currentTicketRef.current = ticketInfo;
+                      setSelectedService(ticketInfo);
                       setShowDetailsModal(true);
                       setIsCreatingTicket(false);
                     } catch (error) {
