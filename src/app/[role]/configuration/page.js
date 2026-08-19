@@ -1169,21 +1169,18 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                     {layout.filter(item => item.visible !== false).map((item) => {
                       switch (item.type) {
                         case 'logo':
+                          const hasLogo = logoPreview || (companyLogo && companyLogo !== 'null' && companyLogo !== 'undefined' && companyLogo.trim() !== '');
+                          if (!hasLogo) return null;
                           return (
                             <div key={item.id} className="w-full flex justify-center py-1">
-                              {logoPreview || companyLogo ? (
-                                <div className="p-1.5 border border-gray-100 rounded bg-white">
-                                  <img
-                                    src={logoPreview || `${process.env.NEXT_PUBLIC_API_URL_WS || 'http://localhost:5000'}${companyLogo}`}
-                                    alt="Logo"
-                                    className="max-h-[50px] max-w-[150px] object-contain"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-full py-1.5 bg-gray-50 text-gray-400 font-bold text-[10px] uppercase tracking-widest rounded border border-dashed border-gray-300">
-                                  LOGO
-                                </div>
-                              )}
+                              <div className="p-1 border border-gray-100 rounded bg-white">
+                                <img
+                                  src={logoPreview || `${process.env.NEXT_PUBLIC_API_URL_WS || 'http://localhost:5000'}${companyLogo}`}
+                                  alt=""
+                                  onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
+                                  className="max-h-[55px] max-w-[160px] object-contain"
+                                />
+                              </div>
                             </div>
                           );
                         case 'text':
@@ -1191,50 +1188,49 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                           // If it's the company name heading
                           if (item.id === 'company_name' || item.isHeading) {
                             return (
-                              <h4 key={item.id} className="font-extrabold text-sm text-gray-900 leading-tight uppercase break-words w-full py-0.5">
-                                {item.value || 'Emirates Professional Businessmen Services'}
+                              <h4 key={item.id} className="font-black text-xl text-black leading-tight break-words w-full py-0.5">
+                                {item.value || 'Dubai Economic Department Services'}
                               </h4>
                             );
                           }
                           if (item.id === 'waiting_message') {
                             return (
-                              <p key={item.id} className="text-[10px] text-gray-600 italic px-2 break-words w-full leading-normal py-0.5">
+                              <p key={item.id} className="text-xs font-bold text-black px-2 break-words w-full leading-normal py-1">
                                 {item.value || 'Please wait. We will serve you shortly.'}
                               </p>
                             );
                           }
                           if (item.id === 'thank_you_text') {
                             return (
-                              <p key={item.id} className="text-[10px] font-bold text-green-600 break-words w-full py-0.5">
+                              <p key={item.id} className="text-sm font-black text-black break-words w-full py-1">
                                 {item.value || 'Thank you for your service!'}
                               </p>
                             );
                           }
                           if (item.id === 'footer_text') {
                             return (
-                              <p key={item.id} className="text-[8px] text-gray-400 border-t border-dashed border-gray-200 w-full pt-1.5 break-words py-0.5">
+                              <p key={item.id} className="text-[11px] font-bold text-black border-t border-dashed border-black w-full pt-1.5 break-words py-0.5">
                                 {item.value || 'Designed by techsolutionor.com'}
                               </p>
                             );
                           }
                           // Custom field styling
                           return (
-                            <p key={item.id} className="text-[10px] text-gray-800 break-words w-full py-0.5">
+                            <p key={item.id} className="text-xs font-bold text-black break-words w-full py-0.5">
                               {item.value || ''}
                             </p>
                           );
                         case 'service':
                           return (
                             <div key={item.id} className="w-full py-0.5">
-                              <p className="text-[10px] text-gray-500 uppercase tracking-wide leading-tight">Service Type</p>
-                              <p className="font-black text-xs text-green-700 uppercase leading-snug">
-                                VISA SERVICES
+                              <p className="text-xs font-bold text-black uppercase tracking-wide leading-tight">
+                                Service Type: <span className="font-black text-black">VISA SERVICES</span>
                               </p>
                             </div>
                           );
                         case 'customer_info':
                           return (
-                            <div key={item.id} className="w-full text-left bg-gray-50 border border-gray-100 rounded p-2 text-[9px] text-gray-600 space-y-0.5">
+                            <div key={item.id} className="w-full text-center text-xs text-black font-bold space-y-0.5 py-0.5">
                               <p><strong>Name:</strong> John Doe</p>
                               <p><strong>Email:</strong> johndoe@gmail.com</p>
                               <p><strong>Number:</strong> 03236637158</p>
@@ -1243,15 +1239,15 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                         case 'ticket_no':
                           return (
                             <div key={item.id} className="w-full py-0.5">
-                              <p className="text-[10px] text-gray-500 uppercase tracking-wide leading-tight">Ticket No</p>
-                              <h1 className="font-black text-4xl text-green-600 tracking-wider my-0.5 leading-none">
+                              <p className="text-xs font-bold text-black uppercase tracking-wide leading-tight">Ticket No</p>
+                              <h1 className="font-black text-4xl text-black tracking-wider my-1 leading-none">
                                 V-101
                               </h1>
                             </div>
                           );
                         case 'date_time':
                           return (
-                            <div key={item.id} className="bg-gray-50 w-full py-1.5 px-2 rounded border border-gray-100 text-[9px] text-gray-500 font-mono">
+                            <div key={item.id} className="w-full py-1 text-xs text-black font-bold font-mono text-center">
                               Date: {new Date().toLocaleDateString('en-GB')} | Time: {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
                             </div>
                           );

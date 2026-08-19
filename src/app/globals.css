@@ -25,6 +25,29 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Force crisp black text for all input elements across the application */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+select,
+textarea,
+input {
+  color: #000000 !important;
+  font-weight: 500;
+}
+
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: #6b7280 !important;
+  opacity: 1 !important;
+  font-weight: normal;
+}
+
 /* Animation for slide-in */
 @keyframes slide-in {
   from {

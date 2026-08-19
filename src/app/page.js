@@ -514,6 +514,10 @@ export default function Home() {
 
     let ticketBodyHTML = '';
     const wsUrl = process.env.NEXT_PUBLIC_API_URL_WS || 'http://localhost:5000';
+    const isLogoValid = licenseData?.company_logo && 
+                        licenseData.company_logo !== 'null' && 
+                        licenseData.company_logo !== 'undefined' && 
+                        licenseData.company_logo.trim() !== '';
 
     if (layoutArray && Array.isArray(layoutArray) && layoutArray.length > 0) {
       ticketBodyHTML = layoutArray
@@ -521,9 +525,9 @@ export default function Home() {
         .map(item => {
           switch (item.type) {
             case 'logo':
-              return licenseData?.company_logo ? `
-                <div class="logo-wrapper" style="text-align: center; margin-bottom: 12px; margin-top: 4px;">
-                  <img src="${wsUrl}${licenseData.company_logo}" alt="Logo" style="max-height: 60px; max-width: 180px; display: block; margin: 0 auto;" />
+              return isLogoValid ? `
+                <div class="logo-wrapper" style="text-align: center; margin-bottom: 10px; margin-top: 4px;">
+                  <img src="${wsUrl}${licenseData.company_logo}" alt="" onerror="this.onerror=null; this.parentNode.style.display='none';" style="max-height: 75px; max-width: 190px; display: block; margin: 0 auto; object-fit: contain; filter: grayscale(100%) contrast(150%); -webkit-filter: grayscale(100%) contrast(150%);" />
                 </div>
               ` : '';
             case 'text':
@@ -542,7 +546,7 @@ export default function Home() {
               }
               // Custom text fields
               return `
-                <p class="custom-field" style="font-size: 11px; color: #000; margin: 8px 0; text-align: center; font-style: normal; line-height: 1.4;">
+                <p class="custom-field">
                   ${item.value || ''}
                 </p>
               `;
@@ -575,9 +579,9 @@ export default function Home() {
     } else {
       // Fallback Layout
       ticketBodyHTML = `
-        ${licenseData?.company_logo ? `
-          <div class="logo-wrapper" style="text-align: center; margin-bottom: 12px; margin-top: 4px;">
-            <img src="${wsUrl}${licenseData.company_logo}" alt="Logo" style="max-height: 60px; max-width: 180px; display: block; margin: 0 auto;" />
+        ${isLogoValid ? `
+          <div class="logo-wrapper" style="text-align: center; margin-bottom: 10px; margin-top: 4px;">
+            <img src="${wsUrl}${licenseData.company_logo}" alt="" onerror="this.onerror=null; this.parentNode.style.display='none';" style="max-height: 75px; max-width: 190px; display: block; margin: 0 auto; object-fit: contain; filter: grayscale(100%) contrast(150%); -webkit-filter: grayscale(100%) contrast(150%);" />
           </div>
         ` : ''}
         <h2 class="company-name">${licenseData?.company_name || 'Emirates Professional Businessmen Services'}</h2>
@@ -613,104 +617,155 @@ export default function Home() {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            color: #000000 !important;
           }
           body {
-            font-family: Arial, sans-serif;
-            background: white;
+            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+            background: white !important;
+            color: #000000 !important;
             margin: 0;
             padding: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           .ticket {
             width: 80mm;
-            background: white;
+            background: white !important;
+            color: #000000 !important;
             margin: 0 auto;
           }
           .ticket-details {
-            padding: 15px;
+            padding: 12px 15px;
             text-align: center;
+            color: #000000 !important;
+          }
+          .logo-wrapper img, img {
+            filter: grayscale(100%) contrast(150%) !important;
+            -webkit-filter: grayscale(100%) contrast(150%) !important;
           }
           .company-name {
-            font-size: 15px;
-            font-weight: bold;
-            color: #333;
+            font-size: 22px;
+            font-weight: 900;
+            color: #000000 !important;
             margin-bottom: 10px;
-            line-height: 1.4;
-            text-transform: uppercase;
+            line-height: 1.2;
+            text-transform: none;
+            letter-spacing: -0.2px;
+            word-break: break-word;
           }
           .service-type {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #000000 !important;
+            margin-bottom: 6px;
           }
           .service-type strong {
-            color: #667eea;
+            color: #000000 !important;
+            font-weight: 900;
           }
           .customer-info {
-            font-size: 10px;
-            color: #666;
+            font-size: 11px;
+            font-weight: 800;
+            color: #000000 !important;
             margin-bottom: 8px;
-            padding: 6px;
-            background: #f9f9f9;
-            border-radius: 3px;
-            text-align: left;
+            padding: 2px 0;
+            background: transparent !important;
+            border: none !important;
+            text-align: center;
           }
           .customer-info p {
-            margin: 3px 0;
+            margin: 2px 0;
+            color: #000000 !important;
           }
           .ticket-title {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 3px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #000000 !important;
+            margin-top: 6px;
+            margin-bottom: 2px;
           }
           .ticket-number {
-            font-size: 36px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 5px 0;
-            letter-spacing: 1px;
+            font-size: 42px;
+            font-weight: 900;
+            color: #000000 !important;
+            margin: 4px 0 10px 0;
+            letter-spacing: 1.5px;
+            line-height: 1;
           }
           .waiting-message {
-            font-size: 11px;
-            color: #666;
-            margin: 8px 0;
-            font-style: italic;
+            font-size: 13px;
+            font-weight: 800;
+            color: #000000 !important;
+            margin: 10px 0;
+            line-height: 1.3;
           }
           .date-time {
-            font-size: 10px;
-            color: #666;
+            font-size: 12px;
+            font-weight: 800;
+            color: #000000 !important;
             margin: 8px 0;
-            padding: 6px;
-            background: #f9f9f9;
-            border-radius: 3px;
+            padding: 2px 0;
+            background: transparent !important;
+            border: none !important;
+            text-align: center;
           }
           .date-time strong {
-            color: #333;
+            color: #000000 !important;
+            font-weight: 900;
           }
           .thank-you-text {
-            font-size: 11px;
-            color: #667eea;
-            margin: 8px 0;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: 900;
+            color: #000000 !important;
+            margin: 12px 0 6px 0;
           }
           .company-sponser {
-            font-size: 9px;
-            color: #000;
+            font-size: 11px;
+            font-weight: bold;
+            color: #000000 !important;
             margin-top: 8px;
             padding-top: 6px;
-            border-top: 1px dashed #000;
+            border-top: 1px dashed #000000;
+          }
+          .custom-field {
+            font-size: 12px;
+            font-weight: 800;
+            color: #000000 !important;
+            margin: 6px 0;
+            text-align: center;
+            line-height: 1.3;
           }
           @media print {
             @page {
               size: 80mm auto;
               margin: 0;
             }
+            * {
+              color: #000000 !important;
+              background-color: transparent !important;
+              box-shadow: none !important;
+              text-shadow: none !important;
+            }
             body {
               margin: 0;
               padding: 0;
+              color: #000000 !important;
+              background: #ffffff !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
             .ticket {
               margin: 0;
               width: 80mm;
+              color: #000000 !important;
+              background: #ffffff !important;
+            }
+            h1, h2, h3, h4, p, span, div, strong, small, a, li {
+              color: #000000 !important;
+            }
+            img {
+              filter: grayscale(100%) contrast(150%) !important;
+              -webkit-filter: grayscale(100%) contrast(150%) !important;
             }
           }
         </style>
@@ -1122,7 +1177,7 @@ export default function Home() {
                       value={customerDetails.name}
                       onFocus={() => setActiveField('name')}
                       onChange={(e) => setCustomerDetails(prev => ({ ...prev, name: e.target.value }))}
-                      className={`w-full px-4 py-3 text-base border-2 rounded-lg transition-all ${
+                      className={`w-full px-4 py-3 text-base font-semibold text-black border-2 rounded-lg transition-all ${
                         activeField === 'name' 
                           ? 'border-purple-500 bg-purple-50' 
                           : 'border-gray-300 bg-white'
@@ -1138,7 +1193,7 @@ export default function Home() {
                       value={customerDetails.email}
                       onFocus={() => setActiveField('email')}
                       onChange={(e) => setCustomerDetails(prev => ({ ...prev, email: e.target.value }))}
-                      className={`w-full px-4 py-3 text-base border-2 rounded-lg transition-all ${
+                      className={`w-full px-4 py-3 text-base font-semibold text-black border-2 rounded-lg transition-all ${
                         activeField === 'email' 
                           ? 'border-purple-500 bg-purple-50' 
                           : 'border-gray-300 bg-white'
@@ -1154,7 +1209,7 @@ export default function Home() {
                       value={customerDetails.number}
                       onFocus={() => setActiveField('number')}
                       onChange={(e) => setCustomerDetails(prev => ({ ...prev, number: e.target.value }))}
-                      className={`w-full px-4 py-3 text-base border-2 rounded-lg transition-all ${
+                      className={`w-full px-4 py-3 text-base font-semibold text-black border-2 rounded-lg transition-all ${
                         activeField === 'number' 
                           ? 'border-purple-500 bg-purple-50' 
                           : 'border-gray-300 bg-white'
