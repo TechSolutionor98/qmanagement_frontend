@@ -1460,14 +1460,14 @@ function TicketInfoContent() {
         </div>
 
         {/* Full Width Table Section */}
-        <div className="flex-1 bg-green-700 flex flex-col overflow-hidden overflow-y-auto">
+        <div className="flex-1 bg-[#16909B] flex flex-col overflow-hidden overflow-y-auto">
           <table className="w-full border-collapse">
             <thead className="sticky top-0 z-10">
               <tr>
-                <th className="table-header bg-green-700 text-white text-center font-bold shadow-lg">
+                <th className="table-header bg-[#16909B] text-white text-center font-bold shadow-lg">
                   Ticket
                 </th>
-                <th className="table-header bg-green-700 text-white text-center font-bold shadow-lg">
+                <th className="table-header bg-[#16909B] text-white text-center font-bold shadow-lg">
                   Counter
                 </th>
               </tr>

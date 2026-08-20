@@ -1373,14 +1373,14 @@ function TicketInfoContent() {
         )}
 
         {/* Left Panel: Counter Table */}
-        <div className="flex-[0_0_30%] bg-green-700 flex flex-col border-r-[3px] border-[#fdbb2d] overflow-hidden">
+        <div className="flex-[0_0_30%] bg-[#16909B] flex flex-col border-r-[3px] border-[#fdbb2d] overflow-hidden">
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th className="bg-green-700 text-[38.4px] text-white text-center p-2 font-bold shadow-lg rounded-lg">
+                <th className="bg-[#16909B] text-[38.4px] text-white text-center p-2 font-bold shadow-lg rounded-lg">
                   Ticket
                 </th>
-                <th className="bg-green-700 text-[38.4px] text-white text-center p-2 font-bold shadow-lg rounded-lg">
+                <th className="bg-[#16909B] text-[38.4px] text-white text-center p-2 font-bold shadow-lg rounded-lg">
                   Counter
                 </th>
               </tr>
