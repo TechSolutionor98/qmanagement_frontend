@@ -69,6 +69,11 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [updatingTicket, setUpdatingTicket] = useState(false);
 
+  // Counter names state
+  const [adminCounters, setAdminCounters] = useState([]);
+  const [loadingCounters, setLoadingCounters] = useState(false);
+  const [savingCounters, setSavingCounters] = useState(false);
+
   // Helper function to get auth headers
   const getAuthHeaders = () => {
     const token = getToken();
@@ -88,8 +93,58 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
 
       // Load license/ticket customization settings
       loadLicenseData();
+
+      // Load counter custom names
+      loadAdminCounters();
     }
   }, [adminId]);
+
+  const loadAdminCounters = async () => {
+    if (!adminId) return;
+    try {
+      setLoadingCounters(true);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/counters/${adminId}`,
+        { headers: getAuthHeaders() }
+      );
+      if (response.data.success && Array.isArray(response.data.counters)) {
+        setAdminCounters(response.data.counters);
+      }
+    } catch (err) {
+      console.error('Error loading admin counters:', err);
+    } finally {
+      setLoadingCounters(false);
+    }
+  };
+
+  const handleCounterNameChange = (counterNo, newName) => {
+    setAdminCounters(prev =>
+      prev.map(c => (c.counter_no === counterNo ? { ...c, counter_name: newName } : c))
+    );
+  };
+
+  const handleSaveCounterNames = async () => {
+    if (!adminId) return;
+    try {
+      setSavingCounters(true);
+      const response = await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/counters/${adminId}/names`,
+        { counters: adminCounters },
+        { headers: getAuthHeaders() }
+      );
+      if (response.data.success) {
+        alert('✅ Counter names updated successfully! Users logging into your license will now see these updated counter names.');
+        loadAdminCounters();
+      } else {
+        alert('❌ Failed to update counter names: ' + response.data.message);
+      }
+    } catch (err) {
+      console.error('Error saving counter names:', err);
+      alert('❌ Error saving counter names: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSavingCounters(false);
+    }
+  };
 
   const loadLicenseData = async () => {
     try {
@@ -676,7 +731,7 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Configuration Settings</h1>
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-gray-200 mb-6 max-w-3xl">
+      <div className="flex border-b border-gray-200 mb-6 max-w-4xl flex-wrap gap-2">
         <button
           onClick={() => setActiveTab('voice')}
           className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 outline-none ${activeTab === 'voice'
@@ -694,6 +749,15 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
             }`}
         >
           🎫 Ticket Print Settings
+        </button>
+        <button
+          onClick={() => setActiveTab('counters')}
+          className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 outline-none ${activeTab === 'counters'
+            ? 'border-green-600 text-green-600'
+            : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          🔢 Counter Custom Names
         </button>
       </div>
 
@@ -971,7 +1035,7 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                 </div>
               </div> {/* Close AI Voice Settings div */}
             </div>
-          ) : (
+          ) : activeTab === 'ticket' ? (
             /* Ticket Settings layout here */
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Left Column: Inputs (col-span-7) */}
@@ -1265,7 +1329,87 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                 </div>
               </div>
             </div>
-          )}
+          ) : activeTab === 'counters' ? (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg p-6 shadow-md flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    🔢 Customize Assigned Counter Names
+                  </h2>
+                  <p className="text-blue-100 text-sm mt-1">
+                    Assign custom names to your counters (e.g., "Cashier Counter 1", "VIP Desk"). 
+                    All users logging into your license will see these custom names in the counter selection popup!
+                  </p>
+                </div>
+                <div className="bg-white/20 px-4 py-2 rounded-lg text-sm font-semibold">
+                  Total Counters: {adminCounters.length}
+                </div>
+              </div>
+
+              {loadingCounters ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                </div>
+              ) : adminCounters.length === 0 ? (
+                <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+                  No active counters found for your license.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {adminCounters.map((counter) => (
+                      <div
+                        key={counter.counter_no}
+                        className="bg-gray-50 border border-gray-200 p-4 rounded-xl shadow-sm hover:border-blue-300 transition-all flex flex-col justify-between"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="px-3 py-1 bg-blue-100 text-blue-800 font-bold rounded-lg text-sm">
+                            Counter #{counter.counter_no}
+                          </span>
+                          {counter.isOccupied && (
+                            <span className="text-xs bg-red-100 text-red-700 font-semibold px-2 py-0.5 rounded-full">
+                              In Use by {counter.occupiedBy?.username || 'User'}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">
+                            Display Name / Alias
+                          </label>
+                          <input
+                            type="text"
+                            value={counter.counter_name || ''}
+                            onChange={(e) => handleCounterNameChange(counter.counter_no, e.target.value)}
+                            placeholder={`Counter ${counter.counter_no}`}
+                            className="w-full px-3 py-2 bg-white text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-medium"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 border-t flex justify-end">
+                    <button
+                      onClick={handleSaveCounterNames}
+                      disabled={savingCounters}
+                      className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 transition-all flex items-center gap-2"
+                    >
+                      {savingCounters ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Saving Counter Names...
+                        </>
+                      ) : (
+                        <>
+                          💾 Save Counter Names
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
       )}
     </div>

@@ -111,20 +111,25 @@ export default function CounterSelectionModal({ isOpen, onClose, adminId, token,
                   className="w-full px-4 py-3 bg-white text-gray-900 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none text-base"
                 >
                   <option value="">-- Select Counter --</option>
-                  {counters.map((counter) => (
-                    <option
-                      key={counter.counter_no}
-                      value={counter.counter_no}
-                      disabled={counter.isOccupied}
-                      style={{
-                        backgroundColor: counter.isOccupied ? '#fee2e2' : 'white',
-                        color: counter.isOccupied ? '#dc2626' : '#374151'
-                      }}
-                    >
-                      Counter {counter.counter_no}
-                      {counter.isOccupied ? ' (In Use)' : ''}
-                    </option>
-                  ))}
+                  {counters.map((counter) => {
+                    const displayName = counter.counter_name && counter.counter_name.trim() !== ''
+                      ? counter.counter_name
+                      : `Counter ${counter.counter_no}`;
+                    return (
+                      <option
+                        key={counter.counter_no}
+                        value={counter.counter_no}
+                        disabled={counter.isOccupied}
+                        style={{
+                          backgroundColor: counter.isOccupied ? '#fee2e2' : 'white',
+                          color: counter.isOccupied ? '#dc2626' : '#374151'
+                        }}
+                      >
+                        {displayName}
+                        {counter.isOccupied ? ' (In Use)' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </>
