@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth, useAppDispatch } from '@/store/hooks';
 import { setCredentials, setLoading, setError, clearError } from '@/store';
 import CounterSelectionModal from '@/Components/CounterSelectionModal';
+import AlreadyLoggedInModal from '@/Components/AlreadyLoggedInModal';
 
 // Simple toast notification function
 const showToast = (message, type = 'error') => {
@@ -34,8 +35,10 @@ export default function LoginPage() {
   const [showTicketInfoPassword, setShowTicketInfoPassword] = useState(false);
   const [showCounterModal, setShowCounterModal] = useState(false);
   const [showScreenSelectionModal, setShowScreenSelectionModal] = useState(false);
+  const [showAlreadyLoggedInModal, setShowAlreadyLoggedInModal] = useState(false);
   const [pendingUserData, setPendingUserData] = useState(null);
   const [pendingTicketInfoData, setPendingTicketInfoData] = useState(null);
+  const [pendingLoginPayload, setPendingLoginPayload] = useState(null);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -133,226 +136,49 @@ export default function LoginPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    dispatch(clearError());
-
-    // Validate form
-    if (!validateForm()) {
-      return;
-    }
-
+  // Execute login process with optional force parameter
+  const executeLoginProcess = async (endpoint, loginData, tab) => {
     dispatch(setLoading(true));
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      let endpoint = '';
-      let loginData = { email: formData.email, password: formData.password };
-      
-      // Handle Receptionist Login
-      if (activeTab === 'receptionist') {
-        loginData = { username: formData.email, password: formData.password };
-        endpoint = `${API_URL}/auth/receptionist/login`;
-
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loginData),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-          let errorMsg = data.message || 'Invalid credentials';
-          
-          // Handle license specific errors
-          if (data.license_expired) {
-            if (data.admin_info) {
-              errorMsg = `❌ Admin license has expired!\n\n` +
-                        `Admin: ${data.admin_info.username}\n` +
-                        `Email: ${data.admin_info.email}\n\n` +
-                        `📧 Contact your admin or click "Contact Q Tech Support" above.`;
-            } else {
-              errorMsg = '❌ Admin license has expired!\n\n📧 Click "Contact Q Tech Support" link above for assistance.';
-            }
-          }
-          // Handle session limit error
-          else if (data.session_limit_reached) {
-            errorMsg = `🚫 ${data.message}\n\nActive Sessions: ${data.active_sessions}/${data.max_sessions}\n\nPlease close an existing session first.`;
-          }
-          
-          dispatch(setError(errorMsg));
-          showToast(errorMsg, 'error');
-          dispatch(setLoading(false));
-          return;
-        }
-
-        // Check role - allow receptionist or both_user (receptionist,ticket_info)
-        if (!data.user.role.includes('receptionist')) {
-          const errorMsg = 'Access denied. Only Receptionist users can login here.';
-          dispatch(setError(errorMsg));
-          showToast(errorMsg, 'error');
-          dispatch(setLoading(false));
-          return;
-        }
-
-        // Store credentials
-        dispatch(setCredentials({
-          user: data.user,
-          token: data.token,
-        }));
-
-        showToast('Login successful!', 'success');
-        router.push('/');
-        dispatch(setLoading(false));
-        return;
-      }
-
-      // Handle Ticket Info Login
-      if (activeTab === 'ticketinfo') {
-        loginData = { username: formData.email, password: formData.password };
-        endpoint = `${API_URL}/auth/ticket-info/login`;
-
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loginData),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-          let errorMsg = data.message || 'Invalid credentials';
-          
-          // Handle license specific errors
-          if (data.license_expired) {
-            if (data.admin_info) {
-              errorMsg = `❌ Admin license has expired!\n\n` +
-                        `Admin: ${data.admin_info.username}\n` +
-                        `Email: ${data.admin_info.email}\n\n` +
-                        `📧 Contact your admin or click "Contact Q Tech Support" above.`;
-            } else {
-              errorMsg = '❌ Admin license has expired!\n\n📧 Click "Contact Q Tech Support" link above for assistance.';
-            }
-          }
-          // Handle session limit error
-          else if (data.session_limit_reached) {
-            errorMsg = `🚫 ${data.message}\n\nActive Sessions: ${data.active_sessions}/${data.max_sessions}\n\nPlease close an existing session first.`;
-          }
-          
-          dispatch(setError(errorMsg));
-          showToast(errorMsg, 'error');
-          dispatch(setLoading(false));
-          return;
-        }
-
-        // Check role - allow ticket_info or both_user (receptionist,ticket_info)
-        if (!data.user.role.includes('ticket_info')) {
-          const errorMsg = 'Access denied. Only Ticket Info users can login here.';
-          dispatch(setError(errorMsg));
-          showToast(errorMsg, 'error');
-          dispatch(setLoading(false));
-          return;
-        }
-
-        // Store pending ticket info data and show screen selection modal
-        setPendingTicketInfoData({
-          user: data.user,
-          token: data.token,
-        });
-        setShowScreenSelectionModal(true);
-        dispatch(setLoading(false));
-        return;
-      }
-      
-      if (activeTab === 'user') {
-        endpoint = `${API_URL}/auth/user/login`;
-        // User login - only 'user' role allowed
-      } else if (activeTab === 'admin') {
-        // Admin login - only 'admin' role allowed (super_admin has separate route)
-        endpoint = `${API_URL}/auth/admin/login`;
-        
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(loginData),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          let errorMsg = data.message || 'Invalid credentials';
-          
-          // Handle license specific errors
-          if (data.license_expired) {
-            if (data.no_license) {
-              errorMsg = '❌ No license assigned to your account.\n\n📧 Click "Contact Q Tech Support" link above to request a license.';
-            } else if (data.license_info) {
-              const license = data.license_info;
-              errorMsg = `❌ Your license has expired!\n\n` +
-                        `License Type: ${license.license_type}\n` +
-                        `Expired on: ${new Date(license.expiry_date).toLocaleDateString()}\n\n` +
-                        `📧 Click "Contact Q Tech Support" link above to renew your license.`;
-            } else {
-              errorMsg = '❌ Your license has expired or is invalid.\n\n📧 Click "Contact Q Tech Support" link above for assistance.';
-            }
-          }
-          
-          dispatch(setError(errorMsg));
-          showToast(errorMsg, 'error');
-          dispatch(setLoading(false));
-          return;
-        }
-
-        // ✅ Role validation for Admin tab - only 'admin' role allowed
-        if (data.user.role !== 'admin') {
-          const errorMsg = 'Invalid credentials';
-          dispatch(setError(errorMsg));
-          showToast(errorMsg, 'error');
-          dispatch(setLoading(false));
-          return;
-        }
-
-        // Store credentials in Redux and sessionStorage
-        dispatch(setCredentials({
-          user: data.user,
-          token: data.token,
-        }));
-
-        // Show success message
-        showToast('Login successful!', 'success');
-
-        // Redirect to admin dashboard
-        if (data.user.role === 'admin') {
-          router.push('/admin');
-        }
-        
-        dispatch(setLoading(false));
-        return;
-      }
-
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        let errorMsg = data.message || 'Login failed';
+      // Check if user is already logged in on another device
+      if (data.already_logged_in) {
+        setPendingLoginPayload({
+          endpoint,
+          loginData,
+          tab,
+          deviceInfo: data.device_info || 'Another Device'
+        });
+        setShowAlreadyLoggedInModal(true);
+        dispatch(setLoading(false));
+        return;
+      }
+
+      if (!response.ok || !data.success) {
+        let errorMsg = data.message || 'Invalid credentials';
         
-        // Handle license specific errors for users whose admin license expired
         if (data.license_expired) {
-          if (data.admin_info) {
+          if (data.no_license) {
+            errorMsg = '❌ No license assigned to your account.\n\n📧 Click "Contact Q Tech Support" link above to request a license.';
+          } else if (data.admin_info) {
             errorMsg = `❌ Admin license has expired!\n\n` +
                       `Admin: ${data.admin_info.username}\n` +
                       `Email: ${data.admin_info.email}\n\n` +
                       `📧 Contact your admin or click "Contact Q Tech Support" above.`;
+          } else if (data.license_info) {
+            const license = data.license_info;
+            errorMsg = `❌ Your license has expired!\n\n` +
+                      `License Type: ${license.license_type}\n` +
+                      `Expired on: ${new Date(license.expiry_date).toLocaleDateString()}\n\n` +
+                      `📧 Click "Contact Q Tech Support" link above to renew your license.`;
           } else {
             errorMsg = '❌ Admin license has expired!\n\n📧 Click "Contact Q Tech Support" link above for assistance.';
           }
@@ -364,22 +190,77 @@ export default function LoginPage() {
         return;
       }
 
-      console.log('Login response data:', data);
-      console.log('User role:', data.user.role);
-      console.log('Active tab:', activeTab);
+      // Handle Receptionist Tab
+      if (tab === 'receptionist') {
+        if (!data.user.role.includes('receptionist')) {
+          const errorMsg = 'Access denied. Only Receptionist users can login here.';
+          dispatch(setError(errorMsg));
+          showToast(errorMsg, 'error');
+          dispatch(setLoading(false));
+          return;
+        }
 
-      // ✅ Role validation for User tab - only 'user' role allowed
-      if (activeTab === 'user' && data.user.role !== 'user') {
-        const errorMsg = 'Invalid credentials';
-        dispatch(setError(errorMsg));
-        showToast(errorMsg, 'error');
+        dispatch(setCredentials({
+          user: data.user,
+          token: data.token,
+        }));
+
+        showToast('Login successful!', 'success');
+        router.push('/');
         dispatch(setLoading(false));
         return;
       }
 
-      // Show counter modal only for users with role='user' (not receptionist)
-      if (activeTab === 'user' && data.user.role === 'user') {
-        console.log('Showing counter modal for regular user');
+      // Handle Ticket Info Tab
+      if (tab === 'ticketinfo') {
+        if (!data.user.role.includes('ticket_info')) {
+          const errorMsg = 'Access denied. Only Ticket Info users can login here.';
+          dispatch(setError(errorMsg));
+          showToast(errorMsg, 'error');
+          dispatch(setLoading(false));
+          return;
+        }
+
+        setPendingTicketInfoData({
+          user: data.user,
+          token: data.token,
+        });
+        setShowScreenSelectionModal(true);
+        dispatch(setLoading(false));
+        return;
+      }
+
+      // Handle Admin Tab
+      if (tab === 'admin') {
+        if (data.user.role !== 'admin') {
+          const errorMsg = 'Invalid credentials';
+          dispatch(setError(errorMsg));
+          showToast(errorMsg, 'error');
+          dispatch(setLoading(false));
+          return;
+        }
+
+        dispatch(setCredentials({
+          user: data.user,
+          token: data.token,
+        }));
+
+        showToast('Login successful!', 'success');
+        router.push('/admin');
+        dispatch(setLoading(false));
+        return;
+      }
+
+      // Handle User Tab
+      if (tab === 'user') {
+        if (data.user.role !== 'user') {
+          const errorMsg = 'Invalid credentials';
+          dispatch(setError(errorMsg));
+          showToast(errorMsg, 'error');
+          dispatch(setLoading(false));
+          return;
+        }
+
         setPendingUserData({
           user: data.user,
           token: data.token,
@@ -389,39 +270,64 @@ export default function LoginPage() {
         return;
       }
 
-      // For receptionist and other roles, store credentials directly (no counter needed)
-      console.log('Storing credentials for role:', data.user.role);
-      
-      // Store in Redux (which sets cookies)
-      dispatch(setCredentials({
-        user: data.user,
-        token: data.token,
-      }));
-
-      // Show success message
-      showToast('Login successful!', 'success');
-
-      // Redirect based on role
-      const roleMapping = {
-        'receptionist': '/',
-        'user': '/user/dashboard',
-      };
-      const redirectPath = roleMapping[data.user.role];
-      console.log('Redirecting to:', redirectPath);
-      
-      if (redirectPath) {
-        // Use window.location for hard redirect to ensure cookies are read
-        console.log('Using window.location.href for redirect');
-        window.location.href = redirectPath;
-      } else {
-        console.warn('No redirect path found for role:', data.user.role);
-      }
     } catch (err) {
       console.error('Login error:', err);
-      // Don't set loading to false here, let finally block handle it
+      showToast('Login error: ' + err.message, 'error');
     } finally {
       dispatch(setLoading(false));
     }
+  };
+
+  // Button 1: Login There -> Keep login on old device, cancel login here
+  const handleLoginThere = () => {
+    setShowAlreadyLoggedInModal(false);
+    setPendingLoginPayload(null);
+    showToast('Login cancelled. Active session remains on original device.', 'info');
+  };
+
+  // Button 2: Login Here -> Force login here, take over session
+  const handleLoginHere = async () => {
+    if (!pendingLoginPayload) return;
+    const { endpoint, loginData, tab } = pendingLoginPayload;
+    setShowAlreadyLoggedInModal(false);
+    setPendingLoginPayload(null);
+
+    await executeLoginProcess(endpoint, { ...loginData, force: true }, tab);
+  };
+
+  // Button 3: Cancel -> Cancel login attempt
+  const handleLoginCancel = () => {
+    setShowAlreadyLoggedInModal(false);
+    setPendingLoginPayload(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    dispatch(clearError());
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    let endpoint = '';
+    let loginData = {};
+
+    if (activeTab === 'receptionist') {
+      loginData = { username: formData.email, password: formData.password };
+      endpoint = `${API_URL}/auth/receptionist/login`;
+    } else if (activeTab === 'ticketinfo') {
+      loginData = { username: formData.email, password: formData.password };
+      endpoint = `${API_URL}/auth/ticket-info/login`;
+    } else if (activeTab === 'admin') {
+      loginData = { email: formData.email, password: formData.password };
+      endpoint = `${API_URL}/auth/admin/login`;
+    } else {
+      loginData = { email: formData.email, password: formData.password };
+      endpoint = `${API_URL}/auth/user/login`;
+    }
+
+    await executeLoginProcess(endpoint, loginData, activeTab);
   };
 
   return (
@@ -1008,6 +914,14 @@ export default function LoginPage() {
           </div>
         </div>
       )}
+      {/* Already Logged In Warning Modal */}
+      <AlreadyLoggedInModal
+        isOpen={showAlreadyLoggedInModal}
+        onClose={handleLoginCancel}
+        onLoginThere={handleLoginThere}
+        onLoginHere={handleLoginHere}
+        deviceInfo={pendingLoginPayload?.deviceInfo}
+      />
     </div>
   );
 }

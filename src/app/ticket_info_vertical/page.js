@@ -77,11 +77,11 @@ function TicketInfoContent() {
           }
         });
 
-        // Only logout on 401 Unauthorized (session terminated by admin)
-        if (response.status === 401) {
+        // Logout on 401 Unauthorized or 403 Forbidden (session terminated or logged in on another device)
+        if (response.status === 401 || response.status === 403) {
           const data = await response.json().catch(() => ({}));
-          console.log('❌ Session terminated by administrator');
-          alert('Your session has been terminated by the administrator. You will be redirected to login.');
+          console.log('❌ Session terminated or logged in on another device');
+          alert(data.message || 'Your session has been terminated or logged in on another device. You will be redirected to login.');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           sessionStorage.removeItem('token');
@@ -99,9 +99,9 @@ function TicketInfoContent() {
         const data = await response.json();
 
         // Check if session is marked as invalid
-        if (data.valid === false) {
-          console.log('❌ Session invalidated by administrator');
-          alert('Your session has been terminated by the administrator. You will be redirected to login.');
+        if (data.valid === false || data.session_expired) {
+          console.log('❌ Session invalidated');
+          alert(data.message || 'Your session has been terminated or logged in on another device. You will be redirected to login.');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           sessionStorage.removeItem('token');
@@ -116,9 +116,9 @@ function TicketInfoContent() {
       }
     };
 
-    // Check after 2 seconds (page load time), then every 10 seconds
+    // Check after 2 seconds (page load time), then every 3 seconds
     const initialTimeout = setTimeout(validateSessionStatus, 2000);
-    const interval = setInterval(validateSessionStatus, 10000);
+    const interval = setInterval(validateSessionStatus, 3000);
 
     // Also check when page becomes visible
     const handleVisibilityChange = () => {
