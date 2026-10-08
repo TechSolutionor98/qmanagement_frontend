@@ -338,7 +338,7 @@ function TicketInfoContent() {
                 if (!exists) {
                   return [...queue, {
                     ticket: ticketNumber,
-                    counter: latestTicket.counter_no || 'N/A',
+                    counter: latestTicket.counter_name || 'N/A',
                     timestamp: latestTimestamp
                   }];
                 }
@@ -348,7 +348,7 @@ function TicketInfoContent() {
               // Update display immediately if no announcement in progress
               console.log('🔄 Updating display and triggering voice');
               setCalledTicket(ticketNumber);
-              setCurrentCounter(latestTicket.counter_no || 'N/A');
+              setCurrentCounter(latestTicket.counter_name || 'N/A');
               setLastAnnouncedTime(latestTimestamp);
               // Add to announced timestamps history and save to localStorage
               setAnnouncedTimestamps(prev => {
@@ -1435,7 +1435,9 @@ function TicketInfoContent() {
               {displayedTicket && (
                 <>
                   <span className="now-calling-dash inline-block bg-black align-middle rounded-sm"></span>
-                  <span className="now-calling-ticket font-bold">{displayedCounter || 'N/A'}</span>
+                  <span className="now-calling-ticket font-bold">
+                    {displayedCounter ? String(displayedCounter).replace(/^counter\s+/i, '') : 'N/A'}
+                  </span>
                 </>
               )}
             </div>
@@ -1532,7 +1534,7 @@ function TicketInfoContent() {
                             {item.ticket_number}
                           </td>
                           <td className={`table-cell-text ${bgColor} text-black text-center align-middle font-bold`}>
-                            {item.counter_no || 'N/A'}
+                            {String(item.counter_name || item.counter_no || 'N/A').replace(/^counter\s+/i, '')}
                           </td>
                         </tr>
                       );

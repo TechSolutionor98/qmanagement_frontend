@@ -112,9 +112,16 @@ export default function CounterSelectionModal({ isOpen, onClose, adminId, token,
                 >
                   <option value="">-- Select Counter --</option>
                   {counters.map((counter) => {
-                    const displayName = counter.counter_name && counter.counter_name.trim() !== ''
-                      ? counter.counter_name
-                      : `Counter ${counter.counter_no}`;
+                    let rawName = counter.counter_name && counter.counter_name.trim() !== ''
+                      ? counter.counter_name.trim()
+                      : `${counter.counter_no}`;
+
+                    let displayName = rawName;
+                    if (!isNaN(Number(rawName))) {
+                      displayName = `Counter ${rawName}`;
+                    } else if (!/^counter\b/i.test(rawName)) {
+                      displayName = `Counter ${rawName}`;
+                    }
                     return (
                       <option
                         key={counter.counter_no}

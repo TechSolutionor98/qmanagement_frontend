@@ -118,7 +118,11 @@ export default function LoginPage() {
 
       // Store credentials with counter AND NEW TOKEN from session creation
       dispatch(setCredentials({
-        user: { ...pendingUserData.user, counter_no: counterNo },
+        user: { 
+          ...pendingUserData.user, 
+          counter_no: counterNo,
+          counter_name: data.counter_name || `Counter ${counterNo}`
+        },
         token: data.token || pendingUserData.token,  // Use new token with session
       }));
 

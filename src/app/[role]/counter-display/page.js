@@ -380,7 +380,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
     }
   };
 
-  const handleLeftLogoUpload = async (e) => {
+  const handleLeftLogoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       console.log('🖼️ Left logo selected:', file.name);
@@ -400,53 +400,14 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       }
       
       setLeftLogo(file);
-      
-      // Upload immediately
-      const formData = new FormData();
-      formData.append('logo', file);
-      formData.append('logoType', 'left');
-      if (adminId) {
-        formData.append('admin_id', adminId);
-      } else {
-        showMessage('error', 'Admin ID is missing. Please login again.');
-        return;
-      }
-      
-      try {
-        const uploadUrl = `${API_URL}/counter-display/upload-logo`;
-        console.log('📤 Uploading left logo to:', uploadUrl);
-        const response = await axios.post(uploadUrl, formData, {
-          headers: { 
-            'Content-Type': 'multipart/form-data',
-            ...getAuthHeaders()
-          }
-        });
-        
-        if (response.data.success) {
-          setLeftLogoUrl(response.data.logoUrl);
-          toast.success('Left logo uploaded successfully', {
-            position: "top-right",
-            autoClose: 3000
-          });
-          console.log('✅ Left logo uploaded:', response.data.logoUrl);
-        }
-      } catch (error) {
-        console.error('❌ Error uploading left logo:', error);
-        console.error('Error response:', error.response?.data);
-        toast.error(error.response?.data?.message || 'Failed to upload left logo', {
-          position: "top-right",
-          autoClose: 8000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          style: { whiteSpace: 'pre-line' }
-        });
-      }
+      toast.success(`✅ Left logo selected: ${file.name}\n\nClick "Update Content" button to upload and save.`, {
+        position: "top-right",
+        autoClose: 3000
+      });
     }
   };
 
-  const handleRightLogoUpload = async (e) => {
+  const handleRightLogoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       console.log('🖼️ Right logo selected:', file.name);
@@ -466,61 +427,14 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       }
       
       setRightLogo(file);
-      
-      // Upload immediately
-      const formData = new FormData();
-      formData.append('logo', file);
-      formData.append('logoType', 'right');
-      if (adminId) {
-        formData.append('admin_id', adminId);
-      } else {
-        toast.error('Admin ID is missing. Please login again.', {
-          position: "top-right",
-          autoClose: 8000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          style: { whiteSpace: 'pre-line' }
-        });
-        return;
-      }
-      
-      try {
-        const uploadUrl = `${API_URL}/counter-display/upload-logo`;
-        console.log('📤 Uploading right logo to:', uploadUrl);
-        const response = await axios.post(uploadUrl, formData, {
-          headers: { 
-            'Content-Type': 'multipart/form-data',
-            ...getAuthHeaders()
-          }
-        });
-        
-        if (response.data.success) {
-          setRightLogoUrl(response.data.logoUrl);
-          toast.success('Right logo uploaded successfully', {
-            position: "top-right",
-            autoClose: 3000
-          });
-          console.log('✅ Right logo uploaded:', response.data.logoUrl);
-        }
-      } catch (error) {
-        console.error('❌ Error uploading right logo:', error);
-        console.error('Error response:', error.response?.data);
-        toast.error(error.response?.data?.message || 'Failed to upload right logo', {
-          position: "top-right",
-          autoClose: 8000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          style: { whiteSpace: 'pre-line' }
-        });
-      }
+      toast.success(`✅ Right logo selected: ${file.name}\n\nClick "Update Content" button to upload and save.`, {
+        position: "top-right",
+        autoClose: 3000
+      });
     }
   };
 
-  const handleImagesUpload = async (e) => {
+  const handleImagesUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       console.log('🖼️ Images selected:', files.length, 'files');
@@ -540,64 +454,29 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         return;
       }
       
-      // Upload images to server
-      const formData = new FormData();
-      files.forEach(file => {
-        formData.append('images', file);
+      const newImages = files.map((file, index) => {
+        const tempId = `temp-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`;
+        return {
+          id: tempId,
+          preview: URL.createObjectURL(file),
+          name: file.name,
+          file: file,
+          isTemp: true
+        };
       });
-      if (adminId) {
-        formData.append('admin_id', adminId);
-      } else {
-        toast.error('Admin ID is missing. Please login again.', {
-          position: "top-right",
-          autoClose: 8000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          style: { whiteSpace: 'pre-line' }
-        });
-        return;
-      }
+
+      const newTempIds = newImages.map(img => img.id);
+
+      setSliderImages(prev => [...prev, ...newImages]);
+      setSelectedImages(prev => [...prev, ...newTempIds]);
+
+      toast.success(`✅ ${files.length} image(s) selected.\n\nClick "Update Content" button to upload and save.`, {
+        position: "top-right",
+        autoClose: 3000
+      });
+      console.log('✅ Images ready for upload on "Update Content" click');
       
-      try {
-        const uploadUrl = `${API_URL}/counter-display/upload-images`;
-        console.log('📤 Uploading images to:', uploadUrl);
-        const response = await axios.post(uploadUrl, formData, {
-          headers: { 
-            'Content-Type': 'multipart/form-data',
-            ...getAuthHeaders()
-          }
-        });
-        
-        if (response.data.success) {
-          const uploadedImages = response.data.images.map(img => ({
-            id: img.id,
-            preview: `${process.env.NEXT_PUBLIC_API_URL_WS}${img.imageUrl}`,
-            name: img.imageName,
-            file: null
-          }));
-          
-          setSliderImages([...sliderImages, ...uploadedImages]);
-          toast.success(`${uploadedImages.length} images uploaded successfully`, {
-            position: "top-right",
-            autoClose: 3000
-          });
-          console.log('✅ Images uploaded:', uploadedImages.length);
-        }
-      } catch (error) {
-        console.error('❌ Error uploading images:', error);
-        console.error('Error response:', error.response?.data);
-        toast.error(error.response?.data?.message || 'Failed to upload images', {
-          position: "top-right",
-          autoClose: 8000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          style: { whiteSpace: 'pre-line' }
-        });
-      }
+      e.target.value = '';
     }
   };
 
@@ -614,6 +493,19 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
   // Delete image handler
   const handleDeleteImage = async (imageId, imageName) => {
     if (!confirm(`Are you sure you want to delete "${imageName}"?`)) {
+      return;
+    }
+
+    const targetImage = sliderImages.find(img => img.id === imageId);
+
+    // If image is a local temporary file (not uploaded to server yet), just remove from state
+    if (targetImage && (targetImage.isTemp || String(imageId).startsWith('temp-'))) {
+      setSliderImages(prev => prev.filter(img => img.id !== imageId));
+      setSelectedImages(prev => prev.filter(id => id !== imageId));
+      toast.success('Image removed from selection!', {
+        position: "top-right",
+        autoClose: 3000
+      });
       return;
     }
 
@@ -798,9 +690,63 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
     }
     
     try {
+      let finalLeftLogoUrl = leftLogoUrl;
+      let finalRightLogoUrl = rightLogoUrl;
       let finalVideoUrl = videoUrl;
       
-      // ✅ STEP 1: Upload video if a new one is selected
+      // ✅ STEP 1: Upload Left Logo if a new file is selected
+      if (leftLogo) {
+        toast.info('⏳ Uploading left logo...', { position: "top-right", autoClose: false });
+        const formData = new FormData();
+        formData.append('logo', leftLogo);
+        formData.append('logoType', 'left');
+        formData.append('admin_id', adminId);
+        
+        const uploadUrl = `${API_URL}/counter-display/upload-logo`;
+        const response = await axios.post(uploadUrl, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            ...getAuthHeaders()
+          }
+        });
+        
+        if (response.data.success) {
+          finalLeftLogoUrl = response.data.logoUrl;
+          setLeftLogoUrl(finalLeftLogoUrl);
+          setLeftLogo(null);
+          console.log('✅ Left logo uploaded successfully:', finalLeftLogoUrl);
+        } else {
+          throw new Error(response.data.message || 'Left logo upload failed');
+        }
+      }
+
+      // ✅ STEP 2: Upload Right Logo if a new file is selected
+      if (rightLogo) {
+        toast.info('⏳ Uploading right logo...', { position: "top-right", autoClose: false });
+        const formData = new FormData();
+        formData.append('logo', rightLogo);
+        formData.append('logoType', 'right');
+        formData.append('admin_id', adminId);
+        
+        const uploadUrl = `${API_URL}/counter-display/upload-logo`;
+        const response = await axios.post(uploadUrl, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            ...getAuthHeaders()
+          }
+        });
+        
+        if (response.data.success) {
+          finalRightLogoUrl = response.data.logoUrl;
+          setRightLogoUrl(finalRightLogoUrl);
+          setRightLogo(null);
+          console.log('✅ Right logo uploaded successfully:', finalRightLogoUrl);
+        } else {
+          throw new Error(response.data.message || 'Right logo upload failed');
+        }
+      }
+
+      // ✅ STEP 3: Upload video if a new one is selected
       if (uploadedVideo) {
         toast.info('⏳ Video is uploading... Please wait...', {
           position: "top-right",
@@ -848,7 +794,70 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         }
       }
       
-      // ✅ STEP 2: Update configuration
+      // ✅ STEP 4: Upload temporary slider images if any
+      let currentSelectedIds = [...selectedImages];
+      const tempImages = sliderImages.filter(img => img.isTemp && img.file);
+      
+      if (tempImages.length > 0) {
+        toast.info('⏳ Uploading new slider images... Please wait...', {
+          position: "top-right",
+          autoClose: false
+        });
+        
+        const formData = new FormData();
+        tempImages.forEach(img => {
+          formData.append('images', img.file);
+        });
+        formData.append('admin_id', adminId);
+        
+        const uploadUrl = `${API_URL}/counter-display/upload-images`;
+        console.log('📤 Uploading slider images to:', uploadUrl);
+        
+        const uploadResponse = await axios.post(uploadUrl, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            ...getAuthHeaders()
+          }
+        });
+        
+        if (uploadResponse.data.success) {
+          const uploadedImages = uploadResponse.data.images; // Array of { id, imageUrl, imageName }
+          
+          // Map temp images to uploaded server images
+          const tempToRealIdMap = {};
+          let serverIdx = 0;
+          
+          const updatedSliderImages = sliderImages.map(img => {
+            if (img.isTemp && img.file && serverIdx < uploadedImages.length) {
+              const serverImg = uploadedImages[serverIdx];
+              tempToRealIdMap[img.id] = serverImg.id;
+              serverIdx++;
+              return {
+                id: serverImg.id,
+                preview: `${process.env.NEXT_PUBLIC_API_URL_WS}${serverImg.imageUrl}`,
+                name: serverImg.imageName,
+                file: null,
+                isTemp: false
+              };
+            }
+            return img;
+          });
+          
+          // Replace temp IDs in currentSelectedIds with real server IDs
+          currentSelectedIds = currentSelectedIds.map(id => tempToRealIdMap[id] || id);
+          
+          setSliderImages(updatedSliderImages);
+          setSelectedImages(currentSelectedIds);
+          console.log('✅ Slider images uploaded successfully:', uploadedImages.length);
+        } else {
+          throw new Error(uploadResponse.data.message || 'Images upload failed');
+        }
+      }
+
+      // Filter selectedImageIds to only include valid numeric or non-temp IDs
+      const finalSelectedImageIds = currentSelectedIds.filter(id => typeof id === 'number' || !String(id).startsWith('temp-'));
+      
+      // ✅ STEP 5: Update configuration
       toast.dismiss(); // Dismiss all previous toasts
       toast.info('💾 Configuration is being saved...', {
         position: "top-right",
@@ -857,14 +866,14 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       });
       
       const payload = {
-        leftLogoUrl,
-        rightLogoUrl,
+        leftLogoUrl: finalLeftLogoUrl,
+        rightLogoUrl: finalRightLogoUrl,
         screenType,
         contentType,
         videoUrl: finalVideoUrl,
         sliderTimer,
         tickerContent,
-        selectedImageIds: selectedImages,
+        selectedImageIds: finalSelectedImageIds,
         admin_id: adminId
       };
 

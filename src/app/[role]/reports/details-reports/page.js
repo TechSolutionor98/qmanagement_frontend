@@ -219,18 +219,16 @@ export default function DetailsReportsPage({ adminId: propAdminId }) {
       case 'ticket_id':
         return ticket.ticket_id || '-';
       case 'counter_no':
-        const counterNo = ticket.counter_no;
-        // Check if it's a valid number (not null, not empty, not 0, and is actually a number)
-        if (!counterNo || 
-            counterNo === '' || 
-            counterNo === '0' || 
-            counterNo === 0 || 
-            counterNo === 'null' || 
-            counterNo === 'NULL' || 
-            isNaN(Number(counterNo))) {  // If it's not a number (includes alphabets)
+        const counterVal = ticket.counter_name || ticket.counter_no;
+        if (!counterVal || 
+            counterVal === '' || 
+            counterVal === '0' || 
+            counterVal === 0 || 
+            counterVal === 'null' || 
+            counterVal === 'NULL') {
           return 'N/A';
         }
-        return counterNo;
+        return String(counterVal).replace(/^counter\s+/i, '');
       case 'service_name':
         return ticket.service_name || '-';
       case 'created_at':

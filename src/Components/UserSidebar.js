@@ -18,8 +18,8 @@ export default function UserSidebar({ isMobileOpen = false, onClose = () => {} }
     onClose();
   }, [pathname]);
 
-  // Function to refresh user data from localStorage
-  const refreshUserData = () => {
+  // Function to refresh user data from localStorage and API
+  const refreshUserData = async () => {
     const userStr = localStorage.getItem('user');
     console.log('🔄 [UserSidebar] Refreshing user data from localStorage');
     
@@ -28,7 +28,8 @@ export default function UserSidebar({ isMobileOpen = false, onClose = () => {} }
         const user = JSON.parse(userStr);
         
         setUsername(user.username || 'User');
-        setCounter(user.counter_no || user.counterNo || '-');
+        const initialCounter = user.counter_name || (user.counter_no ? `Counter ${user.counter_no}` : (user.counterNo || '-'));
+        setCounter(initialCounter);
         setUserRole(user.role || 'user');
         
         // Parse permissions
@@ -48,6 +49,25 @@ export default function UserSidebar({ isMobileOpen = false, onClose = () => {} }
       } catch (error) {
         console.error('❌ [UserSidebar] Error parsing user data:', error);
       }
+    }
+
+    // Also fetch active counter from API to get custom counter name
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_URL}/user/session/counter`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && (data.counter_name || data.counter_no)) {
+            setCounter(data.counter_name || `Counter ${data.counter_no}`);
+          }
+        }
+      }
+    } catch (err) {
+      // Ignore network errors in sidebar
     }
   };
 

@@ -301,7 +301,7 @@ function TicketInfoContent() {
                 if (!exists) {
                   return [...queue, {
                     ticket: ticketNumber,
-                    counter: latestTicket.counter_no || 'N/A',
+                    counter: latestTicket.counter_name || (latestTicket.counter_no ? `${latestTicket.counter_no}` : 'N/A'),
                     timestamp: latestTimestamp
                   }];
                 }
@@ -311,7 +311,7 @@ function TicketInfoContent() {
               // Update display immediately if no announcement in progress
               console.log('🔄 Updating display and triggering voice');
               setCalledTicket(ticketNumber);
-              setCurrentCounter(latestTicket.counter_no || 'N/A');
+              setCurrentCounter(latestTicket.counter_name || (latestTicket.counter_no ? `${latestTicket.counter_no}` : 'N/A'));
               setLastAnnouncedTime(latestTimestamp);
               // Add to announced timestamps history and save to localStorage
               setAnnouncedTimestamps(prev => {
@@ -1446,7 +1446,7 @@ function TicketInfoContent() {
                             {item.ticket_number}
                           </td>
                           <td className={`${bgColor} text-black text-[60px] text-center align-middle ${textWeight} lg:text-[3vw] md:text-[5vw] sm:text-[7vw]`}>
-                            {item.counter_no || 'N/A'}
+                            {String(item.counter_name || item.counter_no || 'N/A').replace(/^counter\s+/i, '')}
                           </td>
                         </tr>
                       );
@@ -1488,7 +1488,9 @@ function TicketInfoContent() {
                 {displayedTicket && (
                   <>
                     <span className="inline-block w-[50px] h-[6px] bg-black align-middle mx-2"></span>
-                    <span className="text-[50px] font-bold">{displayedCounter || 'N/A'}</span>
+                    <span className="text-[50px] font-bold">
+                      {displayedCounter ? String(displayedCounter).replace(/^counter\s+/i, '') : 'N/A'}
+                    </span>
                   </>
                 )}
               </div>

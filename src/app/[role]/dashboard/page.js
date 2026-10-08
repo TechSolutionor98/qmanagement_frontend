@@ -32,6 +32,7 @@ export default function UserDashboard({ adminId = null }) {
   const [showCalledDrawer, setShowCalledDrawer] = useState(false);
   const [calledTickets, setCalledTickets] = useState([]);
   const [userCounter, setUserCounter] = useState(null);
+  const [userCounterName, setUserCounterName] = useState('');
   // Button settings from admin
   const [showNextButton, setShowNextButton] = useState(true);
   const [showTransferButton, setShowTransferButton] = useState(true);
@@ -190,11 +191,13 @@ export default function UserDashboard({ adminId = null }) {
 
         if (response.data.success && response.data.counter_no) {
           setUserCounter(response.data.counter_no);
-          console.log('✅ User counter verified from API:', response.data.counter_no);
+          setUserCounterName(response.data.counter_name || `Counter ${response.data.counter_no}`);
+          console.log('✅ User counter verified from API:', response.data.counter_no, response.data.counter_name);
         } else {
           // API returned success but no counter - check user object
           if (user.counter_no) {
             setUserCounter(user.counter_no);
+            setUserCounterName(user.counter_name || `Counter ${user.counter_no}`);
             console.log('⚠️ API has no counter, using user object:', user.counter_no);
           } else {
             console.warn('⚠️ No counter found - user may not be able to call tickets');
@@ -205,6 +208,7 @@ export default function UserDashboard({ adminId = null }) {
         // If API doesn't exist or fails, check from user object
         if (user.counter_no) {
           setUserCounter(user.counter_no);
+          setUserCounterName(user.counter_name || `Counter ${user.counter_no}`);
           console.log('✅ Counter from user object:', user.counter_no);
         } else {
           console.warn('⚠️ No counter in user object - tickets may not be callable');
