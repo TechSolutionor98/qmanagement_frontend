@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import axios from '@/utils/axiosInstance';
 import { getToken, getUser } from '@/utils/sessionStorage';
-
-
+import { DEFAULT_THEME_COLORS, THEME_PRESETS, parseThemeColors } from '@/utils/themeColors';
 
 export default function ConfigurationPage({ adminId: propAdminId }) {
   // ✅ Get adminId from prop OR from logged-in user's session
@@ -30,6 +29,11 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
   const [speechPitch, setSpeechPitch] = useState(1.0);
   const [testText, setTestText] = useState('Ticket number P-101 please come to counter 5');
 
+  // Screen theme colors state
+  const [themeColors, setThemeColors] = useState(DEFAULT_THEME_COLORS);
+  const [savingThemeColors, setSavingThemeColors] = useState(false);
+  const [loadingThemeColors, setLoadingThemeColors] = useState(false);
+
   // ChatterBox AI Voice states
   const [chatterboxVoices, setChatterboxVoices] = useState([]);
   const [selectedChatterboxVoice, setSelectedChatterboxVoice] = useState('child');  // ✅ Default to 'child' for child boy voice
@@ -51,7 +55,7 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
   ];
 
   // Tabs state
-  const [activeTab, setActiveTab] = useState('voice'); // 'voice' or 'ticket'
+  const [activeTab, setActiveTab] = useState('voice'); // 'voice', 'ticket', 'counters', or 'colors'
 
   // Ticket settings states
   const [licenseData, setLicenseData] = useState(null);
@@ -96,6 +100,9 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
 
       // Load counter custom names
       loadAdminCounters();
+
+      // Load screen theme colors
+      loadThemeColors();
     }
   }, [adminId]);
 
@@ -143,6 +150,53 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
       alert('❌ Error saving counter names: ' + (err.response?.data?.message || err.message));
     } finally {
       setSavingCounters(false);
+    }
+  };
+
+  const loadThemeColors = async () => {
+    if (!adminId) return;
+    try {
+      setLoadingThemeColors(true);
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/counter-display/config?adminId=${adminId}`;
+      const res = await axios.get(url, { headers: getAuthHeaders() });
+      if (res.data.success && res.data.config?.theme_colors) {
+        setThemeColors(parseThemeColors(res.data.config.theme_colors));
+      }
+    } catch (e) {
+      console.warn('Could not load theme colors:', e.message);
+    } finally {
+      setLoadingThemeColors(false);
+    }
+  };
+
+  const handleSaveThemeColors = async () => {
+    if (!adminId) return;
+    try {
+      setSavingThemeColors(true);
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/counter-display/theme-colors`;
+      const res = await axios.post(
+        url,
+        { theme_colors: themeColors, admin_id: adminId },
+        { headers: getAuthHeaders() }
+      );
+      if (res.data.success) {
+        // 🔔 Broadcast theme color update in real-time to active ticket screens
+        try {
+          const displayChannel = new BroadcastChannel('display-config-update');
+          displayChannel.postMessage({ updated: true, theme_colors: themeColors, admin_id: adminId });
+          displayChannel.close();
+        } catch (e) {
+          console.warn('Could not broadcast color update:', e);
+        }
+        alert('✅ Ticket Info Screen colors saved successfully! All waiting area screens will now display these colors.');
+      } else {
+        alert('❌ Failed to save colors: ' + res.data.message);
+      }
+    } catch (e) {
+      console.error('Error saving colors:', e);
+      alert('❌ Error saving colors: ' + (e.response?.data?.message || e.message));
+    } finally {
+      setSavingThemeColors(false);
     }
   };
 
@@ -758,6 +812,15 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
             }`}
         >
           🔢 Counter Custom Names
+        </button>
+        <button
+          onClick={() => setActiveTab('colors')}
+          className={`py-3 px-6 font-semibold text-sm transition-all border-b-2 outline-none flex items-center gap-2 ${activeTab === 'colors'
+            ? 'border-teal-600 text-teal-600 font-bold'
+            : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+        >
+          🎨 Screen Display Colors
         </button>
       </div>
 
@@ -1408,6 +1471,343 @@ export default function ConfigurationPage({ adminId: propAdminId }) {
                   </div>
                 </div>
               )}
+            </div>
+          ) : activeTab === 'colors' ? (
+            /* TAB 4: Screen Display Colors */
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 max-w-4xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-200 gap-3">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <span className="text-2xl">🎨</span> Ticket Info Screen Colors & Customization
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Customize the colors of waiting area screens (Horizontal & Vertical displays) for your license.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveThemeColors}
+                  disabled={savingThemeColors}
+                  className="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-indigo-600 hover:from-teal-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {savingThemeColors ? '💾 Saving Colors...' : '💾 Save Screen Colors'}
+                </button>
+              </div>
+
+              {/* 1-Click Presets */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-3">
+                  Quick Theme Presets (1-Click Apply):
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
+                  {THEME_PRESETS.map((preset) => {
+                    const isSelected =
+                      themeColors.tableHeaderBg === preset.colors.tableHeaderBg &&
+                      themeColors.activeTicketBg === preset.colors.activeTicketBg;
+
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setThemeColors({ ...themeColors, ...preset.colors })}
+                        className={`p-2.5 rounded-lg border text-left transition-all ${
+                          isSelected
+                            ? 'border-teal-600 bg-teal-50 ring-2 ring-teal-500 shadow-sm'
+                            : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0"
+                            style={{ backgroundColor: preset.colors.tableHeaderBg }}
+                          />
+                          <span className="text-xs font-bold text-gray-800 truncate" title={preset.name}>
+                            {preset.name.split(' ')[0]}
+                          </span>
+                        </div>
+                        <div className="flex gap-1">
+                          <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: preset.colors.activeTicketBg }} />
+                          <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: preset.colors.nowCallingColor }} />
+                          <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: preset.colors.tickerBg }} />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Color Pickers Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                {/* Table Header Color */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Table Header Background
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.tableHeaderBg || '#16909B'}
+                      onChange={(e) => setThemeColors({ ...themeColors, tableHeaderBg: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.tableHeaderBg || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, tableHeaderBg: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#16909B"
+                    />
+                  </div>
+                </div>
+
+                {/* Table Header Text Color */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Table Header Text Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.tableHeaderColor || '#FFFFFF'}
+                      onChange={(e) => setThemeColors({ ...themeColors, tableHeaderColor: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.tableHeaderColor || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, tableHeaderColor: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#FFFFFF"
+                    />
+                  </div>
+                </div>
+
+                {/* Calling Ticket Highlight Background */}
+                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                  <label className="block text-xs font-semibold text-yellow-900 mb-1.5">
+                    ⭐ Calling Ticket Highlight Background
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.activeTicketBg || '#FEF08A'}
+                      onChange={(e) => setThemeColors({ ...themeColors, activeTicketBg: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.activeTicketBg || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, activeTicketBg: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#FEF08A"
+                    />
+                  </div>
+                </div>
+
+                {/* Calling Ticket Text Color */}
+                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                  <label className="block text-xs font-semibold text-yellow-900 mb-1.5">
+                    ⭐ Calling Ticket Text Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.activeTicketColor || '#000000'}
+                      onChange={(e) => setThemeColors({ ...themeColors, activeTicketColor: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.activeTicketColor || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, activeTicketColor: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+
+                {/* "Now Calling" Label Color */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    "Now Calling" Label Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.nowCallingColor || '#DC2626'}
+                      onChange={(e) => setThemeColors({ ...themeColors, nowCallingColor: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.nowCallingColor || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, nowCallingColor: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#DC2626"
+                    />
+                  </div>
+                </div>
+
+                {/* Table Row Background */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Normal Table Row Background
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.tableRowBg || '#FFFFFF'}
+                      onChange={(e) => setThemeColors({ ...themeColors, tableRowBg: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.tableRowBg || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, tableRowBg: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#FFFFFF"
+                    />
+                  </div>
+                </div>
+
+                {/* Table Row Text Color */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Normal Table Row Text Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.tableRowColor || '#000000'}
+                      onChange={(e) => setThemeColors({ ...themeColors, tableRowColor: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.tableRowColor || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, tableRowColor: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+
+                {/* News Ticker Background */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    News Ticker Background
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.tickerBg || '#333333'}
+                      onChange={(e) => setThemeColors({ ...themeColors, tickerBg: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.tickerBg || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, tickerBg: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#333333"
+                    />
+                  </div>
+                </div>
+
+                {/* News Ticker Text Color */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    News Ticker Text Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={themeColors.tickerColor || '#FFFFFF'}
+                      onChange={(e) => setThemeColors({ ...themeColors, tickerColor: e.target.value })}
+                      className="w-9 h-9 rounded cursor-pointer border p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={themeColors.tickerColor || ''}
+                      onChange={(e) => setThemeColors({ ...themeColors, tickerColor: e.target.value })}
+                      className="flex-1 text-xs px-2.5 py-1.5 font-mono border rounded uppercase text-gray-800"
+                      placeholder="#FFFFFF"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Live Screen Mini-Preview Box */}
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <span className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
+                  📺 Live Screen Preview:
+                </span>
+                <div
+                  className="rounded-lg overflow-hidden border border-gray-300 shadow-sm text-xs"
+                  style={{ backgroundColor: themeColors.screenBg || '#ffffff' }}
+                >
+                  <div
+                    className="py-2 px-3 flex justify-between items-center border-b"
+                    style={{ backgroundColor: themeColors.headerBg || '#ffffff' }}
+                  >
+                    <span className="text-[10px] font-bold text-gray-400">LOGO</span>
+                    <div className="text-center">
+                      <span className="text-[10px] font-bold" style={{ color: themeColors.nowCallingColor || '#dc2626' }}>
+                        Now Calling:
+                      </span>{' '}
+                      <span className="text-xs font-extrabold" style={{ color: themeColors.nowCallingTextColor || '#000000' }}>
+                        A-101 — Counter 1
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-400">LOGO</span>
+                  </div>
+
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr style={{ backgroundColor: themeColors.tableHeaderBg || '#16909B', color: themeColors.tableHeaderColor || '#ffffff' }}>
+                        <th className="py-1 px-3 text-center font-bold">Ticket</th>
+                        <th className="py-1 px-3 text-center font-bold">Counter</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style={{ backgroundColor: themeColors.activeTicketBg || '#fef08a', color: themeColors.activeTicketColor || '#000000' }}>
+                        <td className="py-1 px-3 text-center font-bold">A-101 (Calling)</td>
+                        <td className="py-1 px-3 text-center font-bold">Counter 1</td>
+                      </tr>
+                      <tr style={{ backgroundColor: themeColors.tableRowBg || '#ffffff', color: themeColors.tableRowColor || '#000000' }}>
+                        <td className="py-1 px-3 text-center font-medium">B-205</td>
+                        <td className="py-1 px-3 text-center font-medium">Counter 3</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <div
+                    className="py-1 text-center text-[10px] font-bold"
+                    style={{ backgroundColor: themeColors.tickerBg || '#333333', color: themeColors.tickerColor || '#ffffff' }}
+                  >
+                    Welcome to Customer Care Services • News Ticker Preview
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setThemeColors({ ...DEFAULT_THEME_COLORS })}
+                  className="px-4 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                >
+                  ↺ Reset to Default Colors
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveThemeColors}
+                  disabled={savingThemeColors}
+                  className="px-8 py-3 bg-gradient-to-r from-teal-600 to-indigo-600 hover:from-teal-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center gap-2"
+                >
+                  {savingThemeColors ? '💾 Saving...' : '💾 Save Screen Colors'}
+                </button>
+              </div>
             </div>
           ) : null}
         </div>

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/Components/ProtectedRoute';
 import { getToken, getUser } from '@/utils/sessionStorage';
 import logo from '@/Components/images/logo_main.png'
+import { DEFAULT_THEME_COLORS, parseThemeColors } from '@/utils/themeColors';
 
 function TicketInfoContent() {
   const router = useRouter();
@@ -54,6 +55,8 @@ function TicketInfoContent() {
   const [sliderImages, setSliderImages] = useState([]);
   const [sliderTimer, setSliderTimer] = useState(5);
   const [tickerContent, setTickerContent] = useState('Welcome to Dubai Economic Department Services');
+  const [themeColors, setThemeColors] = useState(DEFAULT_THEME_COLORS);
+  const [currentAdminId, setCurrentAdminId] = useState(null);
 
   // Remove hardcoded slides - images don't exist in production
   // const slides = ['/assets/img/33.png', '/assets/img/22.png', '/assets/img/11.png'];
@@ -393,6 +396,7 @@ function TicketInfoContent() {
         console.error('❌ No admin_id found for ticket_info user:', user);
         return;
       }
+      setCurrentAdminId(adminId);
 
       console.log('📡 Fetching display config for admin_id:', adminId);
 
@@ -415,6 +419,12 @@ function TicketInfoContent() {
           setVideoUrl(config.video_url || '');
           setSliderTimer(config.slider_timer || 5);
           setTickerContent(config.ticker_content || 'Welcome to Dubai Economic Department Services');
+
+          if (config.theme_colors) {
+            const parsed = parseThemeColors(config.theme_colors);
+            setThemeColors(parsed);
+            console.log('🎨 Custom theme colors loaded for screen:', parsed);
+          }
 
           console.log('✅ Display config loaded:', {
             leftLogo: config.left_logo_url ? 'Yes' : 'No',
@@ -464,9 +474,16 @@ function TicketInfoContent() {
       console.log('🔃 Polling backend for new tickets...');
       fetchCalledTickets();
     }, 2000); // Check every 2 seconds
+
+    // 🔄 Periodic check for display config/theme colors every 5 seconds (for cross-browser sync)
+    const configInterval = setInterval(() => {
+      fetchDisplayConfig();
+    }, 5000);
+
     return () => {
       console.log('⏹️ Stopping ticket polling');
       clearInterval(pollInterval);
+      clearInterval(configInterval);
     };
   }, []); // Empty dependencies - poll should run continuously without restart
 
@@ -508,6 +525,16 @@ function TicketInfoContent() {
         localStorage.removeItem('tts_settings');
         // Settings will be fetched fresh from database on next announcement
       }
+    };
+
+    // 🎨 Also listen for real-time display config & theme colors update from admin
+    const displayConfigChannel = new BroadcastChannel('display-config-update');
+    displayConfigChannel.onmessage = (event) => {
+      console.log('🔔 Display config / colors updated by admin:', event.data);
+      if (event.data?.theme_colors) {
+        setThemeColors(parseThemeColors(event.data.theme_colors));
+      }
+      fetchDisplayConfig();
     };
 
     // Listen for messages from dashboard
@@ -585,6 +612,7 @@ function TicketInfoContent() {
       console.log('🧹 Closing BroadcastChannels');
       channel.close();
       voiceSettingsChannel.close();
+      displayConfigChannel.close();
     };
   }, []);
 
@@ -1393,7 +1421,13 @@ function TicketInfoContent() {
 
   return (
     <ProtectedRoute allowedRoles={['ticket_info']}>
-      <div className="ticket-display-root flex flex-col h-screen w-full bg-white text-white font-sans overflow-hidden">
+      <div
+        className="ticket-display-root flex flex-col h-screen w-full font-sans overflow-hidden transition-colors duration-300"
+        style={{
+          backgroundColor: themeColors.screenBg || '#ffffff',
+          color: themeColors.tableRowColor || '#000000'
+        }}
+      >
 
         {/* Enable Audio Button - Floating at top */}
         {!audioEnabled && (
@@ -1408,7 +1442,10 @@ function TicketInfoContent() {
         )}
 
         {/* Header Section - Logos + Now Calling */}
-        <div className="header-section w-full flex flex-row justify-around items-center bg-white/95 shadow-lg border-b border-gray-300">
+        <div
+          className="header-section w-full flex flex-row justify-around items-center shadow-lg border-b border-gray-300 transition-colors duration-300"
+          style={{ backgroundColor: themeColors.headerBg || '#ffffff' }}
+        >
           {/* Left Logo */}
           <div className="header-logo-box text-center">
             {leftLogoUrl ? (
@@ -1428,14 +1465,30 @@ function TicketInfoContent() {
 
           {/* Now Calling Section */}
           <div className="now-calling-box text-center border-l-[3px] border-r-[3px] border-gray-300">
-            <div className="text-black font-bold">
-              <b className="now-calling-label text-red-600">Now Calling</b>
+            <div className="font-bold">
+              <b
+                className="now-calling-label"
+                style={{ color: themeColors.nowCallingColor || '#dc2626' }}
+              >
+                Now Calling
+              </b>
               <br />
-              <span className="now-calling-ticket uppercase font-bold">{displayedTicket || 'Waiting...'}</span>
+              <span
+                className="now-calling-ticket uppercase font-bold"
+                style={{ color: themeColors.nowCallingTextColor || '#000000' }}
+              >
+                {displayedTicket || 'Waiting...'}
+              </span>
               {displayedTicket && (
                 <>
-                  <span className="now-calling-dash inline-block bg-black align-middle rounded-sm"></span>
-                  <span className="now-calling-ticket font-bold">
+                  <span
+                    className="now-calling-dash inline-block align-middle rounded-sm"
+                    style={{ backgroundColor: themeColors.nowCallingTextColor || '#000000' }}
+                  ></span>
+                  <span
+                    className="now-calling-ticket font-bold"
+                    style={{ color: themeColors.nowCallingTextColor || '#000000' }}
+                  >
                     {displayedCounter ? String(displayedCounter).replace(/^counter\s+/i, '') : 'N/A'}
                   </span>
                 </>
@@ -1462,14 +1515,29 @@ function TicketInfoContent() {
         </div>
 
         {/* Full Width Table Section */}
-        <div className="flex-1 bg-[#16909B] flex flex-col overflow-hidden overflow-y-auto">
+        <div
+          className="flex-1 flex flex-col overflow-hidden overflow-y-auto transition-colors duration-300"
+          style={{ backgroundColor: themeColors.tableHeaderBg || '#16909B' }}
+        >
           <table className="w-full border-collapse">
             <thead className="sticky top-0 z-10">
               <tr>
-                <th className="table-header bg-[#16909B] text-white text-center font-bold shadow-lg">
+                <th
+                  className="table-header text-center font-bold shadow-lg"
+                  style={{
+                    backgroundColor: themeColors.tableHeaderBg || '#16909B',
+                    color: themeColors.tableHeaderColor || '#ffffff'
+                  }}
+                >
                   Ticket
                 </th>
-                <th className="table-header bg-[#16909B] text-white text-center font-bold shadow-lg">
+                <th
+                  className="table-header text-center font-bold shadow-lg"
+                  style={{
+                    backgroundColor: themeColors.tableHeaderBg || '#16909B',
+                    color: themeColors.tableHeaderColor || '#ffffff'
+                  }}
+                >
                   Counter
                 </th>
               </tr>
@@ -1477,7 +1545,14 @@ function TicketInfoContent() {
             <tbody>
               {calledTickets.length === 0 ? (
                 <tr>
-                  <td colSpan="2" className="bg-white text-gray-500 table-empty-text text-center">
+                  <td
+                    colSpan="2"
+                    className="table-empty-text text-center"
+                    style={{
+                      backgroundColor: themeColors.tableRowBg || '#ffffff',
+                      color: themeColors.tableRowColor || '#6b7280'
+                    }}
+                  >
                     No tickets called yet
                   </td>
                 </tr>
@@ -1487,11 +1562,6 @@ function TicketInfoContent() {
                   const filteredForDisplay = calledTickets.filter(ticket =>
                     ticket.status && ticket.status.toLowerCase() === 'called'
                   );
-                  console.log('🖥️ DISPLAY TABLE: Rendering tickets:', filteredForDisplay.map(t => ({
-                    ticket: t.ticket_number,
-                    status: t.status,
-                    counter: t.counter_no
-                  })));
 
                   // Get unique tickets and sort: current calling ticket at top
                   const uniqueTickets = Array.from(new Map(
@@ -1503,21 +1573,15 @@ function TicketInfoContent() {
                     return ticket ? String(ticket).toLowerCase().trim() : '';
                   };
 
-                  // Use displayedTicket (currently announcing) for sorting, not calledTicket
                   const currentTicketNormalized = normalizeTicket(displayedTicket);
-
-                  console.log('🎯 Current ANNOUNCING ticket (normalized):', currentTicketNormalized);
-                  console.log('🎯 All tickets in table:', uniqueTickets.map(t => normalizeTicket(t.ticket_number)));
 
                   // Sort: currently ANNOUNCING ticket first (displayedTicket), then rest by time
                   const sortedTickets = uniqueTickets.sort((a, b) => {
                     const aNormalized = normalizeTicket(a.ticket_number);
                     const bNormalized = normalizeTicket(b.ticket_number);
 
-                    // If this is the currently calling ticket, move to top
                     if (aNormalized === currentTicketNormalized) return -1;
                     if (bNormalized === currentTicketNormalized) return 1;
-                    // Otherwise sort by called_at (newest first)
                     return new Date(b.called_at) - new Date(a.called_at);
                   });
 
@@ -1526,14 +1590,29 @@ function TicketInfoContent() {
                     .map((item, index) => {
                       // Highlight the currently ANNOUNCING ticket (displayedTicket)
                       const isCurrentTicket = normalizeTicket(item.ticket_number) === currentTicketNormalized;
-                      const bgColor = isCurrentTicket ? 'bg-yellow-200' : 'bg-white';
+                      const rowBg = isCurrentTicket
+                        ? (themeColors.activeTicketBg || '#fef08a')
+                        : (themeColors.tableRowBg || '#ffffff');
+                      const rowColor = isCurrentTicket
+                        ? (themeColors.activeTicketColor || '#000000')
+                        : (themeColors.tableRowColor || '#000000');
 
                       return (
-                        <tr key={index} className={`border-b-2 border-[#e6e9ec] ${isCurrentTicket ? 'animate-pulse' : ''}`}>
-                          <td className={`table-cell-text ${bgColor} text-black uppercase text-center align-middle font-bold`}>
+                        <tr
+                          key={index}
+                          className={`border-b-2 ${isCurrentTicket ? 'animate-pulse' : ''}`}
+                          style={{ borderColor: themeColors.tableBorderColor || '#e6e9ec' }}
+                        >
+                          <td
+                            className="table-cell-text uppercase text-center align-middle font-bold"
+                            style={{ backgroundColor: rowBg, color: rowColor }}
+                          >
                             {item.ticket_number}
                           </td>
-                          <td className={`table-cell-text ${bgColor} text-black text-center align-middle font-bold`}>
+                          <td
+                            className="table-cell-text text-center align-middle font-bold"
+                            style={{ backgroundColor: rowBg, color: rowColor }}
+                          >
                             {String(item.counter_name || item.counter_no || 'N/A').replace(/^counter\s+/i, '')}
                           </td>
                         </tr>
@@ -1546,7 +1625,13 @@ function TicketInfoContent() {
         </div>
 
         {/* News Ticker - Dynamic from database */}
-        <div className="ticker-bar w-full bg-[#333] text-white font-bold flex items-center justify-center">
+        <div
+          className="ticker-bar w-full font-bold flex items-center justify-center transition-colors duration-300"
+          style={{
+            backgroundColor: themeColors.tickerBg || '#333333',
+            color: themeColors.tickerColor || '#ffffff'
+          }}
+        >
           <marquee className="w-full">{tickerContent}</marquee>
         </div>
 

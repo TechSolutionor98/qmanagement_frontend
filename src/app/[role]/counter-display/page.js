@@ -6,6 +6,8 @@ import axiosRaw from 'axios'; // Raw axios for file uploads
 import { getToken, getUser } from '@/utils/sessionStorage';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { DEFAULT_THEME_COLORS, THEME_PRESETS, parseThemeColors } from '@/utils/themeColors';
+import ScreenColorCustomizerModal from '@/Components/ScreenColorCustomizerModal';
 
 
 
@@ -78,6 +80,8 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
   const [selectedImages, setSelectedImages] = useState([]);
   const [sliderTimer, setSliderTimer] = useState(5);
   const [tickerContent, setTickerContent] = useState('Welcome to HAPPINESS LOUNGE BUSINESSMEN SERVICES L.L.C');
+  const [themeColors, setThemeColors] = useState(DEFAULT_THEME_COLORS);
+  const [showColorModal, setShowColorModal] = useState(false);
   const [loading, setLoading] = useState(false);
   
   // Both User Display (automatically created with license)
@@ -143,6 +147,9 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
           setVideoUrl(config.video_url || '');
           setSliderTimer(config.slider_timer || 5);
           setTickerContent(config.ticker_content || 'Welcome to HAPPINESS LOUNGE BUSINESSMEN SERVICES L.L.C');
+          if (config.theme_colors) {
+            setThemeColors(parseThemeColors(config.theme_colors));
+          }
         }
 
         if (images && images.length > 0) {
@@ -874,6 +881,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         sliderTimer,
         tickerContent,
         selectedImageIds: finalSelectedImageIds,
+        theme_colors: themeColors,
         admin_id: adminId
       };
 
@@ -894,6 +902,15 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       });
       
       if (response.data.success) {
+        // 🔔 Broadcast theme color update in real-time to active ticket screens
+        try {
+          const displayChannel = new BroadcastChannel('display-config-update');
+          displayChannel.postMessage({ updated: true, theme_colors: themeColors, admin_id: adminId });
+          displayChannel.close();
+        } catch (e) {
+          console.warn('Could not broadcast color update:', e);
+        }
+
         toast.dismiss(); // Dismiss all toasts
         toast.success('✅ Configuration updated successfully!', {
           position: "top-right",
@@ -940,7 +957,37 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-semibold text-gray-700 mb-6">Counter Display Management</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <h1 className="text-2xl font-semibold text-gray-700">Counter Display Management</h1>
+        <button
+          onClick={() => setShowColorModal(true)}
+          className="px-5 py-2.5 bg-gradient-to-r from-teal-600 to-indigo-600 hover:from-teal-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 self-start sm:self-auto"
+        >
+          <span className="text-lg">🎨</span>
+          <span>Change Screen Colors</span>
+        </button>
+      </div>
+
+      {/* Top Banner for Screen Colors */}
+      <div className="bg-gradient-to-r from-teal-50 via-cyan-50 to-indigo-50 border-2 border-teal-200 rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-teal-600 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+            🎨
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-teal-950">Ticket Info Screen Colors & Theme</h3>
+            <p className="text-xs text-teal-800 mt-0.5">
+              Customize colors for Waiting Area Screens (Table header, rows, calling highlight, news ticker & background).
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowColorModal(true)}
+          className="px-5 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-bold shadow transition flex items-center gap-2 shrink-0"
+        >
+          <span>🎛️</span> Customize Screen Colors
+        </button>
+      </div>
       
       {/* Edit User Modal */}
       {showEditUserModal && (
@@ -1038,7 +1085,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
       )}
 
 
-      {/* Top Row: Left Logo, Right Logo, Screen Type */
+      {/* Top Row: Left Logo, Right Logo, Screen Type */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="bg-white rounded-lg shadow p-4">
           <label className="block text-xs font-semibold text-gray-600 uppercase mb-2">
@@ -1101,7 +1148,7 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
         </div>
       </div>
 
-      /* Both User Display Section */}
+      {/* Both User Display Section */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-md p-5 mb-6 border-2 border-green-200">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -1479,6 +1526,217 @@ export default function CounterDisplayPage({ adminId: propAdminId }) {
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-gray-700"
         />
       </div>
+
+      {/* Ticket Info Screen Theme & Colors Card */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-200 gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <span className="text-xl">🎨</span> Ticket Info Screen Colors & Customization
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              Customize table, header, ticker, and calling colors for all waiting area screens under your license. Only Admin can update these colors from here.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowColorModal(true)}
+            className="px-5 py-2.5 bg-gradient-to-r from-teal-600 to-indigo-600 hover:from-teal-700 hover:to-indigo-700 text-white rounded-lg font-bold text-xs shadow-md transition-all flex items-center gap-2 self-start sm:self-auto hover:shadow-lg"
+          >
+            <span>🎛️</span> Open Detailed Color Editor
+          </button>
+        </div>
+
+        {/* Quick Presets */}
+        <div className="mt-5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-3">
+            Quick Theme Presets (1-Click Apply):
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
+            {THEME_PRESETS.map((preset) => {
+              const isSelected =
+                themeColors.tableHeaderBg === preset.colors.tableHeaderBg &&
+                themeColors.activeTicketBg === preset.colors.activeTicketBg;
+
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setThemeColors({ ...themeColors, ...preset.colors })}
+                  className={`p-2.5 rounded-lg border text-left transition-all ${
+                    isSelected
+                      ? 'border-teal-600 bg-teal-50 ring-2 ring-teal-500 shadow-sm'
+                      : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <span
+                      className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0"
+                      style={{ backgroundColor: preset.colors.tableHeaderBg }}
+                    />
+                    <span className="text-xs font-bold text-gray-800 truncate" title={preset.name}>
+                      {preset.name.split(' ')[0]}
+                    </span>
+                  </div>
+                  <div className="flex gap-1">
+                    <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: preset.colors.activeTicketBg }} />
+                    <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: preset.colors.nowCallingColor }} />
+                    <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: preset.colors.tickerBg }} />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Quick Color Pickers Row */}
+        <div className="mt-6 pt-5 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {/* Table Header Color */}
+          <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+            <span className="block text-[11px] font-semibold text-gray-600 mb-1">Table Header</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={themeColors.tableHeaderBg || '#16909B'}
+                onChange={(e) => setThemeColors({ ...themeColors, tableHeaderBg: e.target.value })}
+                className="w-7 h-7 rounded cursor-pointer border p-0"
+              />
+              <span className="text-[11px] font-mono text-gray-700 uppercase">
+                {themeColors.tableHeaderBg || '#16909B'}
+              </span>
+            </div>
+          </div>
+
+          {/* Active Ticket Highlight */}
+          <div className="bg-yellow-50 p-2.5 rounded-lg border border-yellow-200">
+            <span className="block text-[11px] font-semibold text-yellow-900 mb-1">Calling Highlight</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={themeColors.activeTicketBg || '#FEF08A'}
+                onChange={(e) => setThemeColors({ ...themeColors, activeTicketBg: e.target.value })}
+                className="w-7 h-7 rounded cursor-pointer border p-0"
+              />
+              <span className="text-[11px] font-mono text-yellow-900 uppercase">
+                {themeColors.activeTicketBg || '#FEF08A'}
+              </span>
+            </div>
+          </div>
+
+          {/* Now Calling Text Color */}
+          <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+            <span className="block text-[11px] font-semibold text-gray-600 mb-1">"Now Calling" Label</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={themeColors.nowCallingColor || '#DC2626'}
+                onChange={(e) => setThemeColors({ ...themeColors, nowCallingColor: e.target.value })}
+                className="w-7 h-7 rounded cursor-pointer border p-0"
+              />
+              <span className="text-[11px] font-mono text-gray-700 uppercase">
+                {themeColors.nowCallingColor || '#DC2626'}
+              </span>
+            </div>
+          </div>
+
+          {/* News Ticker Background */}
+          <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+            <span className="block text-[11px] font-semibold text-gray-600 mb-1">News Ticker Bar</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={themeColors.tickerBg || '#333333'}
+                onChange={(e) => setThemeColors({ ...themeColors, tickerBg: e.target.value })}
+                className="w-7 h-7 rounded cursor-pointer border p-0"
+              />
+              <span className="text-[11px] font-mono text-gray-700 uppercase">
+                {themeColors.tickerBg || '#333333'}
+              </span>
+            </div>
+          </div>
+
+          {/* Table Row Background */}
+          <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+            <span className="block text-[11px] font-semibold text-gray-600 mb-1">Table Rows BG</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={themeColors.tableRowBg || '#FFFFFF'}
+                onChange={(e) => setThemeColors({ ...themeColors, tableRowBg: e.target.value })}
+                className="w-7 h-7 rounded cursor-pointer border p-0"
+              />
+              <span className="text-[11px] font-mono text-gray-700 uppercase">
+                {themeColors.tableRowBg || '#FFFFFF'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Mini Preview Box */}
+        <div className="mt-5 p-3.5 bg-gray-50 rounded-lg border border-gray-200">
+          <span className="block text-[11px] font-bold uppercase text-gray-500 mb-2">
+            Screen Preview with Current Colors:
+          </span>
+          <div
+            className="rounded-lg overflow-hidden border border-gray-300 shadow-sm text-xs"
+            style={{ backgroundColor: themeColors.screenBg || '#ffffff' }}
+          >
+            <div
+              className="py-1.5 px-3 flex justify-between items-center border-b"
+              style={{ backgroundColor: themeColors.headerBg || '#ffffff' }}
+            >
+              <span className="text-[10px] font-bold text-gray-400">LOGO</span>
+              <div className="text-center">
+                <span className="text-[10px] font-bold" style={{ color: themeColors.nowCallingColor || '#dc2626' }}>
+                  Now Calling:
+                </span>{' '}
+                <span className="text-xs font-extrabold" style={{ color: themeColors.nowCallingTextColor || '#000000' }}>
+                  A-101 — Counter 1
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-gray-400">LOGO</span>
+            </div>
+
+            <table className="w-full text-xs">
+              <thead>
+                <tr style={{ backgroundColor: themeColors.tableHeaderBg || '#16909B', color: themeColors.tableHeaderColor || '#ffffff' }}>
+                  <th className="py-1 px-3 text-center font-bold">Ticket</th>
+                  <th className="py-1 px-3 text-center font-bold">Counter</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ backgroundColor: themeColors.activeTicketBg || '#fef08a', color: themeColors.activeTicketColor || '#000000' }}>
+                  <td className="py-1 px-3 text-center font-bold">A-101 (Calling)</td>
+                  <td className="py-1 px-3 text-center font-bold">Counter 1</td>
+                </tr>
+                <tr style={{ backgroundColor: themeColors.tableRowBg || '#ffffff', color: themeColors.tableRowColor || '#000000' }}>
+                  <td className="py-1 px-3 text-center font-medium">B-205</td>
+                  <td className="py-1 px-3 text-center font-medium">Counter 3</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div
+              className="py-1 text-center text-[10px] font-bold"
+              style={{ backgroundColor: themeColors.tickerBg || '#333333', color: themeColors.tickerColor || '#ffffff' }}
+            >
+              {tickerContent || 'News Ticker Preview'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Screen Color Customizer Modal for Detailed Editing */}
+      <ScreenColorCustomizerModal
+        isOpen={showColorModal}
+        onClose={() => setShowColorModal(false)}
+        currentColors={themeColors}
+        onColorsChange={(updated) => setThemeColors(updated)}
+        adminId={adminId}
+        apiUrl={API_URL}
+        token={getToken()}
+      />
+
 
       {/* Update Button */}
       <div className="text-center">
